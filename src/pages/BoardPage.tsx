@@ -4,33 +4,46 @@ import { useNavigate } from "react-router-dom";
 import BoardStructure from "@/components/BoardStructure";
 import { ParsedBoardData } from "@/lib/types";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { fetchBoardStructure } from "@/lib/mondayAPI";
 
 const BoardPage = () => {
   const [boardData, setBoardData] = useState<ParsedBoardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Get board data from session storage
-    const storedBoardData = sessionStorage.getItem("mondayBoardData");
+  const loadBoardData = async () => {
+    setIsLoading(true);
+    const storedCredentialsStr = sessionStorage.getItem("mondayCredentials");
     
-    if (!storedBoardData) {
-      toast.error("No board data found. Please connect to Monday.com first.");
+    if (!storedCredentialsStr) {
+      toast.error("No credentials found. Please connect to Monday.com first.");
       navigate("/");
       return;
     }
-    
+
     try {
-      const parsedData = JSON.parse(storedBoardData) as ParsedBoardData;
-      setBoardData(parsedData);
+      const credentials = JSON.parse(storedCredentialsStr);
+      const fetchedBoardData = await fetchBoardStructure(credentials);
+      
+      if (fetchedBoardData) {
+        setBoardData(fetchedBoardData);
+        sessionStorage.setItem("mondayBoardData", JSON.stringify(fetchedBoardData));
+      } else {
+        toast.error("Failed to refresh board data.");
+      }
     } catch (error) {
-      console.error("Error parsing board data:", error);
+      console.error("Error refreshing board data:", error);
       toast.error("Error loading board data. Please reconnect to Monday.com.");
       navigate("/");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadBoardData();
   }, [navigate]);
 
   if (isLoading) {
@@ -52,12 +65,12 @@ const BoardPage = () => {
           <p className="text-lg text-gray-600 mb-4">
             There was a problem loading your board data.
           </p>
-          <button 
+          <Button 
             onClick={() => navigate('/')}
-            className="px-4 py-2 bg-monday-blue text-white rounded hover:bg-monday-darkBlue"
+            variant="destructive"
           >
             Return to Connect Page
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -65,9 +78,24 @@ const BoardPage = () => {
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">
+          Source Board: {boardData.boardName}
+        </h2>
+        <Button 
+          variant="outline" 
+          onClick={loadBoardData} 
+          disabled={isLoading}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
+      </div>
       <BoardStructure boardData={boardData} />
     </div>
   );
 };
 
 export default BoardPage;
+
