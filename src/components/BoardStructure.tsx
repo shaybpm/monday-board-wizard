@@ -48,15 +48,31 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     direction: "ascending" | "descending" | null;
   }>({ key: "id", direction: null });
   
-  // Default column widths
-  const defaultColumnWidths: ColumnWidth = {
-    id: 150,
-    title: 250,
-    type: 150
+  // Default column widths based on content
+  const calculateDefaultWidths = () => {
+    const widths: ColumnWidth = {
+      id: 100,  // Start with minimal values
+      title: 150,
+      type: 100
+    };
+    
+    // Estimate width based on content length
+    boardData.columns.forEach(column => {
+      // ID column - base on longest ID
+      widths.id = Math.max(widths.id, Math.min(250, column.id.length * 8 + 40));
+      
+      // Title column - base on longest title 
+      widths.title = Math.max(widths.title, Math.min(350, column.title.length * 8 + 60));
+      
+      // Type column - base on longest type
+      widths.type = Math.max(widths.type, Math.min(200, column.type.length * 9 + 50));
+    });
+    
+    return widths;
   };
   
   // For column resizing
-  const [columnWidths, setColumnWidths] = useState<ColumnWidth>(defaultColumnWidths);
+  const [columnWidths, setColumnWidths] = useState<ColumnWidth>(calculateDefaultWidths());
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [startX, setStartX] = useState<number>(0);
   const [startWidth, setStartWidth] = useState<number>(0);
@@ -67,6 +83,9 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
+  // DOM ref for table container to handle mouse events correctly
+  const tableRef = useRef<HTMLDivElement>(null);
+
   // Load saved column widths and order from localStorage on component mount
   useEffect(() => {
     try {
@@ -74,6 +93,9 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       const savedWidths = localStorage.getItem(STORAGE_KEY_COLUMN_WIDTH);
       if (savedWidths) {
         setColumnWidths(JSON.parse(savedWidths));
+      } else {
+        // No saved widths, use calculated defaults
+        setColumnWidths(calculateDefaultWidths());
       }
       
       // Load column order
@@ -84,7 +106,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     } catch (error) {
       console.error("Error loading saved column settings:", error);
       // Fallback to defaults if there's an error
-      setColumnWidths(defaultColumnWidths);
+      setColumnWidths(calculateDefaultWidths());
       setColumnOrder(defaultColumnOrder);
     }
   }, []);
@@ -185,24 +207,26 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     setStartX(e.clientX);
     setStartWidth(columnWidths[columnId] || 150);
     
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    function handleMouseMove(moveEvent: MouseEvent) {
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+      
       if (resizingColumn) {
-        moveEvent.preventDefault();
         const deltaX = moveEvent.clientX - startX;
-        const newWidth = Math.max(100, startWidth + deltaX);
+        const newWidth = Math.max(80, startWidth + deltaX);
         
         setColumnWidths(prev => ({
           ...prev,
           [columnId]: newWidth
         }));
       }
-    };
+    }
     
-    const handleMouseUp = () => {
+    function handleMouseUp() {
       setResizingColumn(null);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-    };
+    }
     
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
@@ -273,12 +297,12 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         </CardContent>
       </Card>
       
-      <div className="rounded-md border overflow-x-auto">
+      <div className="rounded-md border overflow-x-auto" ref={tableRef}>
         <Table>
           <TableCaption>Board Structure - Total {boardData.columns.length} Columns</TableCaption>
           <TableHeader>
-            <TableRow className="h-9">
-              <TableHead className="w-10 p-2">
+            <TableRow className="h-8">
+              <TableHead className="w-10 p-1">
                 <div
                   className="cursor-pointer flex justify-center"
                   onClick={toggleAllSelection}
@@ -313,8 +337,13 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                 return (
                   <TableHead 
                     key={columnKey}
-                    className={`resizable-th relative h-9 p-2 select-none ${dragActive ? 'opacity-50' : ''} ${dragOver ? 'bg-gray-100' : ''}`}
-                    style={{ width: `${columnWidths[columnKey] || 150}px`, minWidth: "100px" }}
+                    className={`relative h-8 p-1 select-none border-r ${dragActive ? 'opacity-50' : ''} ${dragOver ? 'bg-gray-100' : ''}`}
+                    style={{ 
+                      width: `${columnWidths[columnKey] || 150}px`, 
+                      minWidth: "80px",
+                      maxWidth: "500px", 
+                      cursor: "default"
+                    }}
                     draggable={true}
                     onDragStart={(e) => handleDragStart(columnKey, e)}
                     onDragOver={(e) => handleDragOver(e, columnKey)}
@@ -322,13 +351,17 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                     onDragEnd={handleDragEnd}
                   >
                     <div className="flex items-center cursor-pointer">
-                      <GripVertical className="h-4 w-4 mr-2 cursor-grab text-gray-400" />
-                      <span onClick={() => requestSort(sortKey!)}>
+                      <GripVertical className="h-4 w-4 mr-1 cursor-grab text-gray-400" />
+                      <span 
+                        onClick={() => requestSort(sortKey!)}
+                        className="truncate"
+                        title={title}
+                      >
                         {title} {getSortIndicator(sortKey)}
                       </span>
                     </div>
                     <div 
-                      className="resizer"
+                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-blue-300 active:bg-blue-400"
                       onMouseDown={(e) => handleResizeStart(columnKey, e)} 
                       title="Drag to resize"
                     />
@@ -340,14 +373,14 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
           <TableBody>
             {sortedColumns.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columnOrder.length + 1} className="h-16 text-center">
+                <TableCell colSpan={columnOrder.length + 1} className="h-10 text-center">
                   No columns found.
                 </TableCell>
               </TableRow>
             ) : (
               sortedColumns.map((column) => (
-                <TableRow key={column.id} className={`${column.selected ? 'bg-blue-50' : ''} h-8`}>
-                  <TableCell className="text-center p-1">
+                <TableRow key={column.id} className={`${column.selected ? 'bg-blue-50' : ''} h-7`}>
+                  <TableCell className="text-center p-0">
                     <div 
                       className="cursor-pointer inline-flex"
                       onClick={() => toggleRowSelection(column.id)}
@@ -365,7 +398,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-id`}
                           style={{ width: `${columnWidths.id}px` }}
-                          className="font-mono text-xs p-1"
+                          className="font-mono text-xs p-1 truncate"
+                          title={column.id}
                         >
                           {column.id}
                         </TableCell>
@@ -376,7 +410,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-title`}
                           style={{ width: `${columnWidths.title}px` }}
-                          className="p-1"
+                          className="p-1 truncate"
+                          title={column.title}
                         >
                           {column.title}
                         </TableCell>
@@ -389,7 +424,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                           style={{ width: `${columnWidths.type}px` }}
                           className="p-1"
                         >
-                          <span className="px-2 py-0.5 bg-gray-100 rounded-md text-xs">
+                          <span className="px-2 py-0.5 bg-gray-100 rounded-md text-xs truncate inline-block max-w-full" title={column.type}>
                             {column.type}
                           </span>
                         </TableCell>
