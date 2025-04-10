@@ -177,6 +177,94 @@ export const fetchDebugItems = async (
   }
 };
 
+export const fetchDebugSubitems = async (
+  credentials: MondayCredentials,
+  limit: number = 20
+): Promise<any[]> => {
+  try {
+    // Get first few items to find subitems
+    const itemsQuery = `
+      query {
+        boards(ids: ${credentials.sourceBoard}) {
+          items_page(limit: 5) {
+            items {
+              id
+              name
+              subitems {
+                id
+              }
+            }
+          }
+        }
+      }
+    `;
+    
+    console.log("Fetching items to find subitems...");
+    const itemsResponse = await fetchFromMonday(itemsQuery, credentials.apiToken);
+    
+    if (!itemsResponse?.data?.boards?.[0]?.items_page?.items) {
+      toast.error("Failed to fetch items for subitems");
+      return [];
+    }
+    
+    // Get item IDs that have subitems
+    const itemsWithSubitems = itemsResponse.data.boards[0].items_page.items
+      .filter((item: any) => item.subitems && item.subitems.length > 0)
+      .map((item: any) => item.id);
+    
+    if (itemsWithSubitems.length === 0) {
+      console.log("No items with subitems found");
+      toast.info("No subitems found in the first items");
+      return [];
+    }
+    
+    // Get subitems for those items
+    const subitemsQuery = `
+      query {
+        boards(ids: ${credentials.sourceBoard}) {
+          items(ids: [${itemsWithSubitems.join(',')}]) {
+            id
+            name
+            subitems {
+              id
+              name
+              parent_item {
+                id
+                name
+              }
+              column_values {
+                id
+                text
+                value
+                type
+              }
+            }
+          }
+        }
+      }
+    `;
+    
+    console.log("Fetching subitems data...");
+    const subitemsResponse = await fetchFromMonday(subitemsQuery, credentials.apiToken);
+    
+    if (!subitemsResponse?.data?.boards?.[0]?.items) {
+      toast.error("Failed to fetch subitems data");
+      return [];
+    }
+    
+    // Flatten subitems from all items
+    const subitems = subitemsResponse.data.boards[0].items
+      .flatMap((item: any) => item.subitems || [])
+      .slice(0, limit);
+    
+    return subitems;
+  } catch (error) {
+    console.error("Error fetching debug subitems:", error);
+    toast.error("Error fetching debug subitems: " + (error instanceof Error ? error.message : String(error)));
+    return [];
+  }
+};
+
 async function fetchFromMonday(query: string, apiToken: string) {
   try {
     console.log("Sending query to Monday API:", query);

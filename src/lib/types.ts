@@ -53,3 +53,5 @@ export interface ParsedBoardData {
   items: BoardItem[];
   subitems: BoardItem[];
 }
+
+export type DebugDataType = 'items' | 'subitems';

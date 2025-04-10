@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { ParsedBoardData } from "@/lib/types";
 import { 
@@ -11,9 +12,10 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, CheckSquare, Square, GripVertical, FileText } from "lucide-react";
+import { Search, CheckSquare, Square, GripVertical, FileText, Table2, ListTree } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
 
 interface BoardStructureProps {
   boardData: ParsedBoardData;
@@ -41,6 +43,7 @@ const MIN_COLUMN_WIDTH = 20;
 
 const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showSubitems, setShowSubitems] = useState(false);
   const [columnRows, setColumnRows] = useState<ColumnRow[]>(
     boardData.columns.map(column => ({
       id: column.id,
@@ -81,7 +84,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   
   const [columnWidths, setColumnWidths] = useState<ColumnWidth>(calculateDefaultWidths());
   
-  const defaultColumnOrder = ["id", "title", "type", "firstLine"];
+  // Updated default column order to put title first
+  const defaultColumnOrder = ["title", "id", "type", "firstLine"];
   const [columnOrder, setColumnOrder] = useState<string[]>(defaultColumnOrder);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
@@ -119,6 +123,18 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         if (!filteredOrder.includes("firstLine")) {
           filteredOrder.push("firstLine");
         }
+        
+        // Ensure title comes before id regardless of saved order
+        if (filteredOrder.includes("title") && filteredOrder.includes("id")) {
+          const titleIndex = filteredOrder.indexOf("title");
+          const idIndex = filteredOrder.indexOf("id");
+          
+          if (idIndex < titleIndex) {
+            filteredOrder.splice(idIndex, 1);
+            filteredOrder.splice(titleIndex - 1, 0, "id");
+          }
+        }
+        
         setColumnOrder(filteredOrder);
       } else {
         setColumnOrder(defaultColumnOrder);
@@ -290,7 +306,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     <div className="space-y-4">
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center justify-between gap-4 mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -301,7 +317,18 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
               />
             </div>
             
-            <div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                {showSubitems ? <ListTree className="h-4 w-4" /> : <Table2 className="h-4 w-4" />}
+                <span className="text-sm font-medium">
+                  {showSubitems ? "Subitems" : "Items"}
+                </span>
+                <Switch
+                  checked={showSubitems}
+                  onCheckedChange={setShowSubitems}
+                />
+              </div>
+              
               <Button
                 variant="outline"
                 disabled={selectedCount === 0}
@@ -316,7 +343,11 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       
       <div className="rounded-md border overflow-x-auto" ref={tableRef}>
         <Table>
-          <TableCaption>Board Structure - Total {boardData.columns.length} Columns</TableCaption>
+          <TableCaption>
+            {showSubitems 
+              ? `Subitems Structure - Total ${boardData.columns.length} Columns`
+              : `Board Structure - Total ${boardData.columns.length} Columns`}
+          </TableCaption>
           <TableHeader>
             <TableRow className="h-8">
               <TableHead className="w-10 p-1">
@@ -482,6 +513,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                       );
                     }
                     if (columnKey === 'firstLine') {
+                      // Display item name if it's the "name" column, otherwise display the value
                       const displayValue = column.id === "name" 
                         ? (column.itemName || "N/A") 
                         : (column.firstLineValue || "N/A");

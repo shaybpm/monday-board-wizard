@@ -2,11 +2,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BoardStructure from "@/components/BoardStructure";
-import { ParsedBoardData } from "@/lib/types";
+import { DebugDataType, ParsedBoardData } from "@/lib/types";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, ArrowLeft, Bug } from "lucide-react";
+import { Loader2, RefreshCw, ArrowLeft, Bug, ListTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchBoardStructure, fetchDebugItems } from "@/lib/mondayAPI";
+import { fetchBoardStructure, fetchDebugItems, fetchDebugSubitems } from "@/lib/mondayAPI";
 import DebugItemsTable from "@/components/DebugItemsTable";
 
 const BoardPage = () => {
@@ -15,6 +15,7 @@ const BoardPage = () => {
   const [debugItems, setDebugItems] = useState<any[]>([]);
   const [debugLoading, setDebugLoading] = useState(false);
   const [showDebugData, setShowDebugData] = useState(false);
+  const [debugType, setDebugType] = useState<DebugDataType>("items");
   const navigate = useNavigate();
 
   const loadBoardData = async () => {
@@ -46,9 +47,10 @@ const BoardPage = () => {
     }
   };
 
-  const fetchDebugData = async () => {
+  const fetchDebugData = async (type: DebugDataType = "items") => {
     setDebugLoading(true);
     setShowDebugData(true);
+    setDebugType(type);
     const storedCredentialsStr = sessionStorage.getItem("mondayCredentials");
     
     if (!storedCredentialsStr) {
@@ -59,12 +61,19 @@ const BoardPage = () => {
     
     try {
       const credentials = JSON.parse(storedCredentialsStr);
-      // Fetch more items (20 instead of 10) to have more data for debugging
-      const items = await fetchDebugItems(credentials, 20);
-      setDebugItems(items);
+      
+      if (type === "items") {
+        // Fetch more items (20 instead of 10) to have more data for debugging
+        const items = await fetchDebugItems(credentials, 20);
+        setDebugItems(items);
+      } else {
+        // Fetch subitems for debugging
+        const subitems = await fetchDebugSubitems(credentials, 20);
+        setDebugItems(subitems);
+      }
     } catch (error) {
-      console.error("Debug fetch error:", error);
-      toast.error("Error fetching debug data");
+      console.error(`Debug fetch error (${type}):`, error);
+      toast.error(`Error fetching debug ${type}`);
     } finally {
       setDebugLoading(false);
     }
@@ -122,7 +131,7 @@ const BoardPage = () => {
             onClick={() => {
               setShowDebugData(!showDebugData);
               if (!debugItems.length && showDebugData === false) {
-                fetchDebugData();
+                fetchDebugData(debugType);
               }
             }}
             className="flex items-center gap-2"
@@ -130,6 +139,26 @@ const BoardPage = () => {
             <Bug className="h-4 w-4" />
             {showDebugData ? "Hide Debug Data" : "Show Debug Data"}
           </Button>
+          {showDebugData && (
+            <Button
+              variant="outline"
+              onClick={() => fetchDebugData("items")}
+              className="flex items-center gap-2"
+            >
+              <Bug className="h-4 w-4" />
+              Debug Items
+            </Button>
+          )}
+          {showDebugData && (
+            <Button
+              variant="outline"
+              onClick={() => fetchDebugData("subitems")}
+              className="flex items-center gap-2"
+            >
+              <ListTree className="h-4 w-4" />
+              Debug Subitems
+            </Button>
+          )}
           <Button 
             variant="outline" 
             onClick={loadBoardData} 
@@ -166,7 +195,7 @@ const BoardPage = () => {
         <Button
           variant="outline"
           onClick={() => navigate("/")}
-          className="flex items-center gap-1"
+          className="flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </Button>
@@ -178,6 +207,7 @@ const BoardPage = () => {
           items={debugItems} 
           columns={boardData.columns} 
           isLoading={debugLoading}
+          type={debugType}
         />
       )}
 

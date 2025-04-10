@@ -1,153 +1,142 @@
 
 import React from "react";
+import { BoardColumn } from "@/lib/types";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, List, ListTree } from "lucide-react";
 
 interface DebugItemsTableProps {
   items: any[];
-  columns: Array<{id: string, title: string, type: string}>;
+  columns: BoardColumn[];
   isLoading: boolean;
+  type?: 'items' | 'subitems';
 }
 
-const MAX_CELL_LENGTH = 50;
-const DEFAULT_COLUMNS_TO_SHOW = 10;
-
-const DebugItemsTable: React.FC<DebugItemsTableProps> = ({ items, columns, isLoading }) => {
-  const [columnOffset, setColumnOffset] = React.useState(0);
-  
+const DebugItemsTable: React.FC<DebugItemsTableProps> = ({ 
+  items, 
+  columns,
+  isLoading,
+  type = 'items'
+}) => {
   if (isLoading) {
-    return <div className="py-4 text-center">Loading debug data...</div>;
+    return (
+      <Card className="mb-6">
+        <CardContent className="pt-6 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+          <p className="mt-2">Loading debug data...</p>
+        </CardContent>
+      </Card>
+    );
   }
 
-  if (!items || items.length === 0) {
-    return <div className="py-4 text-center">No items found to display.</div>;
+  if (items.length === 0) {
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {type === 'items' ? <List className="h-5 w-5" /> : <ListTree className="h-5 w-5" />}
+            Debug {type === 'items' ? 'Items' : 'Subitems'} 
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-muted-foreground">
+            No {type} data available. 
+            {type === 'subitems' && " Make sure your board contains subitems."}
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
-
-  const truncateText = (text: string) => {
-    if (!text) return "—";
-    return text.length > MAX_CELL_LENGTH 
-      ? `${text.substring(0, MAX_CELL_LENGTH)}...` 
-      : text;
-  };
-
-  const extractValue = (item: any, columnId: string) => {
-    if (columnId === "name") {
-      return item.name || "—";
-    }
-    
-    if (columnId === "group") {
-      return item.group?.title || "—";
-    }
-    
-    const columnValue = item.column_values?.find((cv: any) => cv.id === columnId);
-    return columnValue?.text || JSON.stringify(columnValue?.value || "").replace(/"/g, "") || "—";
-  };
-
-  const visibleColumns = columns.slice(columnOffset, columnOffset + DEFAULT_COLUMNS_TO_SHOW);
-  const canScrollLeft = columnOffset > 0;
-  const canScrollRight = columnOffset + DEFAULT_COLUMNS_TO_SHOW < columns.length;
   
-  const handleScrollLeft = () => {
-    setColumnOffset(Math.max(0, columnOffset - 5));
-  };
-  
-  const handleScrollRight = () => {
-    setColumnOffset(Math.min(columns.length - DEFAULT_COLUMNS_TO_SHOW, columnOffset + 5));
-  };
+  // Display the first item/subitem
+  const firstItem = items[0];
+  const parentInfo = type === 'subitems' && firstItem.parent_item 
+    ? { id: firstItem.parent_item.id, name: firstItem.parent_item.name }
+    : null;
 
   return (
-    <Card className="mt-6">
-      <div className="p-4 bg-gray-50 border-b">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-medium">Debug Data - First {items.length} Items</h3>
-            <p className="text-sm text-gray-500">
-              Raw data from Monday.com API to help with debugging
-            </p>
+    <Card className="mb-6 overflow-x-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          {type === 'items' ? <List className="h-5 w-5" /> : <ListTree className="h-5 w-5" />}
+          Debug {type === 'items' ? 'Items' : 'Subitems'} 
+          <span className="text-xs font-normal ml-2 text-muted-foreground">
+            (showing first {items.length} {items.length === 1 ? type.slice(0, -1) : type})
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {parentInfo && (
+          <div className="mb-4 p-2 bg-gray-50 rounded-md border">
+            <div className="text-sm font-medium">Parent Item: {parentInfo.name}</div>
+            <div className="text-xs text-muted-foreground">ID: {parentInfo.id}</div>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleScrollLeft}
-              disabled={!canScrollLeft}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">Scroll left</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleScrollRight}
-              disabled={!canScrollRight}
-            >
-              <ChevronRight className="h-4 w-4" />
-              <span className="sr-only">Scroll right</span>
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              Showing columns {columnOffset+1} to {Math.min(columnOffset+DEFAULT_COLUMNS_TO_SHOW, columns.length)} of {columns.length}
-            </span>
-          </div>
+        )}
+        
+        <div className="text-sm font-medium mb-2">
+          Item: {firstItem.name}  
+          <span className="text-xs ml-2 text-muted-foreground">
+            (ID: {firstItem.id})
+          </span>
         </div>
-      </div>
-      
-      <ScrollArea className="h-[600px]">
-        <div className="w-full overflow-auto">
+        
+        {firstItem.group && (
+          <div className="text-xs mb-4 text-muted-foreground">
+            Group: {firstItem.group.title} (ID: {firstItem.group.id})
+          </div>
+        )}
+        
+        <div className="border rounded-md overflow-hidden">
           <Table>
-            <TableCaption>Data from Monday.com API</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] sticky left-0 bg-white z-10">ID</TableHead>
-                <TableHead className="w-[200px] sticky left-[80px] bg-white z-10">Name</TableHead>
-                <TableHead className="w-[120px] sticky left-[280px] bg-white z-10">Group</TableHead>
-                {visibleColumns.map(column => (
-                  <TableHead key={column.id} className="min-w-[150px]">
-                    {column.title} <span className="text-xs text-gray-500">({column.type})</span>
-                  </TableHead>
-                ))}
+                <TableHead className="w-40">Column ID</TableHead>
+                <TableHead className="w-48">Column Type</TableHead>
+                <TableHead className="w-1/3">Text</TableHead>
+                <TableHead className="w-1/3">Value</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-mono sticky left-0 bg-white z-10">{item.id}</TableCell>
-                  <TableCell className="sticky left-[80px] bg-white z-10">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>{truncateText(item.name)}</span>
-                      </TooltipTrigger>
-                      <TooltipContent>{item.name}</TooltipContent>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell className="sticky left-[280px] bg-white z-10">{item.group?.title || "—"}</TableCell>
-                  {visibleColumns.map(column => (
-                    <TableCell key={`${item.id}-${column.id}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>{truncateText(extractValue(item, column.id))}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>{extractValue(item, column.id)}</TooltipContent>
-                      </Tooltip>
+              {firstItem.column_values.map((columnValue: any) => {
+                // Find corresponding column definition
+                const columnDef = columns.find(c => c.id === columnValue.id);
+                
+                return (
+                  <TableRow key={columnValue.id}>
+                    <TableCell className="font-mono text-xs">
+                      {columnValue.id}
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+                    <TableCell>
+                      <span className="px-1 py-0.5 bg-gray-100 rounded-sm text-xs">
+                        {columnValue.type || (columnDef ? columnDef.type : "unknown")}
+                      </span>
+                    </TableCell>
+                    <TableCell className="max-w-md break-all">
+                      {columnValue.text !== null && columnValue.text !== undefined 
+                        ? columnValue.text 
+                        : <span className="text-muted-foreground italic">null</span>}
+                    </TableCell>
+                    <TableCell className="max-w-md overflow-hidden">
+                      <div className="max-h-20 overflow-y-auto">
+                        {columnValue.value !== null && columnValue.value !== undefined 
+                          ? <pre className="text-xs whitespace-pre-wrap">{columnValue.value}</pre> 
+                          : <span className="text-muted-foreground italic">null</span>}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
-      </ScrollArea>
+      </CardContent>
     </Card>
   );
 };
