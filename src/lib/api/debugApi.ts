@@ -89,28 +89,26 @@ export const fetchDebugSubitems = async (
       return [];
     }
     
-    // Fixed query - The key issue was here in the GraphQL query structure
+    // Fixed query - Use proper syntax for querying subitems
+    // The previous approach was using 'items_ids' which doesn't exist
+    // Instead, we'll use the 'ids' parameter to specify items and then get subitems
     const subitemsQuery = `
       query {
-        boards(ids: ${credentials.sourceBoard}) {
-          items_page(items_ids: [${itemsWithSubitems.join(',')}]) {
-            items {
+        items(ids: [${itemsWithSubitems.join(',')}]) {
+          id
+          name
+          subitems {
+            id
+            name
+            column_values {
+              id
+              text
+              value
+              type
+            }
+            parent_item {
               id
               name
-              subitems {
-                id
-                name
-                parent_item {
-                  id
-                  name
-                }
-                column_values {
-                  id
-                  text
-                  value
-                  type
-                }
-              }
             }
           }
         }
@@ -120,13 +118,13 @@ export const fetchDebugSubitems = async (
     console.log("Fetching subitems data...");
     const subitemsResponse = await fetchFromMonday(subitemsQuery, credentials.apiToken);
     
-    if (!subitemsResponse?.data?.boards?.[0]?.items_page?.items) {
+    if (!subitemsResponse?.data?.items) {
       toast.error("Failed to fetch subitems data");
       return [];
     }
     
     // Flatten subitems from all items
-    const subitems = subitemsResponse.data.boards[0].items_page.items
+    const subitems = subitemsResponse.data.items
       .flatMap((item: any) => item.subitems || [])
       .slice(0, limit);
     
