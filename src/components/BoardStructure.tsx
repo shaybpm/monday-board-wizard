@@ -428,8 +428,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-id`}
                           style={{ 
-                            width: `${columnWidths.id}px`,
-                            maxWidth: `${columnWidths.id}px`
+                            width: `${columnWidths.id || 100}px`,
+                            maxWidth: `${columnWidths.id || 100}px`
                           }}
                           className="font-mono text-xs p-1 truncate"
                         >
@@ -449,8 +449,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-title`}
                           style={{ 
-                            width: `${columnWidths.title}px`,
-                            maxWidth: `${columnWidths.title}px`
+                            width: `${columnWidths.title || 150}px`,
+                            maxWidth: `${columnWidths.title || 150}px`
                           }}
                           className="p-1 truncate"
                         >
@@ -470,8 +470,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-type`}
                           style={{ 
-                            width: `${columnWidths.type}px`,
-                            maxWidth: `${columnWidths.type}px`
+                            width: `${columnWidths.type || 100}px`,
+                            maxWidth: `${columnWidths.type || 100}px`
                           }}
                           className="p-1"
                         >
@@ -491,18 +491,18 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-firstLine`}
                           style={{ 
-                            width: `${columnWidths.firstLine}px`,
-                            maxWidth: `${columnWidths.firstLine}px`
+                            width: `${columnWidths.firstLine || 120}px`,
+                            maxWidth: `${columnWidths.firstLine || 120}px`
                           }}
                           className="p-1 truncate"
                         >
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="truncate inline-block w-full" title={column.firstLineValue}>
-                                {column.firstLineValue}
+                              <span className="truncate inline-block w-full" title={column.firstLineValue || "N/A"}>
+                                {column.firstLineValue || "N/A"}
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent>{column.firstLineValue}</TooltipContent>
+                            <TooltipContent>{column.firstLineValue || "N/A"}</TooltipContent>
                           </Tooltip>
                         </TableCell>
                       );

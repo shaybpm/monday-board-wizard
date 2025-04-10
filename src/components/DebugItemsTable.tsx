@@ -50,6 +50,9 @@ const DebugItemsTable: React.FC<DebugItemsTableProps> = ({ items, columns, isLoa
     return columnValue?.text || JSON.stringify(columnValue?.value || "").replace(/"/g, "") || "—";
   };
 
+  console.log("Debug Items:", items);
+  console.log("Debug Columns:", columns);
+
   return (
     <Card className="mt-6">
       <div className="p-4 bg-gray-50 border-b">
