@@ -78,8 +78,6 @@ export const fetchBoardStructure = async (
                 }
                 column_values {
                   id
-                  title
-                  type
                   text
                   value
                 }
@@ -129,6 +127,49 @@ export const fetchBoardStructure = async (
     console.error("Error fetching board structure:", error);
     toast.error("Error fetching board structure: " + (error instanceof Error ? error.message : String(error)));
     return null;
+  }
+};
+
+// New function to fetch multiple items for debugging
+export const fetchDebugItems = async (
+  credentials: MondayCredentials,
+  limit: number = 10
+): Promise<any[]> => {
+  try {
+    const query = `
+      query {
+        boards(ids: ${credentials.sourceBoard}) {
+          items_page(limit: ${limit}) {
+            items {
+              id
+              name
+              group {
+                id
+                title
+              }
+              column_values {
+                id
+                text
+                value
+              }
+            }
+          }
+        }
+      }
+    `;
+    
+    const response = await fetchFromMonday(query, credentials.apiToken);
+    
+    if (!response?.data?.boards?.[0]?.items_page?.items) {
+      toast.error("Failed to fetch debug items");
+      return [];
+    }
+    
+    return response.data.boards[0].items_page.items;
+  } catch (error) {
+    console.error("Error fetching debug items:", error);
+    toast.error("Error fetching debug items: " + (error instanceof Error ? error.message : String(error)));
+    return [];
   }
 };
 

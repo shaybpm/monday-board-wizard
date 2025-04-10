@@ -4,13 +4,17 @@ import { useNavigate } from "react-router-dom";
 import BoardStructure from "@/components/BoardStructure";
 import { ParsedBoardData } from "@/lib/types";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, ArrowLeft } from "lucide-react";
+import { Loader2, RefreshCw, ArrowLeft, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fetchBoardStructure } from "@/lib/mondayAPI";
+import { fetchBoardStructure, fetchDebugItems } from "@/lib/mondayAPI";
+import DebugItemsTable from "@/components/DebugItemsTable";
 
 const BoardPage = () => {
   const [boardData, setBoardData] = useState<ParsedBoardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [debugItems, setDebugItems] = useState<any[]>([]);
+  const [debugLoading, setDebugLoading] = useState(false);
+  const [showDebugData, setShowDebugData] = useState(false);
   const navigate = useNavigate();
 
   const loadBoardData = async () => {
@@ -39,6 +43,29 @@ const BoardPage = () => {
       navigate("/");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchDebugData = async () => {
+    setDebugLoading(true);
+    setShowDebugData(true);
+    const storedCredentialsStr = sessionStorage.getItem("mondayCredentials");
+    
+    if (!storedCredentialsStr) {
+      toast.error("No credentials found.");
+      setDebugLoading(false);
+      return;
+    }
+    
+    try {
+      const credentials = JSON.parse(storedCredentialsStr);
+      const items = await fetchDebugItems(credentials, 10);
+      setDebugItems(items);
+    } catch (error) {
+      console.error("Debug fetch error:", error);
+      toast.error("Error fetching debug data");
+    } finally {
+      setDebugLoading(false);
     }
   };
 
@@ -88,15 +115,30 @@ const BoardPage = () => {
         <h2 className="text-xl font-semibold">
           Source Board: {boardData.boardName}
         </h2>
-        <Button 
-          variant="outline" 
-          onClick={loadBoardData} 
-          disabled={isLoading}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowDebugData(!showDebugData);
+              if (!debugItems.length && showDebugData === false) {
+                fetchDebugData();
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <Bug className="h-4 w-4" />
+            {showDebugData ? "Hide Debug Data" : "Show Debug Data"}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={loadBoardData} 
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats summary */}
@@ -128,6 +170,15 @@ const BoardPage = () => {
           <ArrowLeft className="w-4 h-4" /> Back
         </Button>
       </div>
+
+      {/* Debug data table */}
+      {showDebugData && (
+        <DebugItemsTable 
+          items={debugItems} 
+          columns={boardData.columns} 
+          isLoading={debugLoading}
+        />
+      )}
 
       {/* Board structure component */}
       <BoardStructure boardData={boardData} />
