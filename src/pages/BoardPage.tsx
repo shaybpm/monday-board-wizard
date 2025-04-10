@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import BoardStructure from "@/components/BoardStructure";
 import { ParsedBoardData } from "@/lib/types";
 import { toast } from "sonner";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fetchBoardStructure } from "@/lib/mondayAPI";
 
@@ -76,9 +76,15 @@ const BoardPage = () => {
     );
   }
 
+  // Calculate counts for the stats display
+  const totalColumns = boardData.columns.length || 0;
+  const itemColumnsCount = boardData.items.length || 0;
+  const subitemsColumnsCount = boardData.subitems.length || 0;
+
   return (
     <div className="container mx-auto p-4 min-h-screen">
-      <div className="flex justify-between items-center mb-4">
+      {/* Header with board name and refresh button */}
+      <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">
           Source Board: {boardData.boardName}
         </h2>
@@ -92,10 +98,41 @@ const BoardPage = () => {
           Refresh
         </Button>
       </div>
+
+      {/* Stats summary */}
+      <div className="mb-4 bg-gray-50 rounded-md p-4 border">
+        <h3 className="text-lg font-medium mb-2">Board Summary</h3>
+        <div className="flex flex-wrap gap-4">
+          <div className="stat-item">
+            <span className="text-sm text-gray-500">Total Columns:</span>
+            <span className="ml-2 font-semibold">{totalColumns}</span>
+          </div>
+          <div className="stat-item">
+            <span className="text-sm text-gray-500">Items:</span>
+            <span className="ml-2 font-semibold">{itemColumnsCount}</span>
+          </div>
+          <div className="stat-item">
+            <span className="text-sm text-gray-500">Subitems:</span>
+            <span className="ml-2 font-semibold">{subitemsColumnsCount}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Back button */}
+      <div className="mb-6">
+        <Button
+          variant="outline"
+          onClick={() => navigate("/")}
+          className="flex items-center gap-1"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back
+        </Button>
+      </div>
+
+      {/* Board structure component */}
       <BoardStructure boardData={boardData} />
     </div>
   );
 };
 
 export default BoardPage;
-
