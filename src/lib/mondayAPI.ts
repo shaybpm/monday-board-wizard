@@ -19,12 +19,21 @@ export const fetchBoardStructure = async (
   credentials: MondayCredentials
 ): Promise<ParsedBoardData | null> => {
   try {
-    // Start with a simpler query that just gets the board name and ID
+    // Fetch board structure with columns and groups
     const boardQuery = `
       query {
         boards(ids: ${credentials.sourceBoard}) {
           id
           name
+          columns {
+            id
+            title
+            type
+          }
+          groups {
+            id
+            title
+          }
         }
       }
     `;
@@ -38,14 +47,20 @@ export const fetchBoardStructure = async (
 
     const board = boardResponse.data.boards[0];
     
-    // Create a minimal parsed data structure with just the board name
+    // Create parsed data structure with board name, columns and groups
     const parsedData: ParsedBoardData = {
       boardName: board.name,
-      columns: [],
-      groups: [],
+      columns: board.columns || [],
+      groups: board.groups || [],
       items: [],
       subitems: []
     };
+
+    console.log("Fetched board structure:", {
+      name: parsedData.boardName,
+      columnsCount: parsedData.columns.length,
+      groupsCount: parsedData.groups.length
+    });
 
     return parsedData;
   } catch (error) {
