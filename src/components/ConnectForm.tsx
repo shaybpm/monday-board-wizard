@@ -52,7 +52,7 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
       const isValid = await validateCredentials(credentials);
       
       if (!isValid) {
-        toast.error("Invalid API token or board ID. Please check your credentials.");
+        toast.error("Invalid API token or board ID. Please check your credentials and ensure your token has the correct permissions.");
         setIsLoading(false);
         return;
       }
@@ -77,7 +77,7 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
       
     } catch (error) {
       console.error("Connection error:", error);
-      toast.error("Failed to connect: " + (error instanceof Error ? error.message : String(error)));
+      toast.error(`Failed to connect: ${error instanceof Error ? error.message : "Unknown error"}. Make sure your API token has the correct board access.`);
     } finally {
       setIsLoading(false);
     }

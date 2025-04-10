@@ -1,3 +1,4 @@
+
 import { MondayCredentials, ParsedBoardData } from "./types";
 import { toast } from "sonner";
 
@@ -142,7 +143,7 @@ async function fetchFromMonday(query: string, apiToken: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": apiToken
+      "Authorization": `Bearer ${apiToken}`
     },
     body: JSON.stringify({ query })
   });
