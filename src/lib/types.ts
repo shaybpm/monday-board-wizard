@@ -10,6 +10,8 @@ export interface BoardColumn {
   title: string;
   type: string;
   exampleValue?: string;
+  itemId?: string;  // Added new field for item ID
+  itemName?: string;  // Added new field for item name
 }
 
 export interface BoardGroup {
@@ -29,7 +31,7 @@ export interface BoardItem {
     title: string;
     type: string;
     value: any;
-    text?: string;  // Added text property as optional
+    text?: string;
   }>;
 }
 

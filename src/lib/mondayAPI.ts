@@ -92,25 +92,35 @@ export const fetchBoardStructure = async (
         const firstItem = itemsResponse.data.boards[0].items_page.items[0];
         console.log("First item data:", firstItem);
         
+        // Add the item ID and name to the parsed data
+        const itemId = firstItem.id;
+        const itemName = firstItem.name;
+        
         parsedData.columns = parsedData.columns.map(column => {
           const columnValue = firstItem.column_values.find(cv => cv.id === column.id);
           return {
             ...column,
-            exampleValue: columnValue ? (columnValue.text || JSON.stringify(columnValue.value)) : "N/A"
+            exampleValue: columnValue ? (columnValue.text || JSON.stringify(columnValue.value)) : "N/A",
+            itemId: itemId,
+            itemName: itemName
           };
         });
       } else {
         console.log("No items found in the board or could not fetch item data");
         parsedData.columns = parsedData.columns.map(column => ({
           ...column,
-          exampleValue: "N/A"
+          exampleValue: "N/A",
+          itemId: "N/A",
+          itemName: "N/A"
         }));
       }
     } catch (error) {
       console.error("Error fetching first line data:", error);
       parsedData.columns = parsedData.columns.map(column => ({
         ...column,
-        exampleValue: "N/A"
+        exampleValue: "N/A",
+        itemId: "N/A",
+        itemName: "N/A"
       }));
     }
 
