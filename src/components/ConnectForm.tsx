@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,17 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
   const [showApiHelp, setShowApiHelp] = useState(false);
   const navigate = useNavigate();
 
+  // Load saved values from localStorage on component mount
+  useEffect(() => {
+    const savedApiToken = localStorage.getItem("mondayApiToken") || "";
+    const savedSourceBoard = localStorage.getItem("mondaySourceBoard") || "";
+    const savedDestinationBoard = localStorage.getItem("mondayDestinationBoard") || "";
+    
+    setApiToken(savedApiToken);
+    setSourceBoard(savedSourceBoard);
+    setDestinationBoard(savedDestinationBoard);
+  }, []);
+
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -44,6 +55,11 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
       sourceBoard,
       destinationBoard: destBoard,
     };
+    
+    // Save values to localStorage
+    localStorage.setItem("mondayApiToken", apiToken);
+    localStorage.setItem("mondaySourceBoard", sourceBoard);
+    localStorage.setItem("mondayDestinationBoard", destinationBoard);
     
     setIsLoading(true);
     
