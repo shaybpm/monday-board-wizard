@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,6 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
   const [showApiHelp, setShowApiHelp] = useState(false);
   const navigate = useNavigate();
 
-  // Load saved values from localStorage on component mount
   useEffect(() => {
     const savedApiToken = localStorage.getItem("mondayApiToken") || "";
     const savedSourceBoard = localStorage.getItem("mondaySourceBoard") || "";
@@ -47,7 +45,6 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
       return;
     }
 
-    // Set destination board the same as source if not provided
     const destBoard = destinationBoard || sourceBoard;
     
     const credentials: MondayCredentials = {
@@ -56,7 +53,6 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
       destinationBoard: destBoard,
     };
     
-    // Save values to localStorage
     localStorage.setItem("mondayApiToken", apiToken);
     localStorage.setItem("mondaySourceBoard", sourceBoard);
     localStorage.setItem("mondayDestinationBoard", destinationBoard);
@@ -64,7 +60,6 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
     setIsLoading(true);
     
     try {
-      // First validate the credentials
       const isValid = await validateCredentials(credentials);
       
       if (!isValid) {
@@ -73,7 +68,8 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
         return;
       }
       
-      // Then fetch the board structure
+      toast.info("Credentials validated! Fetching board structure...");
+      
       const boardData = await fetchBoardStructure(credentials);
       
       if (!boardData) {
@@ -82,18 +78,24 @@ const ConnectForm: React.FC<ConnectFormProps> = ({ onConnect }) => {
         return;
       }
       
-      // Store credentials in session storage
+      toast.success(`Board structure loaded: ${boardData.boardName} with ${boardData.columns.length} columns and ${boardData.groups.length} groups`);
+      
       sessionStorage.setItem("mondayCredentials", JSON.stringify(credentials));
       sessionStorage.setItem("mondayBoardData", JSON.stringify(boardData));
       
-      // Continue to the next screen
       onConnect(credentials, boardData);
       navigate("/board");
-      toast.success(`Successfully connected to board: ${boardData.boardName}`);
       
     } catch (error) {
       console.error("Connection error:", error);
-      toast.error(`Failed to connect: ${error instanceof Error ? error.message : "Unknown error"}. Make sure your API token has the correct board access.`);
+      let errorMessage = "Unknown error";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        console.error("Error stack:", error.stack);
+      }
+      
+      toast.error(`Connection failed: ${errorMessage}. Please check the console for more details.`);
     } finally {
       setIsLoading(false);
     }

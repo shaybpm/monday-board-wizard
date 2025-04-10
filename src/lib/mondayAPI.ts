@@ -19,7 +19,7 @@ export const fetchBoardStructure = async (
   credentials: MondayCredentials
 ): Promise<ParsedBoardData | null> => {
   try {
-    // Fetch board information (name, columns, groups)
+    // Fetch basic board structure only
     const boardQuery = `
       query {
         boards(ids: ${credentials.sourceBoard}) {
@@ -46,134 +46,14 @@ export const fetchBoardStructure = async (
 
     const board = boardResponse.data.boards[0];
     
-    // Now fetch the items separately since the Monday API doesn't allow items in the same query as board structure
-    const itemsQuery = `
-      query {
-        boards(ids: ${credentials.sourceBoard}) {
-          items {
-            id
-            name
-            group {
-              id
-              title
-            }
-            column_values {
-              id
-              title
-              type
-              value
-              text
-            }
-          }
-        }
-      }
-    `;
-    
-    const itemsResponse = await fetchFromMonday(itemsQuery, credentials.apiToken);
-    
-    if (!itemsResponse?.data?.boards || itemsResponse.data.boards.length === 0) {
-      toast.error("Error: Could not fetch board items");
-      return null;
-    }
-    
-    // Finally, fetch subitems in a separate query if needed
-    const subitems = [];
-    if (itemsResponse.data.boards[0].items && itemsResponse.data.boards[0].items.length > 0) {
-      for (const item of itemsResponse.data.boards[0].items) {
-        const subitemsQuery = `
-          query {
-            items(ids: ${item.id}) {
-              subitems {
-                id
-                name
-                column_values {
-                  id
-                  title
-                  type
-                  value
-                  text
-                }
-              }
-            }
-          }
-        `;
-        
-        try {
-          const subitemsResponse = await fetchFromMonday(subitemsQuery, credentials.apiToken);
-          if (subitemsResponse?.data?.items && 
-              subitemsResponse.data.items.length > 0 && 
-              subitemsResponse.data.items[0].subitems) {
-            subitems.push(...subitemsResponse.data.items[0].subitems.map((subitem: any) => ({
-              ...subitem,
-              parentId: item.id,
-              group: item.group
-            })));
-          }
-        } catch (error) {
-          console.warn(`Could not fetch subitems for item ${item.id}:`, error);
-          // Continue even if subitems fetch fails for one item
-        }
-      }
-    }
-    
+    // Create parsed data with just the structure
     const parsedData: ParsedBoardData = {
       boardName: board.name,
       columns: board.columns,
       groups: board.groups,
-      items: [],
-      subitems: []
+      items: [], // Empty as we're not fetching items
+      subitems: [] // Empty as we're not fetching subitems
     };
-
-    // Process items
-    if (itemsResponse.data.boards[0].items) {
-      itemsResponse.data.boards[0].items.forEach((item: any) => {
-        const parsedItem = {
-          id: item.id,
-          name: item.name,
-          groupId: item.group?.id || "",
-          groupTitle: item.group?.title || "",
-          type: 'item' as const,
-          columns: {}
-        };
-
-        // Process column values for each item
-        item.column_values.forEach((col: any) => {
-          parsedItem.columns[col.id] = {
-            id: col.id,
-            title: col.title,
-            type: col.type,
-            value: col.text || (col.value ? JSON.parse(col.value) : null)
-          };
-        });
-
-        parsedData.items.push(parsedItem);
-      });
-    }
-
-    // Process subitems
-    subitems.forEach((subitem: any) => {
-      const parsedSubitem = {
-        id: subitem.id,
-        name: subitem.name,
-        groupId: subitem.group?.id || "",
-        groupTitle: subitem.group?.title || "",
-        type: 'subitem' as const,
-        parentId: subitem.parentId,
-        columns: {}
-      };
-
-      // Process column values for each subitem
-      subitem.column_values.forEach((col: any) => {
-        parsedSubitem.columns[col.id] = {
-          id: col.id,
-          title: col.title,
-          type: col.type,
-          value: col.text || (col.value ? JSON.parse(col.value) : null)
-        };
-      });
-
-      parsedData.subitems.push(parsedSubitem);
-    });
 
     return parsedData;
   } catch (error) {
@@ -184,18 +64,32 @@ export const fetchBoardStructure = async (
 };
 
 async function fetchFromMonday(query: string, apiToken: string) {
-  const response = await fetch(baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiToken}`
-    },
-    body: JSON.stringify({ query })
-  });
+  try {
+    const response = await fetch(baseUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiToken}`
+      },
+      body: JSON.stringify({ query })
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error ${response.status}`);
+    if (!response.ok) {
+      console.error(`HTTP error ${response.status}: ${await response.text()}`);
+      throw new Error(`HTTP error ${response.status}`);
+    }
+
+    const jsonResponse = await response.json();
+    
+    // Check for GraphQL errors
+    if (jsonResponse.errors) {
+      console.error("GraphQL errors:", JSON.stringify(jsonResponse.errors));
+      throw new Error(`GraphQL error: ${jsonResponse.errors[0].message}`);
+    }
+    
+    return jsonResponse;
+  } catch (error) {
+    console.error("API request error:", error);
+    throw error;
   }
-
-  return await response.json();
 }
