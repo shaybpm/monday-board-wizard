@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, CheckSquare, Square, GripVertical } from "lucide-react";
+import { Search, CheckSquare, Square, GripVertical, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -29,6 +29,7 @@ interface ColumnRow {
   id: string;
   title: string;
   type: string;
+  firstLineValue?: string; // Added for first line data
   selected: boolean;
 }
 
@@ -49,6 +50,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       id: column.id,
       title: column.title,
       type: column.type,
+      firstLineValue: column.id === "name" ? "First item name" : "N/A", // Default placeholder for first line data
       selected: false
     }))
   );
@@ -62,7 +64,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     const widths: ColumnWidth = {
       id: 60,
       title: 100,
-      type: 60
+      type: 60,
+      firstLine: 120 // Set default width for the first line column
     };
     
     boardData.columns.forEach(column => {
@@ -77,8 +80,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   // For column widths
   const [columnWidths, setColumnWidths] = useState<ColumnWidth>(calculateDefaultWidths());
   
-  // For column reordering - with default order
-  const defaultColumnOrder = ["id", "title", "type"];
+  // For column reordering - with default order (now includes firstLine)
+  const defaultColumnOrder = ["id", "title", "type", "firstLine"];
   const [columnOrder, setColumnOrder] = useState<string[]>(defaultColumnOrder);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
@@ -91,6 +94,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     id: React.createRef(),
     title: React.createRef(),
     type: React.createRef(),
+    firstLine: React.createRef() // Add a ref for the firstLine column
   });
 
   // Load saved column widths and order from localStorage on component mount
@@ -99,7 +103,12 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       // Load column widths
       const savedWidths = localStorage.getItem(STORAGE_KEY_COLUMN_WIDTH);
       if (savedWidths) {
-        setColumnWidths(JSON.parse(savedWidths));
+        const parsedWidths = JSON.parse(savedWidths);
+        // Make sure firstLine width is included
+        if (!parsedWidths.firstLine) {
+          parsedWidths.firstLine = 120; // Default width for firstLine
+        }
+        setColumnWidths(parsedWidths);
       } else {
         // No saved widths, use calculated defaults
         setColumnWidths(calculateDefaultWidths());
@@ -108,7 +117,14 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       // Load column order
       const savedOrder = localStorage.getItem(STORAGE_KEY_COLUMN_ORDER);
       if (savedOrder) {
-        setColumnOrder(JSON.parse(savedOrder));
+        const parsedOrder = JSON.parse(savedOrder);
+        // Add firstLine to the order if it's not already there
+        if (!parsedOrder.includes("firstLine")) {
+          parsedOrder.push("firstLine");
+        }
+        setColumnOrder(parsedOrder);
+      } else {
+        setColumnOrder(defaultColumnOrder);
       }
     } catch (error) {
       console.error("Error loading saved column settings:", error);
@@ -116,6 +132,9 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       setColumnWidths(calculateDefaultWidths());
       setColumnOrder(defaultColumnOrder);
     }
+
+    // Attempt to fetch first line data for columns
+    fetchFirstLineData();
   }, []);
 
   // Save column widths and order to localStorage whenever they change
@@ -134,6 +153,54 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       console.error("Error saving column order:", error);
     }
   }, [columnOrder]);
+
+  // Function to fetch first line data from the Monday board
+  const fetchFirstLineData = () => {
+    // Since we don't have real data, simulate first line values
+    // In a real implementation, you would fetch this from the Monday API
+    const storedCredentialsStr = sessionStorage.getItem("mondayCredentials");
+    
+    if (!storedCredentialsStr) {
+      console.error("No credentials found for fetching first line data");
+      return;
+    }
+
+    // This would be replaced with actual API call to get first line data
+    // For now, just setting sample values based on column types
+    setColumnRows(prevRows => 
+      prevRows.map(column => {
+        let sampleValue = "N/A";
+        
+        switch(column.type) {
+          case "name":
+            sampleValue = "Sample Item";
+            break;
+          case "text":
+            sampleValue = "Text example";
+            break;
+          case "date":
+            sampleValue = "2025-04-10";
+            break;
+          case "numbers":
+            sampleValue = "123.45";
+            break;
+          case "formula":
+            sampleValue = "=SUM(A1:B2)";
+            break;
+          case "subtasks":
+            sampleValue = "3 subtasks";
+            break;
+          default:
+            sampleValue = column.type;
+        }
+        
+        return {
+          ...column,
+          firstLineValue: sampleValue
+        };
+      })
+    );
+  };
 
   // Filter columns based on search term
   const filteredColumns = columnRows.filter(column => {
@@ -350,6 +417,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
               {columnOrder.map(columnKey => {
                 let title: string = "";
                 let sortKey: keyof ColumnRow | null = null;
+                let icon = null;
                 
                 if (columnKey === 'id') {
                   title = "Column ID";
@@ -360,9 +428,13 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                 } else if (columnKey === 'type') {
                   title = "Column Type";
                   sortKey = "type";
+                } else if (columnKey === 'firstLine') {
+                  title = "First Line";
+                  sortKey = null; // No sorting for first line data
+                  icon = <FileText className="h-4 w-4 mr-1" />;
                 }
                 
-                if (!sortKey) return null;
+                if (columnKey !== 'firstLine' && !sortKey) return null;
                 
                 const dragActive = draggedColumn === columnKey;
                 const dragOver = dragOverColumn === columnKey;
@@ -386,12 +458,13 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                   >
                     <div className="flex items-center cursor-pointer">
                       <GripVertical className="h-4 w-4 mr-1 cursor-grab text-gray-400" />
+                      {icon}
                       <span 
-                        onClick={() => requestSort(sortKey!)}
+                        onClick={sortKey ? () => requestSort(sortKey) : undefined}
                         className="truncate"
                         title={title}
                       >
-                        {title} {getSortIndicator(sortKey)}
+                        {title} {sortKey && getSortIndicator(sortKey)}
                       </span>
                     </div>
                     
@@ -492,6 +565,27 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         </TableCell>
                       );
                     }
+                    if (columnKey === 'firstLine') {
+                      return (
+                        <TableCell 
+                          key={`${column.id}-firstLine`}
+                          style={{ 
+                            width: `${columnWidths.firstLine}px`,
+                            maxWidth: `${columnWidths.firstLine}px`
+                          }}
+                          className="p-1 truncate"
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="truncate inline-block w-full" title={column.firstLineValue}>
+                                {column.firstLineValue}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>{column.firstLineValue}</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                      );
+                    }
                     return null;
                   })}
                 </TableRow>
@@ -505,3 +599,4 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 };
 
 export default BoardStructure;
+
