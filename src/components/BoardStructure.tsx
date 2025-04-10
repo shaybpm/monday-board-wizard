@@ -33,6 +33,9 @@ interface ColumnWidth {
 const STORAGE_KEY_COLUMN_WIDTH = "monday-column-widths";
 const STORAGE_KEY_COLUMN_ORDER = "monday-column-order";
 
+// Minimum column width constant
+const MIN_COLUMN_WIDTH = 60;
+
 const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [columnRows, setColumnRows] = useState<ColumnRow[]>(
@@ -48,24 +51,24 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     direction: "ascending" | "descending" | null;
   }>({ key: "id", direction: null });
   
-  // Default column widths based on content
+  // Calculate optimal widths based on content
   const calculateDefaultWidths = () => {
     const widths: ColumnWidth = {
-      id: 100,  // Start with minimal values
-      title: 150,
-      type: 100
+      id: 80,      // Start with smaller defaults
+      title: 120,
+      type: 80
     };
     
     // Estimate width based on content length
     boardData.columns.forEach(column => {
-      // ID column - base on longest ID
-      widths.id = Math.max(widths.id, Math.min(250, column.id.length * 8 + 40));
+      // ID column - base on longest ID but with stricter constraints
+      widths.id = Math.max(widths.id, Math.min(180, column.id.length * 6 + 20));
       
-      // Title column - base on longest title 
-      widths.title = Math.max(widths.title, Math.min(350, column.title.length * 8 + 60));
+      // Title column - base on longest title with stricter constraints
+      widths.title = Math.max(widths.title, Math.min(200, column.title.length * 6 + 30));
       
-      // Type column - base on longest type
-      widths.type = Math.max(widths.type, Math.min(200, column.type.length * 9 + 50));
+      // Type column - base on longest type with stricter constraints
+      widths.type = Math.max(widths.type, Math.min(120, column.type.length * 7 + 20));
     });
     
     return widths;
@@ -198,7 +201,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 
   const selectedCount = columnRows.filter(col => col.selected).length;
   
-  // Improved column resizing handlers
+  // Fixed column resizing handlers
   const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -207,26 +210,26 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     setStartX(e.clientX);
     setStartWidth(columnWidths[columnId] || 150);
     
-    function handleMouseMove(moveEvent: MouseEvent) {
+    const handleMouseMove = (moveEvent: MouseEvent) => {
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
       
       if (resizingColumn) {
         const deltaX = moveEvent.clientX - startX;
-        const newWidth = Math.max(80, startWidth + deltaX);
+        const newWidth = Math.max(MIN_COLUMN_WIDTH, startWidth + deltaX); // Allow smaller widths
         
         setColumnWidths(prev => ({
           ...prev,
           [columnId]: newWidth
         }));
       }
-    }
+    };
     
-    function handleMouseUp() {
+    const handleMouseUp = () => {
       setResizingColumn(null);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-    }
+    };
     
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
@@ -301,7 +304,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         <Table>
           <TableCaption>Board Structure - Total {boardData.columns.length} Columns</TableCaption>
           <TableHeader>
-            <TableRow className="h-8">
+            <TableRow className="h-6">
               <TableHead className="w-10 p-1">
                 <div
                   className="cursor-pointer flex justify-center"
@@ -339,9 +342,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                     key={columnKey}
                     className={`relative h-8 p-1 select-none border-r ${dragActive ? 'opacity-50' : ''} ${dragOver ? 'bg-gray-100' : ''}`}
                     style={{ 
-                      width: `${columnWidths[columnKey] || 150}px`, 
-                      minWidth: "80px",
-                      maxWidth: "500px", 
+                      width: `${columnWidths[columnKey] || MIN_COLUMN_WIDTH}px`, 
+                      minWidth: `${MIN_COLUMN_WIDTH}px`,
                       cursor: "default"
                     }}
                     draggable={true}
@@ -361,7 +363,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                       </span>
                     </div>
                     <div 
-                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-blue-300 active:bg-blue-400"
+                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-blue-300 active:bg-blue-400 z-10"
                       onMouseDown={(e) => handleResizeStart(columnKey, e)} 
                       title="Drag to resize"
                     />
@@ -379,7 +381,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
               </TableRow>
             ) : (
               sortedColumns.map((column) => (
-                <TableRow key={column.id} className={`${column.selected ? 'bg-blue-50' : ''} h-7`}>
+                <TableRow key={column.id} className={`${column.selected ? 'bg-blue-50' : ''} h-6`}>
                   <TableCell className="text-center p-0">
                     <div 
                       className="cursor-pointer inline-flex"
