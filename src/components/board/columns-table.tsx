@@ -95,7 +95,6 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
           filteredOrder.push("firstLine");
         }
         
-        // Ensure title comes before id regardless of saved order
         if (filteredOrder.includes("title") && filteredOrder.includes("id")) {
           const titleIndex = filteredOrder.indexOf("title");
           const idIndex = filteredOrder.indexOf("id");
@@ -118,7 +117,6 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
   }, []);
 
   useEffect(() => {
-    // Save column widths and order when they change
     try {
       localStorage.setItem(STORAGE_KEY_COLUMN_WIDTH, JSON.stringify(columnWidths));
       localStorage.setItem(STORAGE_KEY_COLUMN_ORDER, JSON.stringify(columnOrder));
@@ -286,8 +284,8 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
       <Table>
         <TableCaption>
           {showSubitems 
-            ? `Subitems Structure - Total ${columns.length} Columns`
-            : `Board Structure - Total ${columns.length} Columns`}
+            ? `Subitems Structure - Total ${filteredColumns.length} Columns`
+            : `Board Structure - Total ${filteredColumns.length} Columns`}
         </TableCaption>
         <TableHeader>
           <TableHeaderComponent 
@@ -309,14 +307,14 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
           />
         </TableHeader>
         <TableBody>
-          {sortedColumns.length === 0 ? (
+          {filteredColumns.length === 0 ? (
             <tr>
               <td colSpan={columnOrder.length + 1} className="h-10 text-center">
                 No columns found.
               </td>
             </tr>
           ) : (
-            sortedColumns.map((column) => (
+            filteredColumns.map((column) => (
               <ColumnRowComponent
                 key={column.id}
                 column={column}

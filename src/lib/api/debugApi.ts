@@ -129,6 +129,22 @@ export const fetchDebugSubitems = async (
       .slice(0, limit);
     
     console.log(`Found ${subitems.length} subitems`);
+    
+    // Transform subitems to match the expected format for board display
+    subitems.forEach((subitem: any) => {
+      if (subitem.column_values && Array.isArray(subitem.column_values)) {
+        subitem.columns = {};
+        subitem.column_values.forEach((col: any) => {
+          subitem.columns[col.id] = {
+            id: col.id,
+            type: col.type,
+            value: col.value,
+            text: col.text
+          };
+        });
+      }
+    });
+    
     return subitems;
   } catch (error) {
     console.error("Error fetching debug subitems:", error);

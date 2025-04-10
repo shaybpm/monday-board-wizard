@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { ParsedBoardData } from "@/lib/types";
+import { ParsedBoardData, BoardColumn } from "@/lib/types";
 import SearchBar from "./board/search-bar";
 import ColumnsTable from "./board/columns-table";
 import { ColumnRow } from "./board/types";
@@ -13,16 +13,39 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSubitems, setShowSubitems] = useState(false);
   
-  // Transform boardData columns to ColumnRow format
-  const columnRows: ColumnRow[] = boardData.columns.map(column => ({
-    id: column.id,
-    title: column.title,
-    type: column.type,
-    firstLineValue: column.exampleValue || "N/A",
-    itemId: column.itemId || "N/A",
-    itemName: column.itemName || "N/A",
-    selected: false
-  }));
+  // Transform boardData columns to ColumnRow format based on showSubitems toggle
+  const columnRows: ColumnRow[] = boardData.columns.map(column => {
+    let example = column.exampleValue || "N/A";
+    let itemId = column.itemId || "N/A";
+    let itemName = column.itemName || "N/A";
+    
+    // If we have subitems and the toggle is on, try to get example values from subitems
+    if (showSubitems && boardData.subitems && boardData.subitems.length > 0) {
+      // Find the first subitem that has a value for this column
+      const subitemWithValue = boardData.subitems.find(subitem => {
+        return subitem.columns && subitem.columns[column.id] && 
+          (subitem.columns[column.id].text || subitem.columns[column.id].value);
+      });
+      
+      if (subitemWithValue) {
+        example = subitemWithValue.columns[column.id].text || 
+                  JSON.stringify(subitemWithValue.columns[column.id].value) || 
+                  "N/A";
+        itemId = subitemWithValue.id || "N/A";
+        itemName = subitemWithValue.name || "N/A";
+      }
+    }
+    
+    return {
+      id: column.id,
+      title: column.title,
+      type: column.type,
+      firstLineValue: example,
+      itemId: itemId,
+      itemName: itemName,
+      selected: false
+    };
+  });
   
   // Count selected rows
   const selectedCount = columnRows.filter(col => col.selected).length;

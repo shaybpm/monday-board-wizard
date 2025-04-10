@@ -49,6 +49,7 @@ export const fetchBoardStructure = async (
     });
 
     try {
+      // Fetch regular items data first
       const itemsQuery = `
         query {
           boards(ids: ${credentials.sourceBoard}) {
@@ -93,6 +94,61 @@ export const fetchBoardStructure = async (
             itemName: itemName
           };
         });
+        
+        // Check if the first item has subitems
+        if (firstItem.subitems && firstItem.subitems.length > 0) {
+          try {
+            // Now try to fetch subitem data
+            const subitemQuery = `
+              query {
+                items(ids: [${itemId}]) {
+                  subitems {
+                    id
+                    name
+                    column_values {
+                      id
+                      text
+                      value
+                      type
+                    }
+                  }
+                }
+              }
+            `;
+            
+            console.log("Fetching subitem data for structure...");
+            const subitemResponse = await fetchFromMonday(subitemQuery, credentials.apiToken);
+            
+            if (subitemResponse?.data?.items?.[0]?.subitems?.length > 0) {
+              const firstSubitem = subitemResponse.data.items[0].subitems[0];
+              console.log("First subitem data:", firstSubitem);
+              
+              const transformedSubitem = {
+                id: firstSubitem.id,
+                name: firstSubitem.name,
+                type: 'subitem',
+                parentId: itemId,
+                groupId: '',
+                groupTitle: '',
+                columns: {} as Record<string, any>
+              };
+              
+              // Transform column values into the expected format
+              firstSubitem.column_values.forEach((cv: any) => {
+                transformedSubitem.columns[cv.id] = {
+                  id: cv.id,
+                  type: cv.type || '',
+                  value: cv.value || '',
+                  text: cv.text || ''
+                };
+              });
+              
+              parsedData.subitems = [transformedSubitem];
+            }
+          } catch (subitemError) {
+            console.error("Error fetching subitem structure:", subitemError);
+          }
+        }
       } else {
         console.log("No items found in the board or could not fetch item data");
         parsedData.columns = parsedData.columns.map(column => ({

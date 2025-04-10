@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BoardStructure from "@/components/BoardStructure";
@@ -6,7 +5,6 @@ import { DebugDataType, ParsedBoardData } from "@/lib/types";
 import { toast } from "sonner";
 import { Loader2, RefreshCw, ArrowLeft, Bug, ListTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// Import from the main API file which re-exports all functions
 import { fetchBoardStructure, fetchDebugItems, fetchDebugSubitems } from "@/lib/mondayAPI";
 import DebugItemsTable from "@/components/DebugItemsTable";
 
@@ -34,6 +32,10 @@ const BoardPage = () => {
       const fetchedBoardData = await fetchBoardStructure(credentials);
       
       if (fetchedBoardData) {
+        if (!fetchedBoardData.subitems) {
+          fetchedBoardData.subitems = [];
+        }
+        
         setBoardData(fetchedBoardData);
         sessionStorage.setItem("mondayBoardData", JSON.stringify(fetchedBoardData));
       } else {
@@ -64,11 +66,9 @@ const BoardPage = () => {
       const credentials = JSON.parse(storedCredentialsStr);
       
       if (type === "items") {
-        // Fetch more items (20 instead of 10) to have more data for debugging
         const items = await fetchDebugItems(credentials, 20);
         setDebugItems(items);
       } else {
-        // Fetch subitems for debugging
         const subitems = await fetchDebugSubitems(credentials, 20);
         setDebugItems(subitems);
       }
@@ -114,14 +114,12 @@ const BoardPage = () => {
     );
   }
 
-  // Calculate counts for the stats display
-  const totalColumns = boardData.columns.length || 0;
-  const itemColumnsCount = boardData.items.length || 0;
-  const subitemsColumnsCount = boardData.subitems.length || 0;
+  const totalColumns = boardData?.columns?.length || 0;
+  const itemColumnsCount = boardData?.items?.length || 0;
+  const subitemsColumnsCount = boardData?.subitems?.length || 0;
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
-      {/* Header with board name and refresh button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">
           Source Board: {boardData.boardName}
@@ -172,7 +170,6 @@ const BoardPage = () => {
         </div>
       </div>
 
-      {/* Stats summary */}
       <div className="mb-4 bg-gray-50 rounded-md p-4 border">
         <h3 className="text-lg font-medium mb-2">Board Summary</h3>
         <div className="flex flex-wrap gap-4">
@@ -191,7 +188,6 @@ const BoardPage = () => {
         </div>
       </div>
 
-      {/* Back button */}
       <div className="mb-6">
         <Button
           variant="outline"
@@ -202,7 +198,6 @@ const BoardPage = () => {
         </Button>
       </div>
 
-      {/* Debug data table */}
       {showDebugData && (
         <DebugItemsTable 
           items={debugItems} 
@@ -212,7 +207,6 @@ const BoardPage = () => {
         />
       )}
 
-      {/* Board structure component */}
       <BoardStructure boardData={boardData} />
     </div>
   );
