@@ -6,6 +6,7 @@ import { DebugDataType, ParsedBoardData } from "@/lib/types";
 import { toast } from "sonner";
 import { Loader2, RefreshCw, ArrowLeft, Bug, ListTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
+// Import from the main API file which re-exports all functions
 import { fetchBoardStructure, fetchDebugItems, fetchDebugSubitems } from "@/lib/mondayAPI";
 import DebugItemsTable from "@/components/DebugItemsTable";
 

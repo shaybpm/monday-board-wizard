@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MondayCredentials } from "@/lib/types";
+// Import from the main API file which re-exports all functions
 import { validateCredentials, fetchBoardStructure } from "@/lib/mondayAPI";
 import { toast } from "sonner";
 import { ArrowRight, Info, Key, Loader2 } from "lucide-react";
