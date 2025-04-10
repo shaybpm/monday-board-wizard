@@ -59,7 +59,8 @@ const BoardPage = () => {
     
     try {
       const credentials = JSON.parse(storedCredentialsStr);
-      const items = await fetchDebugItems(credentials, 10);
+      // Fetch more items (20 instead of 10) to have more data for debugging
+      const items = await fetchDebugItems(credentials, 20);
       setDebugItems(items);
     } catch (error) {
       console.error("Debug fetch error:", error);

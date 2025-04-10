@@ -1,4 +1,3 @@
-
 import { MondayCredentials, ParsedBoardData, BoardItem } from "./types";
 import { toast } from "sonner";
 
@@ -19,7 +18,6 @@ export const fetchBoardStructure = async (
   credentials: MondayCredentials
 ): Promise<ParsedBoardData | null> => {
   try {
-    // Fetch board structure with columns and groups
     const boardQuery = `
       query {
         boards(ids: ${credentials.sourceBoard}) {
@@ -47,7 +45,6 @@ export const fetchBoardStructure = async (
 
     const board = boardResponse.data.boards[0];
     
-    // Create parsed data structure with board name, columns and groups
     const parsedData: ParsedBoardData = {
       boardName: board.name,
       columns: board.columns || [],
@@ -62,8 +59,6 @@ export const fetchBoardStructure = async (
       groupsCount: parsedData.groups.length
     });
 
-    // Now fetch sample data for the first line examples
-    // Fixed query according to Monday.com GraphQL API
     try {
       const itemsQuery = `
         query {
@@ -96,7 +91,6 @@ export const fetchBoardStructure = async (
         const firstItem = itemsResponse.data.boards[0].items_page.items[0];
         console.log("First item data:", firstItem);
         
-        // Add example values to the columns
         parsedData.columns = parsedData.columns.map(column => {
           const columnValue = firstItem.column_values.find(cv => cv.id === column.id);
           return {
@@ -106,7 +100,6 @@ export const fetchBoardStructure = async (
         });
       } else {
         console.log("No items found in the board or could not fetch item data");
-        // Set default N/A values if no items are found
         parsedData.columns = parsedData.columns.map(column => ({
           ...column,
           exampleValue: "N/A"
@@ -114,12 +107,10 @@ export const fetchBoardStructure = async (
       }
     } catch (error) {
       console.error("Error fetching first line data:", error);
-      // Set default N/A values if there's an error
       parsedData.columns = parsedData.columns.map(column => ({
         ...column,
         exampleValue: "N/A"
       }));
-      // Continue with the board structure even if item data fails
     }
 
     return parsedData;
@@ -130,10 +121,9 @@ export const fetchBoardStructure = async (
   }
 };
 
-// New function to fetch multiple items for debugging
 export const fetchDebugItems = async (
   credentials: MondayCredentials,
-  limit: number = 10
+  limit: number = 20
 ): Promise<any[]> => {
   try {
     const query = `
@@ -149,8 +139,10 @@ export const fetchDebugItems = async (
               }
               column_values {
                 id
+                title
                 text
                 value
+                type
               }
             }
           }
@@ -194,7 +186,6 @@ async function fetchFromMonday(query: string, apiToken: string) {
     const jsonResponse = await response.json();
     console.log("Monday API response:", JSON.stringify(jsonResponse, null, 2));
     
-    // Check for GraphQL errors
     if (jsonResponse.errors) {
       console.error("GraphQL errors:", JSON.stringify(jsonResponse.errors));
       throw new Error(`GraphQL error: ${jsonResponse.errors[0].message}`);
