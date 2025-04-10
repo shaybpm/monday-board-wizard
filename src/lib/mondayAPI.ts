@@ -1,3 +1,4 @@
+
 import { MondayCredentials, ParsedBoardData, BoardItem } from "./types";
 import { toast } from "sonner";
 
@@ -126,6 +127,7 @@ export const fetchDebugItems = async (
   limit: number = 20
 ): Promise<any[]> => {
   try {
+    // Fixed query - removed 'title' field from column_values which was causing the error
     const query = `
       query {
         boards(ids: ${credentials.sourceBoard}) {
@@ -139,7 +141,6 @@ export const fetchDebugItems = async (
               }
               column_values {
                 id
-                title
                 text
                 value
                 type
@@ -150,6 +151,7 @@ export const fetchDebugItems = async (
       }
     `;
     
+    console.log("Sending debug items query to Monday API:", query);
     const response = await fetchFromMonday(query, credentials.apiToken);
     
     if (!response?.data?.boards?.[0]?.items_page?.items) {
