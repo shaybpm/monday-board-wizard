@@ -19,20 +19,12 @@ export const fetchBoardStructure = async (
   credentials: MondayCredentials
 ): Promise<ParsedBoardData | null> => {
   try {
-    // Fetch basic board structure first
+    // Start with a simpler query that just gets the board name and ID
     const boardQuery = `
       query {
         boards(ids: ${credentials.sourceBoard}) {
+          id
           name
-          columns {
-            id
-            title
-            type
-          }
-          groups {
-            id
-            title
-          }
         }
       }
     `;
@@ -46,76 +38,14 @@ export const fetchBoardStructure = async (
 
     const board = boardResponse.data.boards[0];
     
-    // Now fetch items with proper query structure - fixed the GraphQL query
-    const itemsQuery = `
-      query {
-        boards(ids: ${credentials.sourceBoard}) {
-          items_page(limit: 1) {
-            items {
-              id
-              name
-              group {
-                id
-                title
-              }
-              column_values {
-                id
-                title
-                type
-                value
-                text
-              }
-            }
-          }
-        }
-      }
-    `;
-
-    const itemsResponse = await fetchFromMonday(itemsQuery, credentials.apiToken);
-    
-    // Create parsed data with the structure and the first item
-    let parsedData: ParsedBoardData = {
+    // Create a minimal parsed data structure with just the board name
+    const parsedData: ParsedBoardData = {
       boardName: board.name,
-      columns: board.columns,
-      groups: board.groups,
+      columns: [],
+      groups: [],
       items: [],
       subitems: []
     };
-
-    // Process items if available - updated path to items
-    if (itemsResponse?.data?.boards?.[0]?.items_page?.items?.length > 0) {
-      const items = itemsResponse.data.boards[0].items_page.items;
-      
-      parsedData.items = items.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        groupId: item.group.id,
-        groupTitle: item.group.title,
-        type: 'item',
-        columns: item.column_values.reduce((acc: any, col: any) => {
-          acc[col.id] = {
-            id: col.id,
-            title: col.title,
-            type: col.type,
-            value: col.value,
-            text: col.text || ''  // Ensure text has a default value if it doesn't exist
-          };
-          return acc;
-        }, {})
-      }));
-
-      // Update example values in columns based on the first item
-      if (parsedData.items.length > 0) {
-        const firstItem = parsedData.items[0];
-        parsedData.columns = parsedData.columns.map(col => {
-          const columnData = firstItem.columns[col.id];
-          return {
-            ...col,
-            exampleValue: columnData ? (columnData.text || JSON.stringify(columnData.value)) : undefined
-          };
-        });
-      }
-    }
 
     return parsedData;
   } catch (error) {
