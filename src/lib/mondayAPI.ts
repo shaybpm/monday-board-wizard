@@ -63,26 +63,29 @@ export const fetchBoardStructure = async (
     });
 
     // Now fetch sample data for the first line examples
+    // Fixed query according to Monday.com GraphQL API
     try {
       const itemsQuery = `
         query {
           boards(ids: ${credentials.sourceBoard}) {
-            items(limit: 1) {
-              id
-              name
-              group {
+            items_page(limit: 1) {
+              items {
                 id
-                title
-              }
-              column_values {
-                id
-                title
-                type
-                text
-                value
-              }
-              subitems {
-                id
+                name
+                group {
+                  id
+                  title
+                }
+                column_values {
+                  id
+                  title
+                  type
+                  text
+                  value
+                }
+                subitems {
+                  id
+                }
               }
             }
           }
@@ -91,8 +94,8 @@ export const fetchBoardStructure = async (
 
       const itemsResponse = await fetchFromMonday(itemsQuery, credentials.apiToken);
       
-      if (itemsResponse?.data?.boards?.[0]?.items?.[0]) {
-        const firstItem = itemsResponse.data.boards[0].items[0];
+      if (itemsResponse?.data?.boards?.[0]?.items_page?.items?.[0]) {
+        const firstItem = itemsResponse.data.boards[0].items_page.items[0];
         console.log("First item data:", firstItem);
         
         // Add example values to the columns
@@ -100,14 +103,24 @@ export const fetchBoardStructure = async (
           const columnValue = firstItem.column_values.find(cv => cv.id === column.id);
           return {
             ...column,
-            exampleValue: columnValue ? (columnValue.text || JSON.stringify(columnValue.value)) : undefined
+            exampleValue: columnValue ? (columnValue.text || JSON.stringify(columnValue.value)) : "N/A"
           };
         });
       } else {
         console.log("No items found in the board or could not fetch item data");
+        // Set default N/A values if no items are found
+        parsedData.columns = parsedData.columns.map(column => ({
+          ...column,
+          exampleValue: "N/A"
+        }));
       }
     } catch (error) {
       console.error("Error fetching first line data:", error);
+      // Set default N/A values if there's an error
+      parsedData.columns = parsedData.columns.map(column => ({
+        ...column,
+        exampleValue: "N/A"
+      }));
       // Continue with the board structure even if item data fails
     }
 
