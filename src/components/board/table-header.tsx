@@ -10,7 +10,7 @@ interface TableHeaderProps {
   filteredColumns: ColumnRow[];
   toggleAllSelection: () => void;
   requestSort: (key: keyof ColumnRow) => void;
-  getSortIndicator: (key: keyof ColumnRow) => void;
+  getSortIndicator: (key: keyof ColumnRow) => React.ReactNode;
   handleDragStart: (columnId: string, e: React.DragEvent) => void;
   handleDragOver: (e: React.DragEvent, columnId: string) => void;
   handleDrop: (columnId: string) => void;

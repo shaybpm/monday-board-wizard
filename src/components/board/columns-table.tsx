@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { 
   Table,
@@ -168,7 +167,7 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
     setSortConfig({ key, direction });
   };
   
-  const getSortIndicator = (key: keyof ColumnRow) => {
+  const getSortIndicator = (key: keyof ColumnRow): React.ReactNode => {
     if (sortConfig.key !== key) {
       return null;
     }
@@ -196,8 +195,6 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
     );
   };
 
-  const selectedCount = columnRows.filter(col => col.selected).length;
-  
   const [resizing, setResizing] = useState(false);
   const [resizingColId, setResizingColId] = useState<string | null>(null);
   const startResizeX = useRef(0);
