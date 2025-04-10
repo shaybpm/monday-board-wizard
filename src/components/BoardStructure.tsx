@@ -15,6 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Search, CheckSquare, Square, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle
+} from "@/components/ui/resizable";
 
 interface BoardStructureProps {
   boardData: ParsedBoardData;
@@ -34,8 +39,8 @@ interface ColumnWidth {
 const STORAGE_KEY_COLUMN_WIDTH = "monday-column-widths";
 const STORAGE_KEY_COLUMN_ORDER = "monday-column-order";
 
-// Minimum column width constant - smaller to allow proper resizing
-const MIN_COLUMN_WIDTH = 30;
+// Absolute minimum width to prevent columns from disappearing
+const MIN_COLUMN_WIDTH = 20;
 
 const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,12 +60,11 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   // Calculate optimal widths based on content
   const calculateDefaultWidths = () => {
     const widths: ColumnWidth = {
-      id: 60,      // Start with smaller defaults
+      id: 60,
       title: 100,
       type: 60
     };
     
-    // Estimate width based on content length - with tighter constraints
     boardData.columns.forEach(column => {
       widths.id = Math.max(widths.id, Math.min(100, column.id.length * 5 + 10));
       widths.title = Math.max(widths.title, Math.min(150, column.title.length * 5 + 20));
@@ -70,11 +74,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     return widths;
   };
   
-  // For column resizing
+  // For column widths
   const [columnWidths, setColumnWidths] = useState<ColumnWidth>(calculateDefaultWidths());
-  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
-  const [startX, setStartX] = useState<number>(0);
-  const [startWidth, setStartWidth] = useState<number>(0);
   
   // For column reordering - with default order
   const defaultColumnOrder = ["id", "title", "type"];
@@ -84,6 +85,13 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 
   // DOM refs
   const tableRef = useRef<HTMLDivElement>(null);
+  
+  // Individual column refs for resizing
+  const columnRefs = useRef<{[key: string]: React.RefObject<HTMLTableCellElement>}>({
+    id: React.createRef(),
+    title: React.createRef(),
+    type: React.createRef(),
+  });
 
   // Load saved column widths and order from localStorage on component mount
   useEffect(() => {
@@ -197,43 +205,65 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 
   const selectedCount = columnRows.filter(col => col.selected).length;
   
-  // Improved column resizing handlers with better setup
-  const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
+  // Column resizing with mouse events - completely rewritten
+  const [resizing, setResizing] = useState(false);
+  const [resizingColId, setResizingColId] = useState<string | null>(null);
+  const startResizeX = useRef(0);
+  const startResizeWidth = useRef(0);
+  
+  const handleResizeMouseDown = (
+    e: React.MouseEvent<HTMLDivElement>,
+    columnId: string
+  ) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Save initial state for resizing
-    setResizingColumn(columnId);
-    setStartX(e.clientX);
-    setStartWidth(columnWidths[columnId] || 100);
+    // Capture starting position and width
+    startResizeX.current = e.clientX;
+    startResizeWidth.current = columnWidths[columnId] || 100;
     
-    // Add global event listeners
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    // Set state to indicate we're resizing
+    setResizing(true);
+    setResizingColId(columnId);
+    
+    // Add event listeners to track mouse movement globally
+    document.addEventListener('mousemove', handleResizeMouseMove);
+    document.addEventListener('mouseup', handleResizeMouseUp);
   };
   
-  // Use useCallback to avoid recreating these functions on each render
-  const handleMouseMove = (e: MouseEvent) => {
-    e.preventDefault();
+  const handleResizeMouseMove = (e: MouseEvent) => {
+    if (!resizing || !resizingColId) return;
     
-    if (resizingColumn) {
-      const deltaX = e.clientX - startX;
-      // Allow even very small widths (limited by MIN_COLUMN_WIDTH)
-      const newWidth = Math.max(MIN_COLUMN_WIDTH, startWidth + deltaX);
-      
-      setColumnWidths(prev => ({
-        ...prev,
-        [resizingColumn]: newWidth
-      }));
-    }
+    // Calculate width change
+    const delta = e.clientX - startResizeX.current;
+    
+    // Apply new width with minimum constraint
+    const newWidth = Math.max(MIN_COLUMN_WIDTH, startResizeWidth.current + delta);
+    
+    // Update width in state
+    setColumnWidths(prev => ({
+      ...prev,
+      [resizingColId]: newWidth
+    }));
   };
   
-  const handleMouseUp = () => {
-    // Clean up event listeners when done
-    setResizingColumn(null);
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
+  const handleResizeMouseUp = () => {
+    // Stop resizing
+    setResizing(false);
+    setResizingColId(null);
+    
+    // Remove global event listeners
+    document.removeEventListener('mousemove', handleResizeMouseMove);
+    document.removeEventListener('mouseup', handleResizeMouseUp);
   };
+  
+  // Cleanup event listeners on unmount
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleResizeMouseMove);
+      document.removeEventListener('mouseup', handleResizeMouseUp);
+    };
+  }, []);
   
   // Column reordering handlers
   const handleDragStart = (columnId: string, e: React.DragEvent) => {
@@ -304,7 +334,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         <Table>
           <TableCaption>Board Structure - Total {boardData.columns.length} Columns</TableCaption>
           <TableHeader>
-            <TableRow className="h-6">
+            <TableRow className="h-8">
               <TableHead className="w-10 p-1">
                 <div
                   className="cursor-pointer flex justify-center"
@@ -336,15 +366,16 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                 
                 const dragActive = draggedColumn === columnKey;
                 const dragOver = dragOverColumn === columnKey;
+                const currentWidth = columnWidths[columnKey] || 100;
                 
                 return (
                   <TableHead 
                     key={columnKey}
+                    ref={columnRefs.current[columnKey]}
                     className={`relative h-8 p-1 select-none border-r ${dragActive ? 'opacity-50' : ''} ${dragOver ? 'bg-gray-100' : ''}`}
                     style={{ 
-                      width: `${columnWidths[columnKey]}px`, 
+                      width: `${currentWidth}px`,
                       minWidth: `${MIN_COLUMN_WIDTH}px`,
-                      maxWidth: `${columnWidths[columnKey]}px`, // Enforce the width
                       cursor: "default"
                     }}
                     draggable={true}
@@ -363,10 +394,11 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         {title} {getSortIndicator(sortKey)}
                       </span>
                     </div>
-                    {/* Highly visible resize handle */}
+                    
+                    {/* Resizing handle */}
                     <div 
-                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize bg-transparent hover:bg-blue-300 active:bg-blue-400 z-20"
-                      onMouseDown={(e) => handleResizeStart(columnKey, e)} 
+                      className={`absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-blue-400 ${resizingColId === columnKey ? 'bg-blue-500' : 'bg-transparent'}`}
+                      onMouseDown={(e) => handleResizeMouseDown(e, columnKey)}
                       title="Drag to resize"
                     />
                   </TableHead>

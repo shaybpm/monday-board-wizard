@@ -17,7 +17,18 @@ const ResizablePanelGroup = ({
   />
 )
 
-const ResizablePanel = ResizablePrimitive.Panel
+const ResizablePanel = ({
+  className,
+  ...props
+}: React.ComponentProps<typeof ResizablePrimitive.Panel>) => (
+  <ResizablePrimitive.Panel
+    className={cn(
+      "flex h-full w-full min-w-[10px]", // Added min-width constraint
+      className
+    )}
+    {...props}
+  />
+)
 
 const ResizableHandle = ({
   withHandle,
