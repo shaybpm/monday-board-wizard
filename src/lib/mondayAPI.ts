@@ -1,3 +1,4 @@
+
 import { MondayCredentials, ParsedBoardData } from "./types";
 import { toast } from "sonner";
 
@@ -45,23 +46,25 @@ export const fetchBoardStructure = async (
 
     const board = boardResponse.data.boards[0];
     
-    // Now fetch at least one item with all its column values
+    // Now fetch items with proper query structure - fixed the GraphQL query
     const itemsQuery = `
       query {
         boards(ids: ${credentials.sourceBoard}) {
-          items(limit: 1) {
-            id
-            name
-            group {
+          items_page(limit: 1) {
+            items {
               id
-              title
-            }
-            column_values {
-              id
-              title
-              type
-              value
-              text
+              name
+              group {
+                id
+                title
+              }
+              column_values {
+                id
+                title
+                type
+                value
+                text
+              }
             }
           }
         }
@@ -79,9 +82,9 @@ export const fetchBoardStructure = async (
       subitems: []
     };
 
-    // Process items if available
-    if (itemsResponse?.data?.boards?.[0]?.items?.length > 0) {
-      const items = itemsResponse.data.boards[0].items;
+    // Process items if available - updated path to items
+    if (itemsResponse?.data?.boards?.[0]?.items_page?.items?.length > 0) {
+      const items = itemsResponse.data.boards[0].items_page.items;
       
       parsedData.items = items.map((item: any) => ({
         id: item.id,
