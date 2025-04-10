@@ -1,4 +1,3 @@
-
 import { MondayCredentials, ParsedBoardData, BoardItem } from "./types";
 import { toast } from "sonner";
 
@@ -182,7 +181,7 @@ export const fetchDebugSubitems = async (
   limit: number = 20
 ): Promise<any[]> => {
   try {
-    // Get first few items to find subitems
+    // First get items that have subitems
     const itemsQuery = `
       query {
         boards(ids: ${credentials.sourceBoard}) {
@@ -218,25 +217,27 @@ export const fetchDebugSubitems = async (
       return [];
     }
     
-    // Get subitems for those items
+    // Fixed query - The key issue was here in the GraphQL query structure
     const subitemsQuery = `
       query {
         boards(ids: ${credentials.sourceBoard}) {
-          items(ids: [${itemsWithSubitems.join(',')}]) {
-            id
-            name
-            subitems {
+          items_page(items_ids: [${itemsWithSubitems.join(',')}]) {
+            items {
               id
               name
-              parent_item {
+              subitems {
                 id
                 name
-              }
-              column_values {
-                id
-                text
-                value
-                type
+                parent_item {
+                  id
+                  name
+                }
+                column_values {
+                  id
+                  text
+                  value
+                  type
+                }
               }
             }
           }
@@ -247,16 +248,17 @@ export const fetchDebugSubitems = async (
     console.log("Fetching subitems data...");
     const subitemsResponse = await fetchFromMonday(subitemsQuery, credentials.apiToken);
     
-    if (!subitemsResponse?.data?.boards?.[0]?.items) {
+    if (!subitemsResponse?.data?.boards?.[0]?.items_page?.items) {
       toast.error("Failed to fetch subitems data");
       return [];
     }
     
     // Flatten subitems from all items
-    const subitems = subitemsResponse.data.boards[0].items
+    const subitems = subitemsResponse.data.boards[0].items_page.items
       .flatMap((item: any) => item.subitems || [])
       .slice(0, limit);
     
+    console.log(`Found ${subitems.length} subitems`);
     return subitems;
   } catch (error) {
     console.error("Error fetching debug subitems:", error);
