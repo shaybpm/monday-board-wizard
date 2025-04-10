@@ -123,10 +123,11 @@ export const fetchBoardStructure = async (
               const firstSubitem = subitemResponse.data.items[0].subitems[0];
               console.log("First subitem data:", firstSubitem);
               
+              // Fix the type error by explicitly setting type to "subitem" instead of a string
               const transformedSubitem = {
                 id: firstSubitem.id,
                 name: firstSubitem.name,
-                type: 'subitem',
+                type: "subitem" as const, // Fix: Use a literal type "subitem" instead of string
                 parentId: itemId,
                 groupId: '',
                 groupTitle: '',
