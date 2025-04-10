@@ -30,6 +30,9 @@ interface ColumnWidth {
   [key: string]: number;
 }
 
+const STORAGE_KEY_COLUMN_WIDTH = "monday-column-widths";
+const STORAGE_KEY_COLUMN_ORDER = "monday-column-order";
+
 const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [columnRows, setColumnRows] = useState<ColumnRow[]>(
@@ -45,20 +48,63 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     direction: "ascending" | "descending" | null;
   }>({ key: "id", direction: null });
   
-  // For column resizing
-  const [columnWidths, setColumnWidths] = useState<ColumnWidth>({
+  // Default column widths
+  const defaultColumnWidths: ColumnWidth = {
     id: 150,
     title: 250,
     type: 150
-  });
+  };
+  
+  // For column resizing
+  const [columnWidths, setColumnWidths] = useState<ColumnWidth>(defaultColumnWidths);
   const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [startX, setStartX] = useState<number>(0);
   const [startWidth, setStartWidth] = useState<number>(0);
   
-  // For column reordering
-  const [columnOrder, setColumnOrder] = useState<string[]>(["id", "title", "type"]);
+  // For column reordering - with default order
+  const defaultColumnOrder = ["id", "title", "type"];
+  const [columnOrder, setColumnOrder] = useState<string[]>(defaultColumnOrder);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
+
+  // Load saved column widths and order from localStorage on component mount
+  useEffect(() => {
+    try {
+      // Load column widths
+      const savedWidths = localStorage.getItem(STORAGE_KEY_COLUMN_WIDTH);
+      if (savedWidths) {
+        setColumnWidths(JSON.parse(savedWidths));
+      }
+      
+      // Load column order
+      const savedOrder = localStorage.getItem(STORAGE_KEY_COLUMN_ORDER);
+      if (savedOrder) {
+        setColumnOrder(JSON.parse(savedOrder));
+      }
+    } catch (error) {
+      console.error("Error loading saved column settings:", error);
+      // Fallback to defaults if there's an error
+      setColumnWidths(defaultColumnWidths);
+      setColumnOrder(defaultColumnOrder);
+    }
+  }, []);
+
+  // Save column widths and order to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_COLUMN_WIDTH, JSON.stringify(columnWidths));
+    } catch (error) {
+      console.error("Error saving column widths:", error);
+    }
+  }, [columnWidths]);
+  
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_COLUMN_ORDER, JSON.stringify(columnOrder));
+    } catch (error) {
+      console.error("Error saving column order:", error);
+    }
+  }, [columnOrder]);
 
   // Filter columns based on search term
   const filteredColumns = columnRows.filter(column => {
@@ -130,16 +176,18 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 
   const selectedCount = columnRows.filter(col => col.selected).length;
   
-  // Column resizing handlers - fixed to work properly
+  // Improved column resizing handlers
   const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
     setResizingColumn(columnId);
     setStartX(e.clientX);
     setStartWidth(columnWidths[columnId] || 150);
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (resizingColumn) {
+        moveEvent.preventDefault();
         const deltaX = moveEvent.clientX - startX;
         const newWidth = Math.max(100, startWidth + deltaX);
         
@@ -161,8 +209,11 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   };
   
   // Column reordering handlers
-  const handleDragStart = (columnId: string) => {
-    setDraggedColumn(columnId);
+  const handleDragStart = (columnId: string, e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = "move";
+    setTimeout(() => {
+      setDraggedColumn(columnId);
+    }, 0);
   };
   
   const handleDragOver = (e: React.DragEvent, columnId: string) => {
@@ -185,6 +236,11 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       setColumnOrder(newColumnOrder);
     }
     
+    setDraggedColumn(null);
+    setDragOverColumn(null);
+  };
+  
+  const handleDragEnd = () => {
     setDraggedColumn(null);
     setDragOverColumn(null);
   };
@@ -251,19 +307,21 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                 
                 if (!sortKey) return null;
                 
+                const dragActive = draggedColumn === columnKey;
+                const dragOver = dragOverColumn === columnKey;
+                
                 return (
                   <TableHead 
                     key={columnKey}
-                    className="resizable-th relative h-9 p-2"
-                    style={{ width: `${columnWidths[columnKey]}px`, minWidth: "100px" }}
-                    draggable
-                    onDragStart={() => handleDragStart(columnKey)}
+                    className={`resizable-th relative h-9 p-2 select-none ${dragActive ? 'opacity-50' : ''} ${dragOver ? 'bg-gray-100' : ''}`}
+                    style={{ width: `${columnWidths[columnKey] || 150}px`, minWidth: "100px" }}
+                    draggable={true}
+                    onDragStart={(e) => handleDragStart(columnKey, e)}
                     onDragOver={(e) => handleDragOver(e, columnKey)}
                     onDrop={() => handleDrop(columnKey)}
-                    data-dragging={draggedColumn === columnKey}
-                    data-dragged-over={dragOverColumn === columnKey}
+                    onDragEnd={handleDragEnd}
                   >
-                    <div className="flex items-center cursor-pointer select-none">
+                    <div className="flex items-center cursor-pointer">
                       <GripVertical className="h-4 w-4 mr-2 cursor-grab text-gray-400" />
                       <span onClick={() => requestSort(sortKey!)}>
                         {title} {getSortIndicator(sortKey)}
