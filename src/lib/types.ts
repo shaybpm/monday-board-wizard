@@ -29,6 +29,7 @@ export interface BoardItem {
     title: string;
     type: string;
     value: any;
+    text?: string;  // Added text property as optional
   }>;
 }
 

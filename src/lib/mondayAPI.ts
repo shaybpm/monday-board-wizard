@@ -1,4 +1,3 @@
-
 import { MondayCredentials, ParsedBoardData } from "./types";
 import { toast } from "sonner";
 
@@ -96,7 +95,7 @@ export const fetchBoardStructure = async (
             title: col.title,
             type: col.type,
             value: col.value,
-            text: col.text
+            text: col.text || ''  // Ensure text has a default value if it doesn't exist
           };
           return acc;
         }, {})
