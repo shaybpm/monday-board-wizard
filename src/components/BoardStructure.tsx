@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, CheckSquare, Square, GripVertical, FileText, Hash } from "lucide-react";
+import { Search, CheckSquare, Square, GripVertical, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -62,8 +62,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       id: 60,
       title: 100,
       type: 60,
-      firstLine: 120,
-      itemId: 60
+      firstLine: 120
     };
     
     boardData.columns.forEach(column => {
@@ -75,10 +74,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         const valueLength = column.exampleValue.length;
         widths.firstLine = Math.max(widths.firstLine, Math.min(200, valueLength * 5 + 20));
       }
-      
-      if (column.itemId) {
-        widths.itemId = Math.max(widths.itemId, 80);
-      }
     });
     
     return widths;
@@ -86,7 +81,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   
   const [columnWidths, setColumnWidths] = useState<ColumnWidth>(calculateDefaultWidths());
   
-  const defaultColumnOrder = ["itemId", "id", "title", "type", "firstLine"];
+  const defaultColumnOrder = ["id", "title", "type", "firstLine"];
   const [columnOrder, setColumnOrder] = useState<string[]>(defaultColumnOrder);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
@@ -94,7 +89,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const tableRef = useRef<HTMLDivElement>(null);
   
   const columnRefs = useRef<{[key: string]: React.RefObject<HTMLTableCellElement>}>({
-    itemId: React.createRef(),
     id: React.createRef(),
     title: React.createRef(),
     type: React.createRef(),
@@ -109,8 +103,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         if (!parsedWidths.firstLine) {
           parsedWidths.firstLine = 120;
         }
-        if (!parsedWidths.itemId) {
-          parsedWidths.itemId = 60;
+        if (parsedWidths.itemId) {
+          delete parsedWidths.itemId;
         }
         setColumnWidths(parsedWidths);
       } else {
@@ -120,13 +114,12 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       const savedOrder = localStorage.getItem(STORAGE_KEY_COLUMN_ORDER);
       if (savedOrder) {
         const parsedOrder = JSON.parse(savedOrder);
-        if (!parsedOrder.includes("firstLine")) {
-          parsedOrder.push("firstLine");
+        const filteredOrder = parsedOrder.filter(col => col !== "itemId");
+        
+        if (!filteredOrder.includes("firstLine")) {
+          filteredOrder.push("firstLine");
         }
-        if (!parsedOrder.includes("itemId")) {
-          parsedOrder.unshift("itemId");
-        }
-        setColumnOrder(parsedOrder);
+        setColumnOrder(filteredOrder);
       } else {
         setColumnOrder(defaultColumnOrder);
       }
@@ -343,11 +336,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                 let sortKey: keyof ColumnRow | null = null;
                 let icon = null;
                 
-                if (columnKey === 'itemId') {
-                  title = "Item ID";
-                  sortKey = "itemId";
-                  icon = <Hash className="h-4 w-4 mr-1" />;
-                } else if (columnKey === 'id') {
+                if (columnKey === 'id') {
                   title = "Column ID";
                   sortKey = "id";
                 } else if (columnKey === 'title') {
@@ -429,27 +418,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                     </div>
                   </TableCell>
                   {columnOrder.map((columnKey) => {
-                    if (columnKey === 'itemId') {
-                      return (
-                        <TableCell 
-                          key={`${column.id}-itemId`}
-                          style={{ 
-                            width: `${columnWidths.itemId || 60}px`,
-                            maxWidth: `${columnWidths.itemId || 60}px`
-                          }}
-                          className="font-mono text-xs p-1 truncate"
-                        >
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="truncate inline-block w-full" title={column.itemId || "N/A"}>
-                                {column.itemId || "N/A"}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>{column.itemId || "N/A"}</TooltipContent>
-                          </Tooltip>
-                        </TableCell>
-                      );
-                    }
                     if (columnKey === 'id') {
                       return (
                         <TableCell 
@@ -514,6 +482,10 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                       );
                     }
                     if (columnKey === 'firstLine') {
+                      const displayValue = column.id === "name" 
+                        ? (column.itemName || "N/A") 
+                        : (column.firstLineValue || "N/A");
+                      
                       return (
                         <TableCell 
                           key={`${column.id}-firstLine`}
@@ -525,13 +497,12 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         >
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="truncate inline-block w-full" title={column.firstLineValue || "N/A"}>
-                                {column.itemName || "N/A"} - {column.firstLineValue || "N/A"}
+                              <span className="truncate inline-block w-full" title={displayValue}>
+                                {displayValue}
                               </span>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <div><strong>Item:</strong> {column.itemName || "N/A"}</div>
-                              <div><strong>Value:</strong> {column.firstLineValue || "N/A"}</div>
+                              <div>{displayValue}</div>
                             </TooltipContent>
                           </Tooltip>
                         </TableCell>
