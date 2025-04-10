@@ -1,5 +1,5 @@
 
-import { MondayCredentials, ParsedBoardData } from "./types";
+import { MondayCredentials, ParsedBoardData, BoardItem } from "./types";
 import { toast } from "sonner";
 
 const baseUrl = "https://api.monday.com/v2";
@@ -61,6 +61,55 @@ export const fetchBoardStructure = async (
       columnsCount: parsedData.columns.length,
       groupsCount: parsedData.groups.length
     });
+
+    // Now fetch sample data for the first line examples
+    try {
+      const itemsQuery = `
+        query {
+          boards(ids: ${credentials.sourceBoard}) {
+            items(limit: 1) {
+              id
+              name
+              group {
+                id
+                title
+              }
+              column_values {
+                id
+                title
+                type
+                text
+                value
+              }
+              subitems {
+                id
+              }
+            }
+          }
+        }
+      `;
+
+      const itemsResponse = await fetchFromMonday(itemsQuery, credentials.apiToken);
+      
+      if (itemsResponse?.data?.boards?.[0]?.items?.[0]) {
+        const firstItem = itemsResponse.data.boards[0].items[0];
+        console.log("First item data:", firstItem);
+        
+        // Add example values to the columns
+        parsedData.columns = parsedData.columns.map(column => {
+          const columnValue = firstItem.column_values.find(cv => cv.id === column.id);
+          return {
+            ...column,
+            exampleValue: columnValue ? (columnValue.text || JSON.stringify(columnValue.value)) : undefined
+          };
+        });
+      } else {
+        console.log("No items found in the board or could not fetch item data");
+      }
+    } catch (error) {
+      console.error("Error fetching first line data:", error);
+      // Continue with the board structure even if item data fails
+    }
 
     return parsedData;
   } catch (error) {

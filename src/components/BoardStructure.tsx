@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { ParsedBoardData } from "@/lib/types";
 import { 
@@ -15,11 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Search, CheckSquare, Square, GripVertical, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle
-} from "@/components/ui/resizable";
 
 interface BoardStructureProps {
   boardData: ParsedBoardData;
@@ -29,7 +23,7 @@ interface ColumnRow {
   id: string;
   title: string;
   type: string;
-  firstLineValue?: string; // Added for first line data
+  firstLineValue?: string;
   selected: boolean;
 }
 
@@ -50,7 +44,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       id: column.id,
       title: column.title,
       type: column.type,
-      firstLineValue: column.id === "name" ? "First item name" : "N/A", // Default placeholder for first line data
+      firstLineValue: column.exampleValue || "N/A",
       selected: false
     }))
   );
@@ -59,66 +53,60 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     direction: "ascending" | "descending" | null;
   }>({ key: "id", direction: null });
   
-  // Calculate optimal widths based on content
   const calculateDefaultWidths = () => {
     const widths: ColumnWidth = {
       id: 60,
       title: 100,
       type: 60,
-      firstLine: 120 // Set default width for the first line column
+      firstLine: 120
     };
     
     boardData.columns.forEach(column => {
       widths.id = Math.max(widths.id, Math.min(100, column.id.length * 5 + 10));
       widths.title = Math.max(widths.title, Math.min(150, column.title.length * 5 + 20));
       widths.type = Math.max(widths.type, Math.min(100, column.type.length * 5 + 10));
+      
+      if (column.exampleValue) {
+        const valueLength = column.exampleValue.length;
+        widths.firstLine = Math.max(widths.firstLine, Math.min(200, valueLength * 5 + 20));
+      }
     });
     
     return widths;
   };
   
-  // For column widths
   const [columnWidths, setColumnWidths] = useState<ColumnWidth>(calculateDefaultWidths());
   
-  // For column reordering - with default order (now includes firstLine)
   const defaultColumnOrder = ["id", "title", "type", "firstLine"];
   const [columnOrder, setColumnOrder] = useState<string[]>(defaultColumnOrder);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
-  // DOM refs
   const tableRef = useRef<HTMLDivElement>(null);
   
-  // Individual column refs for resizing
   const columnRefs = useRef<{[key: string]: React.RefObject<HTMLTableCellElement>}>({
     id: React.createRef(),
     title: React.createRef(),
     type: React.createRef(),
-    firstLine: React.createRef() // Add a ref for the firstLine column
+    firstLine: React.createRef()
   });
 
-  // Load saved column widths and order from localStorage on component mount
   useEffect(() => {
     try {
-      // Load column widths
       const savedWidths = localStorage.getItem(STORAGE_KEY_COLUMN_WIDTH);
       if (savedWidths) {
         const parsedWidths = JSON.parse(savedWidths);
-        // Make sure firstLine width is included
         if (!parsedWidths.firstLine) {
-          parsedWidths.firstLine = 120; // Default width for firstLine
+          parsedWidths.firstLine = 120;
         }
         setColumnWidths(parsedWidths);
       } else {
-        // No saved widths, use calculated defaults
         setColumnWidths(calculateDefaultWidths());
       }
       
-      // Load column order
       const savedOrder = localStorage.getItem(STORAGE_KEY_COLUMN_ORDER);
       if (savedOrder) {
         const parsedOrder = JSON.parse(savedOrder);
-        // Add firstLine to the order if it's not already there
         if (!parsedOrder.includes("firstLine")) {
           parsedOrder.push("firstLine");
         }
@@ -128,16 +116,11 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
       }
     } catch (error) {
       console.error("Error loading saved column settings:", error);
-      // Fallback to defaults if there's an error
       setColumnWidths(calculateDefaultWidths());
       setColumnOrder(defaultColumnOrder);
     }
-
-    // Attempt to fetch first line data for columns
-    fetchFirstLineData();
   }, []);
 
-  // Save column widths and order to localStorage whenever they change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_COLUMN_WIDTH, JSON.stringify(columnWidths));
@@ -154,55 +137,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     }
   }, [columnOrder]);
 
-  // Function to fetch first line data from the Monday board
-  const fetchFirstLineData = () => {
-    // Since we don't have real data, simulate first line values
-    // In a real implementation, you would fetch this from the Monday API
-    const storedCredentialsStr = sessionStorage.getItem("mondayCredentials");
-    
-    if (!storedCredentialsStr) {
-      console.error("No credentials found for fetching first line data");
-      return;
-    }
-
-    // This would be replaced with actual API call to get first line data
-    // For now, just setting sample values based on column types
-    setColumnRows(prevRows => 
-      prevRows.map(column => {
-        let sampleValue = "N/A";
-        
-        switch(column.type) {
-          case "name":
-            sampleValue = "Sample Item";
-            break;
-          case "text":
-            sampleValue = "Text example";
-            break;
-          case "date":
-            sampleValue = "2025-04-10";
-            break;
-          case "numbers":
-            sampleValue = "123.45";
-            break;
-          case "formula":
-            sampleValue = "=SUM(A1:B2)";
-            break;
-          case "subtasks":
-            sampleValue = "3 subtasks";
-            break;
-          default:
-            sampleValue = column.type;
-        }
-        
-        return {
-          ...column,
-          firstLineValue: sampleValue
-        };
-      })
-    );
-  };
-
-  // Filter columns based on search term
   const filteredColumns = columnRows.filter(column => {
     if (!searchTerm) return true;
     
@@ -210,11 +144,11 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     return (
       column.id.toLowerCase().includes(lowerSearchTerm) ||
       column.title.toLowerCase().includes(lowerSearchTerm) ||
-      column.type.toLowerCase().includes(lowerSearchTerm)
+      column.type.toLowerCase().includes(lowerSearchTerm) ||
+      (column.firstLineValue && column.firstLineValue.toLowerCase().includes(lowerSearchTerm))
     );
   });
   
-  // Sort columns
   const sortedColumns = [...filteredColumns].sort((a, b) => {
     if (sortConfig.direction === null) {
       return 0;
@@ -261,7 +195,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     const allSelected = sortedColumns.every(col => col.selected);
     setColumnRows(rows => 
       rows.map(row => {
-        // Only toggle rows that are currently visible in the filter
         if (filteredColumns.some(col => col.id === row.id)) {
           return { ...row, selected: !allSelected };
         }
@@ -272,7 +205,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 
   const selectedCount = columnRows.filter(col => col.selected).length;
   
-  // Column resizing with mouse events - completely rewritten
   const [resizing, setResizing] = useState(false);
   const [resizingColId, setResizingColId] = useState<string | null>(null);
   const startResizeX = useRef(0);
@@ -285,15 +217,12 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Capture starting position and width
     startResizeX.current = e.clientX;
     startResizeWidth.current = columnWidths[columnId] || 100;
     
-    // Set state to indicate we're resizing
     setResizing(true);
     setResizingColId(columnId);
     
-    // Add event listeners to track mouse movement globally
     document.addEventListener('mousemove', handleResizeMouseMove);
     document.addEventListener('mouseup', handleResizeMouseUp);
   };
@@ -301,13 +230,10 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const handleResizeMouseMove = (e: MouseEvent) => {
     if (!resizing || !resizingColId) return;
     
-    // Calculate width change
     const delta = e.clientX - startResizeX.current;
     
-    // Apply new width with minimum constraint
     const newWidth = Math.max(MIN_COLUMN_WIDTH, startResizeWidth.current + delta);
     
-    // Update width in state
     setColumnWidths(prev => ({
       ...prev,
       [resizingColId]: newWidth
@@ -315,16 +241,13 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   };
   
   const handleResizeMouseUp = () => {
-    // Stop resizing
     setResizing(false);
     setResizingColId(null);
     
-    // Remove global event listeners
     document.removeEventListener('mousemove', handleResizeMouseMove);
     document.removeEventListener('mouseup', handleResizeMouseUp);
   };
   
-  // Cleanup event listeners on unmount
   useEffect(() => {
     return () => {
       document.removeEventListener('mousemove', handleResizeMouseMove);
@@ -332,7 +255,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     };
   }, []);
   
-  // Column reordering handlers
   const handleDragStart = (columnId: string, e: React.DragEvent) => {
     e.dataTransfer.effectAllowed = "move";
     setTimeout(() => {
@@ -368,7 +290,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
     setDraggedColumn(null);
     setDragOverColumn(null);
   };
-  
+
   return (
     <div className="space-y-4">
       <Card>
@@ -430,7 +352,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                   sortKey = "type";
                 } else if (columnKey === 'firstLine') {
                   title = "First Line";
-                  sortKey = null; // No sorting for first line data
+                  sortKey = null;
                   icon = <FileText className="h-4 w-4 mr-1" />;
                 }
                 
@@ -468,7 +390,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                       </span>
                     </div>
                     
-                    {/* Resizing handle */}
                     <div 
                       className={`absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-blue-400 ${resizingColId === columnKey ? 'bg-blue-500' : 'bg-transparent'}`}
                       onMouseDown={(e) => handleResizeMouseDown(e, columnKey)}
@@ -599,4 +520,3 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 };
 
 export default BoardStructure;
-
