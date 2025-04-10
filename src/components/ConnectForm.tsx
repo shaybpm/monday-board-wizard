@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { MondayCredentials } from "@/lib/types";
 import { validateCredentials, fetchBoardStructure } from "@/lib/mondayAPI";
-import { toast } from "../components/ui/sonner";
+import { toast } from "sonner";
 import { ArrowRight, Info, Key, Loader2 } from "lucide-react";
 
 interface ConnectFormProps {

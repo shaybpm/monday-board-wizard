@@ -1,6 +1,5 @@
-
 import { MondayCredentials, ParsedBoardData } from "./types";
-import { toast } from "../components/ui/sonner";
+import { toast } from "sonner";
 
 const baseUrl = "https://api.monday.com/v2";
 

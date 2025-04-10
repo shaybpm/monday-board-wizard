@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { toast } from "./ui/sonner";
+import { toast } from "sonner";
 import { LogOut } from "lucide-react";
 
 const Header = () => {

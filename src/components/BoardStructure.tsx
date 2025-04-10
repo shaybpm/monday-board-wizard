@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,7 @@ import {
   CheckSquare, Square, ArrowLeft
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "../components/ui/sonner";
+import { toast } from "sonner";
 
 interface BoardStructureProps {
   boardData: ParsedBoardData;

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BoardStructure from "@/components/BoardStructure";
 import { ParsedBoardData } from "@/lib/types";
-import { toast } from "../components/ui/sonner";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 const BoardPage = () => {
