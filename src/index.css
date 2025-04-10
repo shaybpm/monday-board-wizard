@@ -109,6 +109,7 @@
     cursor: col-resize;
     user-select: none;
     touch-action: none;
+    z-index: 10;
   }
 
   .resizer:hover,

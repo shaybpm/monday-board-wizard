@@ -130,42 +130,35 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 
   const selectedCount = columnRows.filter(col => col.selected).length;
   
-  // Column resizing handlers
+  // Column resizing handlers - fixed to work properly
   const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setResizingColumn(columnId);
     setStartX(e.clientX);
     setStartWidth(columnWidths[columnId] || 150);
     
-    document.addEventListener("mousemove", handleResizeMove);
-    document.addEventListener("mouseup", handleResizeEnd);
-  };
-  
-  const handleResizeMove = (e: MouseEvent) => {
-    if (!resizingColumn) return;
-    
-    const deltaX = e.clientX - startX;
-    const newWidth = Math.max(100, startWidth + deltaX);
-    
-    setColumnWidths(prev => ({
-      ...prev,
-      [resizingColumn]: newWidth
-    }));
-  };
-  
-  const handleResizeEnd = () => {
-    setResizingColumn(null);
-    document.removeEventListener("mousemove", handleResizeMove);
-    document.removeEventListener("mouseup", handleResizeEnd);
-  };
-  
-  // Clean up event listeners on unmount
-  useEffect(() => {
-    return () => {
-      document.removeEventListener("mousemove", handleResizeMove);
-      document.removeEventListener("mouseup", handleResizeEnd);
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (resizingColumn) {
+        const deltaX = moveEvent.clientX - startX;
+        const newWidth = Math.max(100, startWidth + deltaX);
+        
+        setColumnWidths(prev => ({
+          ...prev,
+          [columnId]: newWidth
+        }));
+      }
     };
-  }, []);
+    
+    const handleMouseUp = () => {
+      setResizingColumn(null);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+    
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
   
   // Column reordering handlers
   const handleDragStart = (columnId: string) => {
@@ -228,16 +221,16 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         <Table>
           <TableCaption>Board Structure - Total {boardData.columns.length} Columns</TableCaption>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-10">
+            <TableRow className="h-9">
+              <TableHead className="w-10 p-2">
                 <div
                   className="cursor-pointer flex justify-center"
                   onClick={toggleAllSelection}
                 >
                   {filteredColumns.length > 0 && filteredColumns.every(col => col.selected) ? (
-                    <CheckSquare className="h-5 w-5" />
+                    <CheckSquare className="h-4 w-4" />
                   ) : (
-                    <Square className="h-5 w-5" />
+                    <Square className="h-4 w-4" />
                   )}
                 </div>
               </TableHead>
@@ -261,7 +254,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                 return (
                   <TableHead 
                     key={columnKey}
-                    className="resizable-th relative"
+                    className="resizable-th relative h-9 p-2"
                     style={{ width: `${columnWidths[columnKey]}px`, minWidth: "100px" }}
                     draggable
                     onDragStart={() => handleDragStart(columnKey)}
@@ -289,22 +282,22 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
           <TableBody>
             {sortedColumns.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columnOrder.length + 1} className="h-24 text-center">
+                <TableCell colSpan={columnOrder.length + 1} className="h-16 text-center">
                   No columns found.
                 </TableCell>
               </TableRow>
             ) : (
               sortedColumns.map((column) => (
-                <TableRow key={column.id} className={column.selected ? 'bg-blue-50' : ''}>
-                  <TableCell className="text-center">
+                <TableRow key={column.id} className={`${column.selected ? 'bg-blue-50' : ''} h-8`}>
+                  <TableCell className="text-center p-1">
                     <div 
                       className="cursor-pointer inline-flex"
                       onClick={() => toggleRowSelection(column.id)}
                     >
                       {column.selected ? (
-                        <CheckSquare className="h-5 w-5 text-blue-600" />
+                        <CheckSquare className="h-4 w-4 text-blue-600" />
                       ) : (
-                        <Square className="h-5 w-5" />
+                        <Square className="h-4 w-4" />
                       )}
                     </div>
                   </TableCell>
@@ -314,7 +307,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-id`}
                           style={{ width: `${columnWidths.id}px` }}
-                          className="font-mono text-sm"
+                          className="font-mono text-xs p-1"
                         >
                           {column.id}
                         </TableCell>
@@ -325,6 +318,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-title`}
                           style={{ width: `${columnWidths.title}px` }}
+                          className="p-1"
                         >
                           {column.title}
                         </TableCell>
@@ -335,8 +329,9 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         <TableCell 
                           key={`${column.id}-type`}
                           style={{ width: `${columnWidths.type}px` }}
+                          className="p-1"
                         >
-                          <span className="px-2 py-1 bg-gray-100 rounded-md text-xs">
+                          <span className="px-2 py-0.5 bg-gray-100 rounded-md text-xs">
                             {column.type}
                           </span>
                         </TableCell>
