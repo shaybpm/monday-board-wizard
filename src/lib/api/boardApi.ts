@@ -123,6 +123,19 @@ export const fetchBoardStructure = async (
               const firstSubitem = subitemResponse.data.items[0].subitems[0];
               console.log("First subitem data:", firstSubitem);
               
+              // Store the subitem columns separately - this is the key change
+              const subitemColumns = firstSubitem.column_values.map((cv: any) => ({
+                id: cv.id,
+                title: cv.title || cv.id, // Use id as fallback if title is not available
+                type: cv.type || 'text',
+                exampleValue: cv.text || JSON.stringify(cv.value) || "N/A",
+                itemId: firstSubitem.id,
+                itemName: firstSubitem.name
+              }));
+              
+              // Save these distinct subitem columns to the parsedData
+              parsedData.subitemColumns = subitemColumns;
+              
               // Fix the type error by explicitly setting type to "subitem" instead of a string
               const transformedSubitem = {
                 id: firstSubitem.id,

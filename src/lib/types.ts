@@ -52,6 +52,7 @@ export interface ParsedBoardData {
   groups: BoardGroup[];
   items: BoardItem[];
   subitems: BoardItem[];
+  subitemColumns?: BoardColumn[]; // Added new field to store subitem columns specifically
 }
 
 export type DebugDataType = 'items' | 'subitems';
