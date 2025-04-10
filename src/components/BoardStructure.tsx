@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, CheckSquare, Square, GripVertical } from "lucide-react";
+import { Search, CheckSquare, Square, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BoardStructureProps {
   boardData: ParsedBoardData;
@@ -33,8 +34,8 @@ interface ColumnWidth {
 const STORAGE_KEY_COLUMN_WIDTH = "monday-column-widths";
 const STORAGE_KEY_COLUMN_ORDER = "monday-column-order";
 
-// Minimum column width constant
-const MIN_COLUMN_WIDTH = 60;
+// Minimum column width constant - smaller to allow proper resizing
+const MIN_COLUMN_WIDTH = 30;
 
 const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,21 +55,16 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   // Calculate optimal widths based on content
   const calculateDefaultWidths = () => {
     const widths: ColumnWidth = {
-      id: 80,      // Start with smaller defaults
-      title: 120,
-      type: 80
+      id: 60,      // Start with smaller defaults
+      title: 100,
+      type: 60
     };
     
-    // Estimate width based on content length
+    // Estimate width based on content length - with tighter constraints
     boardData.columns.forEach(column => {
-      // ID column - base on longest ID but with stricter constraints
-      widths.id = Math.max(widths.id, Math.min(180, column.id.length * 6 + 20));
-      
-      // Title column - base on longest title with stricter constraints
-      widths.title = Math.max(widths.title, Math.min(200, column.title.length * 6 + 30));
-      
-      // Type column - base on longest type with stricter constraints
-      widths.type = Math.max(widths.type, Math.min(120, column.type.length * 7 + 20));
+      widths.id = Math.max(widths.id, Math.min(100, column.id.length * 5 + 10));
+      widths.title = Math.max(widths.title, Math.min(150, column.title.length * 5 + 20));
+      widths.type = Math.max(widths.type, Math.min(100, column.type.length * 5 + 10));
     });
     
     return widths;
@@ -86,7 +82,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
-  // DOM ref for table container to handle mouse events correctly
+  // DOM refs
   const tableRef = useRef<HTMLDivElement>(null);
 
   // Load saved column widths and order from localStorage on component mount
@@ -201,38 +197,42 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
 
   const selectedCount = columnRows.filter(col => col.selected).length;
   
-  // Fixed column resizing handlers
+  // Improved column resizing handlers with better setup
   const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
+    // Save initial state for resizing
     setResizingColumn(columnId);
     setStartX(e.clientX);
-    setStartWidth(columnWidths[columnId] || 150);
+    setStartWidth(columnWidths[columnId] || 100);
     
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      moveEvent.preventDefault();
-      moveEvent.stopPropagation();
-      
-      if (resizingColumn) {
-        const deltaX = moveEvent.clientX - startX;
-        const newWidth = Math.max(MIN_COLUMN_WIDTH, startWidth + deltaX); // Allow smaller widths
-        
-        setColumnWidths(prev => ({
-          ...prev,
-          [columnId]: newWidth
-        }));
-      }
-    };
-    
-    const handleMouseUp = () => {
-      setResizingColumn(null);
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-    
+    // Add global event listeners
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
+  };
+  
+  // Use useCallback to avoid recreating these functions on each render
+  const handleMouseMove = (e: MouseEvent) => {
+    e.preventDefault();
+    
+    if (resizingColumn) {
+      const deltaX = e.clientX - startX;
+      // Allow even very small widths (limited by MIN_COLUMN_WIDTH)
+      const newWidth = Math.max(MIN_COLUMN_WIDTH, startWidth + deltaX);
+      
+      setColumnWidths(prev => ({
+        ...prev,
+        [resizingColumn]: newWidth
+      }));
+    }
+  };
+  
+  const handleMouseUp = () => {
+    // Clean up event listeners when done
+    setResizingColumn(null);
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
   };
   
   // Column reordering handlers
@@ -342,8 +342,9 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                     key={columnKey}
                     className={`relative h-8 p-1 select-none border-r ${dragActive ? 'opacity-50' : ''} ${dragOver ? 'bg-gray-100' : ''}`}
                     style={{ 
-                      width: `${columnWidths[columnKey] || MIN_COLUMN_WIDTH}px`, 
+                      width: `${columnWidths[columnKey]}px`, 
                       minWidth: `${MIN_COLUMN_WIDTH}px`,
+                      maxWidth: `${columnWidths[columnKey]}px`, // Enforce the width
                       cursor: "default"
                     }}
                     draggable={true}
@@ -362,8 +363,9 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                         {title} {getSortIndicator(sortKey)}
                       </span>
                     </div>
+                    {/* Highly visible resize handle */}
                     <div 
-                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-blue-300 active:bg-blue-400 z-10"
+                      className="absolute top-0 right-0 w-2 h-full cursor-col-resize bg-transparent hover:bg-blue-300 active:bg-blue-400 z-20"
                       onMouseDown={(e) => handleResizeStart(columnKey, e)} 
                       title="Drag to resize"
                     />
@@ -382,7 +384,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
             ) : (
               sortedColumns.map((column) => (
                 <TableRow key={column.id} className={`${column.selected ? 'bg-blue-50' : ''} h-6`}>
-                  <TableCell className="text-center p-0">
+                  <TableCell className="text-center p-0 w-10">
                     <div 
                       className="cursor-pointer inline-flex"
                       onClick={() => toggleRowSelection(column.id)}
@@ -399,11 +401,20 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                       return (
                         <TableCell 
                           key={`${column.id}-id`}
-                          style={{ width: `${columnWidths.id}px` }}
+                          style={{ 
+                            width: `${columnWidths.id}px`,
+                            maxWidth: `${columnWidths.id}px`
+                          }}
                           className="font-mono text-xs p-1 truncate"
-                          title={column.id}
                         >
-                          {column.id}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="truncate inline-block w-full" title={column.id}>
+                                {column.id}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>{column.id}</TooltipContent>
+                          </Tooltip>
                         </TableCell>
                       );
                     }
@@ -411,11 +422,20 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                       return (
                         <TableCell 
                           key={`${column.id}-title`}
-                          style={{ width: `${columnWidths.title}px` }}
+                          style={{ 
+                            width: `${columnWidths.title}px`,
+                            maxWidth: `${columnWidths.title}px`
+                          }}
                           className="p-1 truncate"
-                          title={column.title}
                         >
-                          {column.title}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="truncate inline-block w-full" title={column.title}>
+                                {column.title}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>{column.title}</TooltipContent>
+                          </Tooltip>
                         </TableCell>
                       );
                     }
@@ -423,12 +443,20 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
                       return (
                         <TableCell 
                           key={`${column.id}-type`}
-                          style={{ width: `${columnWidths.type}px` }}
+                          style={{ 
+                            width: `${columnWidths.type}px`,
+                            maxWidth: `${columnWidths.type}px`
+                          }}
                           className="p-1"
                         >
-                          <span className="px-2 py-0.5 bg-gray-100 rounded-md text-xs truncate inline-block max-w-full" title={column.type}>
-                            {column.type}
-                          </span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="px-1 py-0 bg-gray-100 rounded-md text-xs truncate inline-block w-full" title={column.type}>
+                                {column.type}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>{column.type}</TooltipContent>
+                          </Tooltip>
                         </TableCell>
                       );
                     }
