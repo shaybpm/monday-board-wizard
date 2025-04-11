@@ -13,18 +13,22 @@ interface FetchAllDataButtonProps {
 const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
   const [isFetching, setIsFetching] = useState(false);
 
-  const fetchAllItemsWithPagination = async (credentials: any, pageSize = 100) => {
+  const fetchAllItemsWithPagination = async (credentials: any) => {
     let allItems: any[] = [];
-    let currentPage = 1;
     let hasMoreItems = true;
+    let cursor = "";
+    let page = 1;
     
+    // Monday API does not use page parameter but cursor for pagination
     while (hasMoreItems) {
-      toast.info(`Fetching items page ${currentPage}...`);
+      toast.info(`Fetching items page ${page}...`);
       
+      // Use cursor-based pagination instead of page-based
+      const cursorParam = cursor ? `, cursor: "${cursor}"` : "";
       const query = `
         query {
           boards(ids: ${credentials.sourceBoard}) {
-            items_page(limit: ${pageSize}, page: ${currentPage}) {
+            items_page(limit: 100${cursorParam}) {
               items {
                 id
                 name
@@ -59,16 +63,32 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
         });
         
         const data = await response.json();
-        const items = data?.data?.boards?.[0]?.items_page?.items || [];
         
-        if (items.length === 0) {
+        if (data.errors) {
+          console.error("GraphQL errors:", data.errors);
+          toast.error(`API error: ${data.errors[0].message}`);
+          hasMoreItems = false;
+          continue;
+        }
+        
+        const itemsPage = data?.data?.boards?.[0]?.items_page;
+        const items = itemsPage?.items || [];
+        cursor = itemsPage?.cursor;
+        
+        console.log(`Fetched ${items.length} items on page ${page}`, items);
+        
+        if (items.length === 0 || !cursor) {
           hasMoreItems = false;
         } else {
           allItems = [...allItems, ...items];
-          currentPage++;
+          page++;
+          
+          // Update the UI with current progress
+          toast.info(`Fetched ${allItems.length} items so far...`);
         }
       } catch (error) {
         console.error("Error fetching page:", error);
+        toast.error(`Error fetching page ${page}`);
         hasMoreItems = false;
       }
     }
@@ -127,12 +147,23 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
         });
         
         const data = await response.json();
+        
+        if (data.errors) {
+          console.error("GraphQL errors:", data.errors);
+          toast.error(`API error: ${data.errors[0].message}`);
+          continue;
+        }
+        
         const items = data?.data?.items || [];
         
         const subitems = items.flatMap((item: any) => item.subitems || []);
         allSubitems = [...allSubitems, ...subitems];
+        
+        console.log(`Fetched ${subitems.length} subitems in batch ${i + 1}`);
+        toast.info(`Fetched ${allSubitems.length} subitems so far...`);
       } catch (error) {
         console.error("Error fetching subitems batch:", error);
+        toast.error(`Error fetching subitems batch ${i + 1}`);
       }
     }
     
@@ -141,7 +172,7 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
 
   const fetchAllBoardData = async () => {
     setIsFetching(true);
-    toast.info("Fetching all board data...");
+    toast.info("Starting to fetch all board data...");
     
     const storedCredentialsStr = sessionStorage.getItem("mondayCredentials");
     
@@ -161,13 +192,33 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
         // Then fetch all items with pagination
         const items = await fetchAllItemsWithPagination(credentials);
         
+        if (items.length === 0) {
+          toast.warning("No items found in the board.");
+        } else {
+          toast.success(`Successfully fetched ${items.length} items.`);
+        }
+        
         // Find items that have subitems
         const itemsWithSubitems = items
           .filter(item => item.subitems && item.subitems.length > 0)
           .map(item => item.id);
         
+        console.log(`Found ${itemsWithSubitems.length} items with subitems`);
+        
+        let subitems: any[] = [];
+        
         // Fetch all subitems for those items
-        const subitems = await fetchAllSubitemsWithPagination(credentials, itemsWithSubitems);
+        if (itemsWithSubitems.length > 0) {
+          subitems = await fetchAllSubitemsWithPagination(credentials, itemsWithSubitems);
+          
+          if (subitems.length === 0) {
+            toast.warning("No subitems found despite items having subitem references.");
+          } else {
+            toast.success(`Successfully fetched ${subitems.length} subitems.`);
+          }
+        } else {
+          console.log("No items with subitems found");
+        }
         
         // Log summary data
         const summary = {
@@ -179,8 +230,6 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
         };
         
         console.log("Board data summary:", summary);
-        
-        toast.success(`Fetched ${items.length} items and ${subitems.length} subitems from the board.`);
         
         // Transform items into the expected format
         const transformedItems = items.map((item: any) => {
@@ -238,8 +287,14 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
           subitems: transformedSubitems
         };
         
+        console.log("Setting updated board data:", {
+          itemCount: transformedItems.length,
+          subitemCount: transformedSubitems.length
+        });
+        
         setBoardData(updatedBoardData);
         sessionStorage.setItem("mondayBoardData", JSON.stringify(updatedBoardData));
+        toast.success(`Successfully updated board data with ${transformedItems.length} items and ${transformedSubitems.length} subitems.`);
       } else {
         toast.error("Failed to fetch board data.");
       }

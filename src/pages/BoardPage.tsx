@@ -33,7 +33,7 @@ const BoardPage = () => {
       />
 
       <ItemsTable 
-        items={boardData.items} 
+        items={boardData.items || []} 
         isLoading={isLoading} 
       />
 

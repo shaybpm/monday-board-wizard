@@ -25,7 +25,29 @@ export const useBoardData = () => {
       const fetchedBoardData = await fetchBoardStructure(credentials);
       
       if (fetchedBoardData) {
-        if (!fetchedBoardData.subitems) {
+        // Check for cached data with items and subitems
+        const cachedDataStr = sessionStorage.getItem("mondayBoardData");
+        
+        if (cachedDataStr) {
+          try {
+            const cachedData = JSON.parse(cachedDataStr);
+            // If we have cached items data, use it
+            if (cachedData.items && cachedData.items.length > 0) {
+              fetchedBoardData.items = cachedData.items;
+              fetchedBoardData.subitems = cachedData.subitems || [];
+            } else {
+              // Initialize empty arrays if no cached data
+              fetchedBoardData.items = [];
+              fetchedBoardData.subitems = [];
+            }
+          } catch (e) {
+            console.error("Error parsing cached board data:", e);
+            fetchedBoardData.items = [];
+            fetchedBoardData.subitems = [];
+          }
+        } else {
+          // Initialize empty arrays if no cache
+          fetchedBoardData.items = [];
           fetchedBoardData.subitems = [];
         }
         
