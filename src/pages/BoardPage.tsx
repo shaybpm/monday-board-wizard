@@ -6,7 +6,6 @@ import ErrorState from "@/components/board-page/ErrorState";
 import BoardHeader from "@/components/board-page/BoardHeader";
 import BoardSummary from "@/components/board-page/BoardSummary";
 import BackToConnectButton from "@/components/board-page/BackToConnectButton";
-import ItemsTable from "@/components/board-page/ItemsTable";
 import OperationButton from "@/components/board-page/OperationButton";
 import { useEffect, useState } from "react";
 import { Task } from "@/pages/Index";
@@ -14,7 +13,6 @@ import { Task } from "@/pages/Index";
 const BoardPage = () => {
   const { boardData, setBoardData, isLoading, loadBoardData } = useBoardData();
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
-  const [showItemsTable, setShowItemsTable] = useState(true);
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
 
   // Load current task info
@@ -63,13 +61,6 @@ const BoardPage = () => {
         boardData={boardData} 
         setBoardData={setBoardData} 
       />
-
-      {showItemsTable && (
-        <ItemsTable 
-          items={boardData.items || []} 
-          isLoading={isLoading} 
-        />
-      )}
 
       <BoardStructure 
         boardData={boardData} 

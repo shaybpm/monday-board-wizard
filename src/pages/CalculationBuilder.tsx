@@ -6,7 +6,7 @@ import { Task } from "@/pages/Index";
 import { BoardColumn } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calculator, Plus, Minus, X as Multiply, Divide, Equal, ArrowRight } from "lucide-react";
+import { Calculator, Plus, Minus, X as Multiply, Divide, Equal, ArrowRight, Parentheses } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
@@ -53,7 +53,9 @@ const CalculationBuilder = () => {
       "+": "plus",
       "-": "minus",
       "*": "multiply",
-      "/": "divide"
+      "/": "divide",
+      "(": "open parenthesis",
+      ")": "close parenthesis"
     };
     
     setFormula([...formula, {
@@ -106,7 +108,8 @@ const CalculationBuilder = () => {
   const handleApplyFormula = () => {
     // In a real implementation, this would send the calculation to the Monday API
     toast.success("Formula applied successfully!");
-    navigate("/board");
+    // Navigate to the landing page instead of board page
+    navigate("/");
   };
 
   const isFormulaValid = () => {
@@ -192,6 +195,12 @@ const CalculationBuilder = () => {
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleAddOperator("/")}>
                   <Divide className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleAddOperator("(")}>
+                  (
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleAddOperator(")")}>
+                  )
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleAddNumber}>
                   123
