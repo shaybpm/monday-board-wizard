@@ -9,6 +9,7 @@ export const useCalculation = (currentTask: Task | null) => {
   const [formula, setFormula] = useState<CalculationToken[]>([]);
   const [targetColumn, setTargetColumn] = useState<BoardColumn | null>(null);
   const [previewResult, setPreviewResult] = useState<string | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   // Load saved formula if it exists
   useEffect(() => {
@@ -86,15 +87,82 @@ export const useCalculation = (currentTask: Task | null) => {
     return formula.length > 0 && targetColumn !== null;
   };
 
+  // New function to test the calculation with sample data
+  const testCalculation = () => {
+    setIsCalculating(true);
+    
+    try {
+      // In a real implementation, this would use actual data from the Monday.com board
+      // For now, we'll simulate a calculation with test data
+      
+      // Generate sample values for columns in the formula
+      const sampleValues: Record<string, number> = {};
+      const columnTokens = formula.filter(token => token.type === "column");
+      
+      // Assign random values to each column used in the formula
+      columnTokens.forEach(token => {
+        sampleValues[token.id] = Math.floor(Math.random() * 100);
+      });
+      
+      // Create a human-readable representation of the calculation with sample values
+      let calculation = "Test calculation using sample data:\n";
+      let evaluationString = "";
+      
+      formula.forEach(token => {
+        if (token.type === "column") {
+          const value = sampleValues[token.id];
+          calculation += `${token.display} = ${value}\n`;
+          evaluationString += value;
+        } else if (token.type === "number") {
+          evaluationString += token.value;
+        } else if (token.type === "operator") {
+          evaluationString += token.value;
+        }
+      });
+      
+      // This is a simplified evaluation for demo purposes
+      // In a real implementation, we'd need a proper formula parser/evaluator
+      let result: number;
+      try {
+        // Using Function constructor to evaluate the string as a mathematical expression
+        // Note: This is for demonstration only. In production, use a proper formula parser
+        result = new Function(`return ${evaluationString}`)();
+        
+        if (isNaN(result)) {
+          throw new Error("Calculation resulted in NaN");
+        }
+        
+        calculation += `\nResult = ${result}`;
+        setPreviewResult(result.toString());
+        toast.success("Test successful!", {
+          description: calculation,
+          duration: 5000
+        });
+      } catch (error) {
+        toast.error("Calculation error", {
+          description: "The formula couldn't be evaluated. Please check for syntax errors."
+        });
+      }
+    } catch (error) {
+      toast.error("Test failed", {
+        description: "An error occurred while testing the calculation."
+      });
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
   return {
     formula,
     targetColumn,
     previewResult,
+    isCalculating,
     handleAddOperator,
     handleAddNumber,
     handleAddColumn,
     handleSetTarget,
     handleRemoveToken,
-    isFormulaValid
+    isFormulaValid,
+    testCalculation
   };
 };

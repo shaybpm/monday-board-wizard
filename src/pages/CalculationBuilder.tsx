@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator } from "lucide-react";
 import { toast } from "sonner";
 
-// Import our new components
+// Import our components
 import ColumnsSelector from "@/components/calculation/ColumnsSelector";
 import FormulaBuilder from "@/components/calculation/FormulaBuilder";
 import TargetColumnSelector from "@/components/calculation/TargetColumnSelector";
@@ -22,17 +22,19 @@ const CalculationBuilder = () => {
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<BoardColumn[]>([]);
   
-  // Use our new custom hook for calculation logic
+  // Use our custom hook for calculation logic
   const {
     formula,
     targetColumn,
     previewResult,
+    isCalculating,
     handleAddOperator,
     handleAddNumber,
     handleAddColumn,
     handleSetTarget,
     handleRemoveToken,
-    isFormulaValid
+    isFormulaValid,
+    testCalculation
   } = useCalculation(currentTask);
 
   // Load current task info, selected columns, and any saved operations
@@ -174,9 +176,16 @@ const CalculationBuilder = () => {
                 </div>
               )}
               
+              {isCalculating && (
+                <div className="flex justify-center my-4">
+                  <div className="animate-pulse text-blue-500">Testing calculation...</div>
+                </div>
+              )}
+              
               <ActionButtons
                 onBack={handleBackToBoard}
                 onApply={handleApplyFormula}
+                onTest={testCalculation}
                 isFormValid={isFormulaValid()}
                 isEditing={!!currentTask?.savedOperations}
               />
