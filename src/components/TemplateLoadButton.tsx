@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { SavedTaskTemplate } from "@/pages/Index";
+import { SavedTaskTemplate } from "@/types/task";
 import { format } from "date-fns";
 
 interface TemplateLoadButtonProps {

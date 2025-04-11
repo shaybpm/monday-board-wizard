@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBoardData } from "@/hooks/useBoardData";
-import { Task } from "@/pages/Index";
+import { Task } from "@/types/task";
 import { BoardColumn } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
