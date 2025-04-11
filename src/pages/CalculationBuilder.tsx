@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBoardData } from "@/hooks/useBoardData";
@@ -28,13 +27,16 @@ const CalculationBuilder = () => {
     targetColumn,
     previewResult,
     isCalculating,
+    processedItems,
+    totalItems,
     handleAddOperator,
     handleAddNumber,
     handleAddColumn,
     handleSetTarget,
     handleRemoveToken,
     isFormulaValid,
-    testCalculation
+    testCalculation,
+    processBoardData
   } = useCalculation(currentTask);
 
   // Load current task info, selected columns, and any saved operations
@@ -125,6 +127,15 @@ const CalculationBuilder = () => {
     }
   };
 
+  const handleProcessBoard = () => {
+    if (!boardData) {
+      toast.error("No board data available");
+      return;
+    }
+    
+    processBoardData(boardData);
+  };
+
   if (!boardData) {
     return <p>Loading...</p>;
   }
@@ -176,7 +187,7 @@ const CalculationBuilder = () => {
                 </div>
               )}
               
-              {isCalculating && (
+              {isCalculating && !processedItems && (
                 <div className="flex justify-center my-4">
                   <div className="animate-pulse text-blue-500">Testing calculation...</div>
                 </div>
@@ -186,8 +197,13 @@ const CalculationBuilder = () => {
                 onBack={handleBackToBoard}
                 onApply={handleApplyFormula}
                 onTest={testCalculation}
+                onProcessBoard={handleProcessBoard}
                 isFormValid={isFormulaValid()}
                 isEditing={!!currentTask?.savedOperations}
+                isCalculating={isCalculating}
+                processProgress={
+                  totalItems > 0 ? { current: processedItems, total: totalItems } : undefined
+                }
               />
             </div>
           </div>
