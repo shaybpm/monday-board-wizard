@@ -6,6 +6,7 @@ import ErrorState from "@/components/board-page/ErrorState";
 import BoardHeader from "@/components/board-page/BoardHeader";
 import BoardSummary from "@/components/board-page/BoardSummary";
 import BackToConnectButton from "@/components/board-page/BackToConnectButton";
+import ItemsTable from "@/components/board-page/ItemsTable";
 
 const BoardPage = () => {
   const { boardData, setBoardData, isLoading, loadBoardData } = useBoardData();
@@ -29,6 +30,11 @@ const BoardPage = () => {
       <BoardSummary 
         boardData={boardData} 
         setBoardData={setBoardData} 
+      />
+
+      <ItemsTable 
+        items={boardData.items} 
+        isLoading={isLoading} 
       />
 
       <BackToConnectButton />

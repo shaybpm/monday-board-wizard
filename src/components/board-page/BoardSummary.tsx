@@ -26,12 +26,10 @@ const BoardSummary = ({ boardData, setBoardData }: BoardSummaryProps) => {
               <span className="text-sm text-gray-500">Items:</span>
               <span className="ml-2 font-semibold">{itemCount}</span>
             </div>
-            {subitemCount > 0 && (
-              <div className="stat-item">
-                <span className="text-sm text-gray-500">Subitems:</span>
-                <span className="ml-2 font-semibold">{subitemCount}</span>
-              </div>
-            )}
+            <div className="stat-item">
+              <span className="text-sm text-gray-500">Subitems:</span>
+              <span className="ml-2 font-semibold">{subitemCount}</span>
+            </div>
           </div>
         </div>
         <FetchAllDataButton setBoardData={setBoardData} />
