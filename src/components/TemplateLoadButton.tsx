@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -24,7 +25,6 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
     format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase())
   ) : [];
   
-  // PopoverTrigger portion remains the same
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -41,41 +41,41 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
       {/* Only render PopoverContent when open */}
       {open && (
         <PopoverContent className="p-0" align="end" sideOffset={4} style={{ width: '300px' }}>
-          {/* Make sure Command has children, which should help with the iterability issue */}
-          <Command shouldFilter={false}>
-            <CommandInput 
-              placeholder="Search templates..." 
-              value={searchQuery}
-              onValueChange={setSearchQuery}
-            />
-            
-            {/* Make sure all CommandGroup, CommandEmpty etc. have proper fallback */}
-            <div className="max-h-[300px] overflow-y-auto">
-              {templates.length === 0 ? (
-                <div className="py-6 text-center text-sm">No saved templates yet.</div>
-              ) : filteredTemplates.length === 0 ? (
-                <div className="py-6 text-center text-sm">No templates match your search.</div>
-              ) : (
-                <CommandGroup>
-                  {filteredTemplates.map((template, index) => (
-                    <CommandItem
-                      key={index}
-                      onSelect={() => {
-                        onLoadTemplate(template);
-                        setOpen(false);
-                      }}
-                      className="flex flex-col items-start py-3"
-                    >
-                      <div className="font-medium">{template.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </div>
-          </Command>
+          {templates.length === 0 ? (
+            <div className="py-6 text-center text-sm">No saved templates yet.</div>
+          ) : (
+            <Command shouldFilter={false}>
+              <CommandInput 
+                placeholder="Search templates..." 
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+              />
+              
+              <div className="max-h-[300px] overflow-y-auto">
+                {filteredTemplates.length === 0 ? (
+                  <div className="py-6 text-center text-sm">No templates match your search.</div>
+                ) : (
+                  <CommandGroup>
+                    {filteredTemplates.map((template, index) => (
+                      <CommandItem
+                        key={index}
+                        onSelect={() => {
+                          onLoadTemplate(template);
+                          setOpen(false);
+                        }}
+                        className="flex flex-col items-start py-3"
+                      >
+                        <div className="font-medium">{template.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </div>
+            </Command>
+          )}
         </PopoverContent>
       )}
     </Popover>
