@@ -7,7 +7,7 @@ export interface Task {
   savedOperations?: {
     formula: Array<{
       id: string;
-      type: string;
+      type: "column" | "operator" | "number";
       value: string;
       display: string;
     }>;

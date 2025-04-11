@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { CalculationToken } from '@/types/calculation';
+import { CalculationToken, CalculationFormState } from '@/types/calculation';
 import { BoardColumn } from '@/lib/types';
 import { Task } from '@/types/task';
 import { toast } from 'sonner';
@@ -13,7 +13,12 @@ export const useCalculation = (currentTask: Task | null) => {
   // Load saved formula if it exists
   useEffect(() => {
     if (currentTask?.savedOperations?.formula) {
-      setFormula(currentTask.savedOperations.formula);
+      // Ensure the type is correctly cast to the expected type
+      const typedFormula = currentTask.savedOperations.formula.map(token => ({
+        ...token,
+        type: token.type as "column" | "operator" | "number"
+      }));
+      setFormula(typedFormula);
     }
     
     if (currentTask?.savedOperations?.targetColumn) {
@@ -33,7 +38,7 @@ export const useCalculation = (currentTask: Task | null) => {
     
     setFormula([...formula, {
       id: `op-${Date.now()}`,
-      type: "operator",
+      type: "operator" as const,
       value: operator,
       display: operator
     }]);
@@ -45,7 +50,7 @@ export const useCalculation = (currentTask: Task | null) => {
     if (number && !isNaN(Number(number))) {
       setFormula([...formula, {
         id: `num-${Date.now()}`,
-        type: "number",
+        type: "number" as const,
         value: number,
         display: number
       }]);
@@ -55,7 +60,7 @@ export const useCalculation = (currentTask: Task | null) => {
   const handleAddColumn = (column: BoardColumn) => {
     setFormula([...formula, {
       id: column.id,
-      type: "column",
+      type: "column" as const,
       value: column.id,
       display: column.title
     }]);
