@@ -105,6 +105,12 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       setIsLoading(false);
     }
   };
+
+  const handleShowTime = () => {
+    // Placeholder for executing all defined tasks
+    toast.info("Executing all defined tasks...");
+    // You can expand this method with more specific logic as needed
+  };
   
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -121,7 +127,7 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
         onSelectTask={selectTask}
       />
       
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center space-x-4">
         <Button
           onClick={handleProcessTasks}
           className="bg-monday-blue hover:bg-monday-darkBlue w-full max-w-xs"
@@ -133,8 +139,15 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
               Processing...
             </>
           ) : (
-            "Let's Do This"
+            "Tasks setup"
           )}
+        </Button>
+        <Button
+          onClick={handleShowTime}
+          className="bg-green-500 hover:bg-green-600 w-full max-w-xs"
+          disabled={tasks.length === 0}
+        >
+          It's show time
         </Button>
       </div>
     </div>
@@ -142,3 +155,4 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
 };
 
 export default TasksContainer;
+
