@@ -65,6 +65,10 @@ export const fetchBoardStructure = async (
                   id
                   text
                   value
+                  type
+                  ... on FormulaValue {
+                    display_value
+                  }
                 }
                 subitems {
                   id
@@ -75,7 +79,7 @@ export const fetchBoardStructure = async (
         }
       `;
 
-      const itemsResponse = await fetchFromMonday(itemsQuery, credentials.apiToken);
+      const itemsResponse = await fetchFromMonday(itemsQuery, credentials.apiToken, "2025-01");
       
       if (itemsResponse?.data?.boards?.[0]?.items_page?.items?.[0]) {
         const firstItem = itemsResponse.data.boards[0].items_page.items[0];
@@ -87,9 +91,16 @@ export const fetchBoardStructure = async (
         
         parsedData.columns = parsedData.columns.map(column => {
           const columnValue = firstItem.column_values.find(cv => cv.id === column.id);
+          // Use display_value for formula type columns if available
+          const exampleValue = columnValue ? 
+            (column.type === 'formula' && columnValue.display_value ? 
+              columnValue.display_value : 
+              (columnValue.text || JSON.stringify(columnValue.value))) : 
+            "N/A";
+            
           return {
             ...column,
-            exampleValue: columnValue ? (columnValue.text || JSON.stringify(columnValue.value)) : "N/A",
+            exampleValue: exampleValue,
             itemId: itemId,
             itemName: itemName
           };
@@ -110,6 +121,9 @@ export const fetchBoardStructure = async (
                       text
                       value
                       type
+                      ... on FormulaValue {
+                        display_value
+                      }
                     }
                   }
                 }
@@ -117,21 +131,28 @@ export const fetchBoardStructure = async (
             `;
             
             console.log("Fetching subitem data for structure...");
-            const subitemResponse = await fetchFromMonday(subitemQuery, credentials.apiToken);
+            const subitemResponse = await fetchFromMonday(subitemQuery, credentials.apiToken, "2025-01");
             
             if (subitemResponse?.data?.items?.[0]?.subitems?.length > 0) {
               const firstSubitem = subitemResponse.data.items[0].subitems[0];
               console.log("First subitem data:", firstSubitem);
               
               // Store the subitem columns separately - this is the key change
-              const subitemColumns = firstSubitem.column_values.map((cv: any) => ({
-                id: cv.id,
-                title: cv.title || cv.id, // Use id as fallback if title is not available
-                type: cv.type || 'text',
-                exampleValue: cv.text || JSON.stringify(cv.value) || "N/A",
-                itemId: firstSubitem.id,
-                itemName: firstSubitem.name
-              }));
+              const subitemColumns = firstSubitem.column_values.map((cv: any) => {
+                // Use display_value for formula type columns if available
+                const exampleValue = cv.type === 'formula' && cv.display_value ? 
+                  cv.display_value : 
+                  (cv.text || JSON.stringify(cv.value) || "N/A");
+                
+                return {
+                  id: cv.id,
+                  title: cv.title || cv.id, // Use id as fallback if title is not available
+                  type: cv.type || 'text',
+                  exampleValue: exampleValue,
+                  itemId: firstSubitem.id,
+                  itemName: firstSubitem.name
+                };
+              });
               
               // Save these distinct subitem columns to the parsedData
               parsedData.subitemColumns = subitemColumns;
@@ -153,7 +174,7 @@ export const fetchBoardStructure = async (
                   id: cv.id,
                   type: cv.type || '',
                   value: cv.value || '',
-                  text: cv.text || ''
+                  text: cv.type === 'formula' && cv.display_value ? cv.display_value : cv.text || ''
                 };
               });
               
