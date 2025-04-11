@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ParsedBoardData } from "@/lib/types";
-import { fetchBoardStructure } from "@/lib/mondayAPI";
+import { fetchBoardStructureWithExamples } from "@/lib/mondayAPI";
 
 export const useBoardData = () => {
   const [boardData, setBoardData] = useState<ParsedBoardData | null>(null);
@@ -22,7 +22,7 @@ export const useBoardData = () => {
 
     try {
       const credentials = JSON.parse(storedCredentialsStr);
-      const fetchedBoardData = await fetchBoardStructure(credentials);
+      const fetchedBoardData = await fetchBoardStructureWithExamples(credentials);
       
       if (fetchedBoardData) {
         // Check for cached data with items and subitems

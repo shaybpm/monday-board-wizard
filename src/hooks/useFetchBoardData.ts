@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { ParsedBoardData } from "@/lib/types";
-import { fetchBoardStructure } from "@/lib/mondayAPI";
+import { fetchBoardStructureWithExamples } from "@/lib/mondayAPI";
 import { fetchAllItemsWithPagination, fetchAllSubitemsWithPagination } from "@/lib/api/paginationApi";
 import { transformBoardData } from "@/lib/transformers/boardDataTransformer";
 
@@ -37,7 +37,7 @@ export const useFetchBoardData = (
       const credentials = JSON.parse(storedCredentialsStr);
       
       // First fetch board structure
-      const fetchedBoardData = await fetchBoardStructure(credentials);
+      const fetchedBoardData = await fetchBoardStructureWithExamples(credentials);
       
       if (fetchedBoardData) {
         // Then fetch all items with pagination

@@ -1,11 +1,10 @@
-
 import React from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { TaskTable } from "@/components/task-table/TaskTable";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { validateCredentials, fetchBoardStructure } from "@/lib/mondayAPI";
+import { validateCredentials, fetchBoardStructureWithExamples } from "@/lib/mondayAPI";
 
 interface TasksContainerProps {
   setIsApiDialogOpen: (isOpen: boolean) => void;
@@ -72,7 +71,7 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       
       toast.info("Credentials validated! Fetching board structure...");
       
-      const boardData = await fetchBoardStructure(credentials);
+      const boardData = await fetchBoardStructureWithExamples(credentials);
       
       if (!boardData) {
         toast.error("Failed to fetch board data. Please check your credentials.");
