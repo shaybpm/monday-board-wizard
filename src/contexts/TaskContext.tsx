@@ -49,7 +49,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     apiToken,
     currentTemplate,
     saveTemplateName,
-    savedTemplates,
+    savedTemplates: Array.isArray(savedTemplates) ? savedTemplates : [],
     setTasks,
     setSelectedTaskId,
     setApiToken,
