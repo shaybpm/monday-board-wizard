@@ -1,0 +1,121 @@
+
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calculator } from "lucide-react";
+import { BoardColumn } from "@/lib/types";
+import { CalculationToken } from "@/types/calculation";
+import { Task } from "@/types/task";
+
+// Import our components
+import ColumnsSelector from "@/components/calculation/ColumnsSelector";
+import FormulaBuilder from "@/components/calculation/FormulaBuilder";
+import TargetColumnSelector from "@/components/calculation/TargetColumnSelector";
+import ActionButtons from "@/components/calculation/ActionButtons";
+
+interface CalculationFormProps {
+  columns: BoardColumn[];
+  formula: CalculationToken[];
+  targetColumn: BoardColumn | null;
+  previewResult: string | null;
+  isCalculating: boolean;
+  processedItems: number;
+  totalItems: number;
+  task: Task | null;
+  onAddColumn: (column: BoardColumn) => void;
+  onAddOperator: (operator: string) => void;
+  onAddNumber: () => void;
+  onRemoveToken: (index: number) => void;
+  onSetTarget: (column: BoardColumn) => void;
+  isFormulaValid: () => boolean;
+  onBack: () => void;
+  onApply: () => void;
+  onTest: () => void;
+  onProcessBoard: () => void;
+}
+
+const CalculationForm: React.FC<CalculationFormProps> = ({
+  columns,
+  formula,
+  targetColumn,
+  previewResult,
+  isCalculating,
+  processedItems,
+  totalItems,
+  task,
+  onAddColumn,
+  onAddOperator,
+  onAddNumber,
+  onRemoveToken,
+  onSetTarget,
+  isFormulaValid,
+  onBack,
+  onApply,
+  onTest,
+  onProcessBoard
+}) => {
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="h-5 w-5" />
+          {task?.savedOperations ? "Update Your Calculation" : "Build Your Calculation"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {/* Column Tokens */}
+          <ColumnsSelector 
+            columns={columns} 
+            onSelectColumn={onAddColumn} 
+          />
+
+          {/* Formula Builder */}
+          <FormulaBuilder
+            formula={formula}
+            onAddColumn={onAddColumn}
+            onAddOperator={onAddOperator}
+            onAddNumber={onAddNumber}
+            onRemoveToken={onRemoveToken}
+          />
+
+          {/* Target Column */}
+          <TargetColumnSelector
+            columns={columns}
+            targetColumn={targetColumn}
+            onSelectTarget={onSetTarget}
+          />
+
+          {/* Preview and Actions */}
+          <div className="border-t pt-4 mt-4">
+            {previewResult && (
+              <div className="bg-green-50 p-3 rounded-md mb-4">
+                <p className="text-sm text-green-800">Preview result: {previewResult}</p>
+              </div>
+            )}
+            
+            {isCalculating && !processedItems && (
+              <div className="flex justify-center my-4">
+                <div className="animate-pulse text-blue-500">Testing calculation...</div>
+              </div>
+            )}
+            
+            <ActionButtons
+              onBack={onBack}
+              onApply={onApply}
+              onTest={onTest}
+              onProcessBoard={onProcessBoard}
+              isFormValid={isFormulaValid()}
+              isEditing={!!task?.savedOperations}
+              isCalculating={isCalculating}
+              processProgress={
+                totalItems > 0 ? { current: processedItems, total: totalItems } : undefined
+              }
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CalculationForm;
