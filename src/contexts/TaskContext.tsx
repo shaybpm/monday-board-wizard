@@ -6,7 +6,28 @@ import { useTaskManagement } from "./task/useTaskManagement";
 import { useApiToken } from "./task/useApiToken";
 import { useTemplateManagement } from "./task/useTemplateManagement";
 
-const TaskContext = createContext<TaskContextProps | undefined>(undefined);
+// Create the context with a default value to prevent undefined issues
+const TaskContext = createContext<TaskContextProps>({
+  tasks: [],
+  selectedTaskId: null,
+  apiToken: "",
+  currentTemplate: null,
+  saveTemplateName: "",
+  savedTemplates: [], // Ensure this has a default empty array
+  setTasks: () => {},
+  setSelectedTaskId: () => {},
+  setApiToken: () => {},
+  setCurrentTemplate: () => {},
+  setSaveTemplateName: () => {},
+  setSavedTemplates: () => {},
+  addTask: () => {},
+  updateTask: () => {},
+  removeTask: () => {},
+  selectTask: () => {},
+  saveTasksAsTemplate: () => {},
+  loadTemplate: () => null,
+  deleteTemplate: () => {},
+});
 
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { 
@@ -49,7 +70,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     apiToken,
     currentTemplate,
     saveTemplateName,
-    savedTemplates: Array.isArray(savedTemplates) ? savedTemplates : [],
+    savedTemplates: Array.isArray(savedTemplates) ? savedTemplates : [], // Safety check
     setTasks,
     setSelectedTaskId,
     setApiToken,
@@ -70,7 +91,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useTaskContext = (): TaskContextProps => {
   const context = useContext(TaskContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useTaskContext must be used within a TaskProvider");
   }
   return context;

@@ -26,6 +26,9 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
           setSavedTemplates([]);
           localStorage.setItem("mondaySavedTemplates", JSON.stringify([]));
         }
+      } else {
+        // Initialize to empty array if no templates are found
+        setSavedTemplates([]);
       }
     } catch (e) {
       console.error("Error parsing saved templates:", e);
@@ -70,7 +73,7 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
           dateCreated: new Date().toISOString()
         };
 
-        const updatedTemplates = [...(savedTemplates || []), newTemplate];
+        const updatedTemplates = [...(Array.isArray(savedTemplates) ? savedTemplates : []), newTemplate];
         setSavedTemplates(updatedTemplates);
         setCurrentTemplate(newTemplate);
         localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
@@ -109,9 +112,12 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
 
   const deleteTemplate = (index: number) => {
     try {
-      if (index >= 0 && index < (savedTemplates || []).length) {
-        const templateToDelete = savedTemplates[index];
-        const updatedTemplates = savedTemplates.filter((_, i) => i !== index);
+      // Ensure savedTemplates is an array before operations
+      const templatesArray = Array.isArray(savedTemplates) ? savedTemplates : [];
+      
+      if (index >= 0 && index < templatesArray.length) {
+        const templateToDelete = templatesArray[index];
+        const updatedTemplates = templatesArray.filter((_, i) => i !== index);
         setSavedTemplates(updatedTemplates);
         localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
         
