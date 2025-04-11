@@ -9,6 +9,7 @@ import ApiTokenDialog from "@/components/ApiTokenDialog";
 import { toast } from "sonner";
 import { validateCredentials, fetchBoardStructure } from "@/lib/mondayAPI";
 import { Save, SaveAll, Download, Upload } from "lucide-react";
+import TemplateLoadButton from "@/components/TemplateLoadButton";
 
 export interface Task {
   id: string;
@@ -31,7 +32,7 @@ export interface Task {
 }
 
 // Interface for saved task templates
-interface SavedTaskTemplate {
+export interface SavedTaskTemplate {
   name: string;
   tasks: Task[];
   apiToken?: string;
@@ -49,6 +50,7 @@ const Index = () => {
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [saveTemplateName, setSaveTemplateName] = useState("");
   const [savedTemplates, setSavedTemplates] = useState<SavedTaskTemplate[]>([]);
+  const [currentTemplate, setCurrentTemplate] = useState<SavedTaskTemplate | null>(null);
   const navigate = useNavigate();
 
   // Check for existing API token and tasks on mount
@@ -135,20 +137,40 @@ const Index = () => {
       return;
     }
 
-    const newTemplate: SavedTaskTemplate = {
-      name: saveTemplateName,
-      tasks: [...tasks],
-      apiToken: apiToken,
-      dateCreated: new Date().toISOString()
-    };
+    // Check if we're updating an existing template
+    if (currentTemplate && currentTemplate.name === saveTemplateName) {
+      // Update existing template
+      const updatedTemplates = savedTemplates.map(template => 
+        template.name === saveTemplateName 
+          ? {
+              ...template,
+              tasks: [...tasks],
+              apiToken: apiToken,
+              dateCreated: new Date().toISOString()
+            }
+          : template
+      );
+      
+      setSavedTemplates(updatedTemplates);
+      localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
+      toast.success(`Template "${saveTemplateName}" updated successfully`);
+    } else {
+      // Create new template
+      const newTemplate: SavedTaskTemplate = {
+        name: saveTemplateName,
+        tasks: [...tasks],
+        apiToken: apiToken,
+        dateCreated: new Date().toISOString()
+      };
 
-    const updatedTemplates = [...savedTemplates, newTemplate];
-    setSavedTemplates(updatedTemplates);
-    localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
+      const updatedTemplates = [...savedTemplates, newTemplate];
+      setSavedTemplates(updatedTemplates);
+      localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
+      setCurrentTemplate(newTemplate);
+      toast.success(`Template "${saveTemplateName}" saved successfully`);
+    }
     
-    toast.success(`Template "${saveTemplateName}" saved successfully`);
     setIsSaveDialogOpen(false);
-    setSaveTemplateName("");
   };
 
   const loadTemplate = (template: SavedTaskTemplate) => {
@@ -160,13 +182,23 @@ const Index = () => {
       localStorage.setItem("mondayApiToken", template.apiToken);
     }
     
+    setCurrentTemplate(template);
+    setSaveTemplateName(template.name);
     toast.success(`Template "${template.name}" loaded successfully`);
   };
 
   const deleteTemplate = (index: number) => {
+    const templateToDelete = savedTemplates[index];
     const updatedTemplates = savedTemplates.filter((_, i) => i !== index);
     setSavedTemplates(updatedTemplates);
     localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
+    
+    // Reset current template if we just deleted it
+    if (currentTemplate && currentTemplate.name === templateToDelete.name) {
+      setCurrentTemplate(null);
+      setSaveTemplateName("");
+    }
+    
     toast.success("Template deleted");
   };
 
@@ -262,14 +294,20 @@ const Index = () => {
       </div>
       
       <div className="absolute top-4 right-4 flex gap-2">
+        <TemplateLoadButton 
+          savedTemplates={savedTemplates}
+          onLoadTemplate={loadTemplate}
+        />
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => setIsSaveDialogOpen(true)}
+          onClick={() => {
+            setIsSaveDialogOpen(true);
+          }}
           className="flex items-center gap-2"
         >
           <Save className="w-4 h-4" />
-          Save Tasks
+          {currentTemplate ? "Save Template" : "Save As"}
         </Button>
         <Button 
           variant="outline" 
@@ -297,43 +335,6 @@ const Index = () => {
             onSelectTask={selectTask}
           />
           
-          {savedTemplates.length > 0 && (
-            <div className="mt-6 mb-6">
-              <h2 className="text-lg font-medium mb-3">Saved Templates</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {savedTemplates.map((template, index) => (
-                  <div key={index} className="p-3 border rounded-md hover:bg-gray-50">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-medium">{template.name}</h3>
-                        <p className="text-xs text-gray-500">
-                          {new Date(template.dateCreated).toLocaleDateString()} • {template.tasks.length} tasks
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteTemplate(index)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <span className="sr-only">Delete</span>
-                        <span className="i-lucide-x text-gray-500 w-4 h-4" />
-                      </Button>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => loadTemplate(template)}
-                      className="w-full"
-                    >
-                      <Download className="mr-1 h-3 w-3" /> Load
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
           <div className="mt-6 flex justify-center">
             <Button
               onClick={handleProcessTasks}
@@ -357,7 +358,11 @@ const Index = () => {
       {isSaveDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Save Tasks as Template</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {currentTemplate && currentTemplate.name === saveTemplateName 
+                ? "Update Template" 
+                : "Save As New Template"}
+            </h2>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Template Name</label>
               <input
@@ -375,12 +380,25 @@ const Index = () => {
               >
                 Cancel
               </Button>
+              {currentTemplate && currentTemplate.name === saveTemplateName && (
+                <Button
+                  onClick={() => {
+                    setSaveTemplateName(currentTemplate.name + " (Copy)");
+                    setCurrentTemplate(null);
+                  }}
+                  className="bg-gray-500 hover:bg-gray-600"
+                >
+                  Save As New
+                </Button>
+              )}
               <Button
                 onClick={saveTasksAsTemplate}
                 className="bg-monday-blue hover:bg-monday-darkBlue"
               >
                 <SaveAll className="mr-2 h-4 w-4" />
-                Save Template
+                {currentTemplate && currentTemplate.name === saveTemplateName
+                  ? "Update Template" 
+                  : "Save Template"}
               </Button>
             </div>
           </div>

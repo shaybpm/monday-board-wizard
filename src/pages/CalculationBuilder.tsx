@@ -286,7 +286,7 @@ const CalculationBuilder = () => {
                   onClick={handleApplyFormula}
                   className="gap-2"
                 >
-                  <ArrowRight className="h-4 w-4" /> Apply Formula
+                  <ArrowRight className="h-4 w-4" /> Apply and Return to Tasks
                 </Button>
               </div>
             </div>
