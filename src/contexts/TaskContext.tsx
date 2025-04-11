@@ -1,197 +1,49 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { toast } from "sonner";
-import { SavedTaskTemplate, Task } from "@/types/task";
-
-interface TaskContextProps {
-  tasks: Task[];
-  selectedTaskId: string | null;
-  apiToken: string;
-  currentTemplate: SavedTaskTemplate | null;
-  saveTemplateName: string;
-  savedTemplates: SavedTaskTemplate[];
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
-  setSelectedTaskId: React.Dispatch<React.SetStateAction<string | null>>;
-  setApiToken: React.Dispatch<React.SetStateAction<string>>;
-  setCurrentTemplate: React.Dispatch<React.SetStateAction<SavedTaskTemplate | null>>;
-  setSaveTemplateName: React.Dispatch<React.SetStateAction<string>>;
-  setSavedTemplates: React.Dispatch<React.SetStateAction<SavedTaskTemplate[]>>;
-  addTask: () => void;
-  updateTask: (id: string, field: keyof Task, value: string) => void;
-  removeTask: (id: string) => void;
-  selectTask: (id: string) => void;
-  saveTasksAsTemplate: () => void;
-  loadTemplate: (template: SavedTaskTemplate) => void;
-  deleteTemplate: (index: number) => void;
-}
+import React, { createContext, useContext, ReactNode, useEffect } from "react";
+import { Task, SavedTaskTemplate } from "@/types/task";
+import { TaskContextProps } from "./task/types";
+import { useTaskManagement } from "./task/useTaskManagement";
+import { useApiToken } from "./task/useApiToken";
+import { useTemplateManagement } from "./task/useTemplateManagement";
 
 const TaskContext = createContext<TaskContextProps | undefined>(undefined);
 
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [apiToken, setApiToken] = useState<string>("");
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: "01", title: "", sourceBoard: "", destinationBoard: "" }
-  ]);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [savedTemplates, setSavedTemplates] = useState<SavedTaskTemplate[]>([]);
-  const [currentTemplate, setCurrentTemplate] = useState<SavedTaskTemplate | null>(null);
-  const [saveTemplateName, setSaveTemplateName] = useState("");
+  const { 
+    tasks, 
+    setTasks, 
+    selectedTaskId, 
+    setSelectedTaskId, 
+    addTask, 
+    updateTask, 
+    removeTask, 
+    selectTask 
+  } = useTaskManagement();
+  
+  const { apiToken, setApiToken } = useApiToken();
+  
+  const { 
+    savedTemplates,
+    setSavedTemplates,
+    currentTemplate,
+    setCurrentTemplate,
+    saveTemplateName,
+    setSaveTemplateName,
+    saveTasksAsTemplate,
+    loadTemplate: loadTemplateInternal,
+    deleteTemplate
+  } = useTemplateManagement({ tasks, apiToken });
 
-  // Load data from localStorage on component mount
-  useEffect(() => {
-    // Load API token
-    const storedApiToken = localStorage.getItem("mondayApiToken");
-    if (storedApiToken) {
-      setApiToken(storedApiToken);
-    }
-    
-    // Load tasks
-    const storedTasks = localStorage.getItem("mondayTasks");
-    if (storedTasks) {
-      try {
-        const parsedTasks = JSON.parse(storedTasks);
-        if (Array.isArray(parsedTasks) && parsedTasks.length > 0) {
-          setTasks(parsedTasks);
-        }
-      } catch (e) {
-        console.error("Error parsing stored tasks:", e);
-      }
-    }
-
-    // Load saved templates
-    const storedTemplates = localStorage.getItem("mondaySavedTemplates");
-    if (storedTemplates) {
-      try {
-        const parsedTemplates = JSON.parse(storedTemplates);
-        if (Array.isArray(parsedTemplates)) {
-          setSavedTemplates(parsedTemplates);
-        }
-      } catch (e) {
-        console.error("Error parsing saved templates:", e);
-      }
-    }
-  }, []);
-
-  const addTask = () => {
-    const newId = tasks.length + 1;
-    const formattedId = newId.toString().padStart(2, "0");
-    
-    const newTasks = [
-      ...tasks,
-      { id: formattedId, title: "", sourceBoard: "", destinationBoard: "" }
-    ];
-    
-    setTasks(newTasks);
-    localStorage.setItem("mondayTasks", JSON.stringify(newTasks));
-  };
-
-  const updateTask = (id: string, field: keyof Task, value: string) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === id ? { ...task, [field]: value } : task
-    );
-    
-    setTasks(updatedTasks);
-    localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
-  };
-
-  const removeTask = (id: string) => {
-    if (tasks.length > 1) {
-      const updatedTasks = tasks.filter(task => task.id !== id);
-      setTasks(updatedTasks);
-      localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
-      
-      if (selectedTaskId === id) {
-        setSelectedTaskId(null);
-      }
-    } else {
-      toast.error("You must have at least one task");
-    }
-  };
-
-  const selectTask = (id: string) => {
-    setSelectedTaskId(id);
-  };
-
-  const saveTasksAsTemplate = () => {
-    if (!saveTemplateName.trim()) {
-      toast.error("Please enter a template name");
-      return;
-    }
-
-    // Create a copy of the tasks to save
-    const tasksToSave = [...tasks];
-
-    // Check if we're updating an existing template or creating a new one
-    if (currentTemplate && currentTemplate.name === saveTemplateName) {
-      // Update existing template
-      const updatedTemplates = savedTemplates.map(template => 
-        template.name === saveTemplateName 
-          ? {
-              ...template,
-              tasks: tasksToSave,
-              apiToken: apiToken,
-              dateCreated: new Date().toISOString()
-            }
-          : template
-      );
-      
-      setSavedTemplates(updatedTemplates);
-      localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
-      toast.success(`Template "${saveTemplateName}" updated successfully`);
-    } else {
-      // Create new template
-      const newTemplate: SavedTaskTemplate = {
-        name: saveTemplateName,
-        tasks: tasksToSave,
-        apiToken: apiToken,
-        dateCreated: new Date().toISOString()
-      };
-
-      const updatedTemplates = [...savedTemplates, newTemplate];
-      setSavedTemplates(updatedTemplates);
-      setCurrentTemplate(newTemplate);
-      localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
-      toast.success(`Template "${saveTemplateName}" saved successfully`);
-    }
-  };
-
+  // Wrap the load template function to update our local state
   const loadTemplate = (template: SavedTaskTemplate) => {
-    if (template && Array.isArray(template.tasks) && template.tasks.length > 0) {
-      setTasks(template.tasks);
-      localStorage.setItem("mondayTasks", JSON.stringify(template.tasks));
-      
-      if (template.apiToken) {
-        setApiToken(template.apiToken);
-        localStorage.setItem("mondayApiToken", template.apiToken);
-      }
-      
-      setCurrentTemplate(template);
-      setSaveTemplateName(template.name || "");
-      toast.success(`Template "${template.name}" loaded successfully`);
-    } else {
-      toast.error("Invalid template or no tasks in template");
+    const result = loadTemplateInternal(template);
+    if (result) {
+      setTasks(result.tasks);
+      setApiToken(result.apiToken);
     }
   };
 
-  const deleteTemplate = (index: number) => {
-    if (index >= 0 && index < savedTemplates.length) {
-      const templateToDelete = savedTemplates[index];
-      const updatedTemplates = savedTemplates.filter((_, i) => i !== index);
-      setSavedTemplates(updatedTemplates);
-      localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
-      
-      if (currentTemplate && currentTemplate.name === templateToDelete.name) {
-        setCurrentTemplate(null);
-        setSaveTemplateName("");
-      }
-      
-      toast.success("Template deleted successfully");
-    } else {
-      toast.error("Invalid template index");
-    }
-  };
-
-  const value = {
+  const value: TaskContextProps = {
     tasks,
     selectedTaskId,
     apiToken,
