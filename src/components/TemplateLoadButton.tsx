@@ -16,16 +16,19 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Ensure we have a valid array for templates
+  // Ensure templates is ALWAYS an array, even if savedTemplates is undefined or null
   const templates = Array.isArray(savedTemplates) ? savedTemplates : [];
   
   // Filter templates based on search query
-  const filteredTemplates = searchQuery.trim() !== "" 
+  const filteredTemplates = templates.length > 0 && searchQuery.trim() !== "" 
     ? templates.filter(template => 
         template?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (template?.dateCreated && format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : templates;
+  
+  // Make absolutely sure filteredTemplates is an array
+  const safeFilteredTemplates = Array.isArray(filteredTemplates) ? filteredTemplates : [];
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -52,23 +55,25 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
             />
             
             <CommandGroup className="max-h-[300px] overflow-y-auto">
-              {filteredTemplates.length === 0 ? (
+              {safeFilteredTemplates.length === 0 ? (
                 <CommandEmpty>No templates match your search.</CommandEmpty>
               ) : (
-                filteredTemplates.map((template, index) => (
-                  <CommandItem
-                    key={index}
-                    onSelect={() => {
-                      onLoadTemplate(template);
-                      setOpen(false);
-                    }}
-                    className="flex flex-col items-start py-3"
-                  >
-                    <div className="font-medium">{template.name || 'Unnamed Template'}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {template.dateCreated && format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
-                    </div>
-                  </CommandItem>
+                safeFilteredTemplates.map((template, index) => (
+                  template && (
+                    <CommandItem
+                      key={template?.name || index}
+                      onSelect={() => {
+                        onLoadTemplate(template);
+                        setOpen(false);
+                      }}
+                      className="flex flex-col items-start py-3"
+                    >
+                      <div className="font-medium">{template.name || 'Unnamed Template'}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {template.dateCreated && format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
+                      </div>
+                    </CommandItem>
+                  )
                 ))
               )}
             </CommandGroup>

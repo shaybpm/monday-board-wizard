@@ -62,7 +62,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const result = loadTemplateInternal(template);
     if (result) {
       setTasks(result.tasks);
-      setApiToken(result.apiToken);
+      setApiToken(result.apiToken || "");
     }
     return result;
   };
@@ -73,7 +73,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     apiToken,
     currentTemplate,
     saveTemplateName,
-    savedTemplates: Array.isArray(savedTemplates) ? savedTemplates : [], // Safety check
+    // Ensure savedTemplates is always an array with a fallback
+    savedTemplates: Array.isArray(savedTemplates) ? savedTemplates : [],
     setTasks,
     setSelectedTaskId,
     setApiToken,

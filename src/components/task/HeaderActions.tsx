@@ -19,11 +19,18 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
   // Ensure savedTemplates is always an array
   const safeTemplates = Array.isArray(savedTemplates) ? savedTemplates : [];
   
+  // Create a safe loadTemplate function that prevents null templates
+  const handleLoadTemplate = (template: any) => {
+    if (template) {
+      loadTemplate(template);
+    }
+  };
+  
   return (
     <div className="flex gap-2">
       <TemplateLoadButton 
         savedTemplates={safeTemplates}
-        onLoadTemplate={loadTemplate}
+        onLoadTemplate={handleLoadTemplate}
       />
       <Button 
         variant="outline" 
