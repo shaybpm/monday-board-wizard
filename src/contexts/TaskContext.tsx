@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { toast } from "sonner";
 import { SavedTaskTemplate, Task } from "@/types/task";
@@ -33,19 +32,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     { id: "01", title: "", sourceBoard: "", destinationBoard: "" }
   ]);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  // Initialize as empty array to prevent undefined issues
   const [savedTemplates, setSavedTemplates] = useState<SavedTaskTemplate[]>([]);
   const [currentTemplate, setCurrentTemplate] = useState<SavedTaskTemplate | null>(null);
   const [saveTemplateName, setSaveTemplateName] = useState("");
 
-  // Load saved data from localStorage on mount
   useEffect(() => {
     const storedApiToken = localStorage.getItem("mondayApiToken");
     if (storedApiToken) {
       setApiToken(storedApiToken);
     }
     
-    // Load previously entered tasks if they exist
     const storedTasks = localStorage.getItem("mondayTasks");
     if (storedTasks) {
       try {
@@ -58,24 +54,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
-    // Load saved templates
     const storedTemplates = localStorage.getItem("mondaySavedTemplates");
     if (storedTemplates) {
       try {
         const parsedTemplates = JSON.parse(storedTemplates);
         if (Array.isArray(parsedTemplates)) {
           setSavedTemplates(parsedTemplates);
+        } else {
+          setSavedTemplates([]);
         }
       } catch (e) {
         console.error("Error parsing saved templates:", e);
+        setSavedTemplates([]);
       }
     }
   }, []);
 
-  // Task management functions
   const addTask = () => {
     const newId = tasks.length + 1;
-    // Format ID to always be 2 digits (e.g., 01, 02, ... 10, 11)
     const formattedId = newId.toString().padStart(2, "0");
     
     const newTasks = [
@@ -84,8 +80,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ];
     
     setTasks(newTasks);
-    
-    // Save tasks to localStorage whenever they change
     localStorage.setItem("mondayTasks", JSON.stringify(newTasks));
   };
 
@@ -104,7 +98,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setTasks(updatedTasks);
       localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
       
-      // If we're removing the currently selected task, clear the selection
       if (selectedTaskId === id) {
         setSelectedTaskId(null);
       }
@@ -117,16 +110,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSelectedTaskId(id);
   };
 
-  // Template management functions
   const saveTasksAsTemplate = () => {
     if (!saveTemplateName.trim()) {
       toast.error("Please enter a template name");
       return;
     }
 
-    // Check if we're updating an existing template
     if (currentTemplate && currentTemplate.name === saveTemplateName) {
-      // Update existing template
       const updatedTemplates = savedTemplates.map(template => 
         template.name === saveTemplateName 
           ? {
@@ -142,7 +132,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
       toast.success(`Template "${saveTemplateName}" updated successfully`);
     } else {
-      // Create new template
       const newTemplate: SavedTaskTemplate = {
         name: saveTemplateName,
         tasks: [...tasks],
@@ -178,7 +167,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSavedTemplates(updatedTemplates);
     localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
     
-    // Reset current template if we just deleted it
     if (currentTemplate && currentTemplate.name === templateToDelete.name) {
       setCurrentTemplate(null);
       setSaveTemplateName("");

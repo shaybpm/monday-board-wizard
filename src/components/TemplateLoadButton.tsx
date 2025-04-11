@@ -16,14 +16,16 @@ const TemplateLoadButton = ({ savedTemplates = [], onLoadTemplate }: TemplateLoa
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Ensure we have a valid array for templates (defensive programming)
+  // Ensure we have a valid array for templates
   const templates = Array.isArray(savedTemplates) ? savedTemplates : [];
   
-  // Only filter when we have templates
-  const filteredTemplates = templates.filter(template => 
-    template?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (template?.dateCreated && format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Only filter when we have templates and a search query
+  const filteredTemplates = searchQuery.trim() !== "" 
+    ? templates.filter(template => 
+        template?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (template?.dateCreated && format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : templates;
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -62,7 +64,7 @@ const TemplateLoadButton = ({ savedTemplates = [], onLoadTemplate }: TemplateLoa
                     }}
                     className="flex flex-col items-start py-3"
                   >
-                    <div className="font-medium">{template.name}</div>
+                    <div className="font-medium">{template.name || 'Unnamed Template'}</div>
                     <div className="text-xs text-muted-foreground">
                       {template.dateCreated && format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
                     </div>
