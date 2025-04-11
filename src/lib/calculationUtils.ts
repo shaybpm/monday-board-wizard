@@ -49,64 +49,79 @@ export const evaluateFormulaForItem = (formula: CalculationToken[], item: BoardI
 };
 
 /**
- * Tests the calculation with sample data
+ * Tests the calculation with real data from the first item in the board
  */
 export const testCalculationFormula = (formula: CalculationToken[]) => {
   try {
-    // Generate sample values for columns in the formula
-    const sampleValues: Record<string, number> = {};
-    const columnTokens = formula.filter(token => token.type === "column");
+    // Get board data from session storage
+    const boardDataStr = sessionStorage.getItem("mondayBoardData");
+    if (!boardDataStr) {
+      toast.error("No board data available for testing");
+      return null;
+    }
     
-    // Assign random values to each column used in the formula
-    columnTokens.forEach(token => {
-      sampleValues[token.id] = Math.floor(Math.random() * 100);
-    });
+    const boardData = JSON.parse(boardDataStr);
     
-    // Create a human-readable representation of the calculation with sample values
-    let calculation = "Test calculation using sample data:\n";
-    let evaluationString = "";
+    // Check if we have any items
+    if (!boardData.items || boardData.items.length === 0) {
+      toast.error("No items available for testing");
+      return null;
+    }
     
+    // Get the first item for testing
+    const firstItem = boardData.items[0];
+    
+    // Check if the first item has all required columns
+    const missingColumns: string[] = [];
     formula.forEach(token => {
       if (token.type === "column") {
-        const value = sampleValues[token.id];
-        calculation += `${token.display} = ${value}\n`;
-        evaluationString += value;
-      } else if (token.type === "number") {
-        evaluationString += token.value;
-      } else if (token.type === "operator") {
-        evaluationString += token.value;
+        if (!firstItem.columns[token.id] || !firstItem.columns[token.id].text) {
+          missingColumns.push(token.display);
+        }
       }
     });
     
-    // This is a simplified evaluation for demo purposes
-    // In a real implementation, we'd need a proper formula parser/evaluator
-    let result: number;
-    try {
-      // Using Function constructor to evaluate the string as a mathematical expression
-      // Note: This is for demonstration only. In production, use a proper formula parser
-      result = new Function(`return ${evaluationString}`)();
-      
-      if (isNaN(result)) {
-        throw new Error("Calculation resulted in NaN");
+    if (missingColumns.length > 0) {
+      toast.error("First item is missing required columns", {
+        description: `Missing columns: ${missingColumns.join(", ")}`
+      });
+      return null;
+    }
+    
+    // Create a human-readable representation of the calculation with first item values
+    let calculation = `Test calculation using first item "${firstItem.name}":\n`;
+    
+    // Evaluate the formula for the first item
+    const result = evaluateFormulaForItem(formula, firstItem);
+    
+    // Build the calculation display string with actual values
+    formula.forEach(token => {
+      if (token.type === "column") {
+        const columnValue = firstItem.columns[token.id];
+        const displayValue = columnValue.text || "N/A";
+        calculation += `${token.display} = ${displayValue}\n`;
       }
-      
-      calculation += `\nResult = ${result}`;
-      
+    });
+    
+    calculation += `\nResult = ${result}`;
+    
+    if (typeof result === "string" && result.startsWith("Error")) {
+      toast.error("Calculation error", {
+        description: result,
+        duration: 5000
+      });
+      return null;
+    } else {
       toast.success("Test successful!", {
         description: calculation,
         duration: 5000
       });
       
       return result.toString();
-    } catch (error) {
-      toast.error("Calculation error", {
-        description: "The formula couldn't be evaluated. Please check for syntax errors."
-      });
-      return null;
     }
   } catch (error) {
     toast.error("Test failed", {
-      description: "An error occurred while testing the calculation."
+      description: error instanceof Error ? error.message : "An error occurred while testing the calculation."
     });
     return null;
   }
