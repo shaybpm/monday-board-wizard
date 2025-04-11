@@ -8,12 +8,34 @@ import { Button } from "@/components/ui/button";
 import ApiTokenDialog from "@/components/ApiTokenDialog";
 import { toast } from "sonner";
 import { validateCredentials, fetchBoardStructure } from "@/lib/mondayAPI";
+import { Save, SaveAll, Download, Upload } from "lucide-react";
 
 export interface Task {
   id: string;
   title: string;
   sourceBoard: string;
   destinationBoard: string;
+  savedOperations?: {
+    formula: Array<{
+      id: string;
+      type: string;
+      value: string;
+      display: string;
+    }>;
+    targetColumn?: {
+      id: string;
+      title: string;
+      type: string;
+    };
+  };
+}
+
+// Interface for saved task templates
+interface SavedTaskTemplate {
+  name: string;
+  tasks: Task[];
+  apiToken?: string;
+  dateCreated: string;
 }
 
 const Index = () => {
@@ -24,13 +46,42 @@ const Index = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isApiDialogOpen, setIsApiDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [saveTemplateName, setSaveTemplateName] = useState("");
+  const [savedTemplates, setSavedTemplates] = useState<SavedTaskTemplate[]>([]);
   const navigate = useNavigate();
 
-  // Check for existing API token on mount
+  // Check for existing API token and tasks on mount
   useEffect(() => {
     const storedApiToken = localStorage.getItem("mondayApiToken");
     if (storedApiToken) {
       setApiToken(storedApiToken);
+    }
+    
+    // Load previously entered tasks if they exist
+    const storedTasks = localStorage.getItem("mondayTasks");
+    if (storedTasks) {
+      try {
+        const parsedTasks = JSON.parse(storedTasks);
+        if (Array.isArray(parsedTasks) && parsedTasks.length > 0) {
+          setTasks(parsedTasks);
+        }
+      } catch (e) {
+        console.error("Error parsing stored tasks:", e);
+      }
+    }
+
+    // Load saved templates
+    const storedTemplates = localStorage.getItem("mondaySavedTemplates");
+    if (storedTemplates) {
+      try {
+        const parsedTemplates = JSON.parse(storedTemplates);
+        if (Array.isArray(parsedTemplates)) {
+          setSavedTemplates(parsedTemplates);
+        }
+      } catch (e) {
+        console.error("Error parsing saved templates:", e);
+      }
     }
   }, []);
 
@@ -39,23 +90,31 @@ const Index = () => {
     // Format ID to always be 2 digits (e.g., 01, 02, ... 10, 11)
     const formattedId = newId.toString().padStart(2, "0");
     
-    setTasks([
+    const newTasks = [
       ...tasks,
       { id: formattedId, title: "", sourceBoard: "", destinationBoard: "" }
-    ]);
+    ];
+    
+    setTasks(newTasks);
+    
+    // Save tasks to localStorage whenever they change
+    localStorage.setItem("mondayTasks", JSON.stringify(newTasks));
   };
 
   const updateTask = (id: string, field: keyof Task, value: string) => {
-    setTasks(
-      tasks.map(task => 
-        task.id === id ? { ...task, [field]: value } : task
-      )
+    const updatedTasks = tasks.map(task => 
+      task.id === id ? { ...task, [field]: value } : task
     );
+    
+    setTasks(updatedTasks);
+    localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
   };
 
   const removeTask = (id: string) => {
     if (tasks.length > 1) {
-      setTasks(tasks.filter(task => task.id !== id));
+      const updatedTasks = tasks.filter(task => task.id !== id);
+      setTasks(updatedTasks);
+      localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
       
       // If we're removing the currently selected task, clear the selection
       if (selectedTaskId === id) {
@@ -68,6 +127,47 @@ const Index = () => {
 
   const selectTask = (id: string) => {
     setSelectedTaskId(id);
+  };
+
+  const saveTasksAsTemplate = () => {
+    if (!saveTemplateName.trim()) {
+      toast.error("Please enter a template name");
+      return;
+    }
+
+    const newTemplate: SavedTaskTemplate = {
+      name: saveTemplateName,
+      tasks: [...tasks],
+      apiToken: apiToken,
+      dateCreated: new Date().toISOString()
+    };
+
+    const updatedTemplates = [...savedTemplates, newTemplate];
+    setSavedTemplates(updatedTemplates);
+    localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
+    
+    toast.success(`Template "${saveTemplateName}" saved successfully`);
+    setIsSaveDialogOpen(false);
+    setSaveTemplateName("");
+  };
+
+  const loadTemplate = (template: SavedTaskTemplate) => {
+    setTasks(template.tasks);
+    localStorage.setItem("mondayTasks", JSON.stringify(template.tasks));
+    
+    if (template.apiToken) {
+      setApiToken(template.apiToken);
+      localStorage.setItem("mondayApiToken", template.apiToken);
+    }
+    
+    toast.success(`Template "${template.name}" loaded successfully`);
+  };
+
+  const deleteTemplate = (index: number) => {
+    const updatedTemplates = savedTemplates.filter((_, i) => i !== index);
+    setSavedTemplates(updatedTemplates);
+    localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
+    toast.success("Template deleted");
   };
 
   const handleProcessTasks = async () => {
@@ -161,7 +261,16 @@ const Index = () => {
         />
       </div>
       
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setIsSaveDialogOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          Save Tasks
+        </Button>
         <Button 
           variant="outline" 
           size="sm"
@@ -188,6 +297,43 @@ const Index = () => {
             onSelectTask={selectTask}
           />
           
+          {savedTemplates.length > 0 && (
+            <div className="mt-6 mb-6">
+              <h2 className="text-lg font-medium mb-3">Saved Templates</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {savedTemplates.map((template, index) => (
+                  <div key={index} className="p-3 border rounded-md hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-medium">{template.name}</h3>
+                        <p className="text-xs text-gray-500">
+                          {new Date(template.dateCreated).toLocaleDateString()} • {template.tasks.length} tasks
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteTemplate(index)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <span className="sr-only">Delete</span>
+                        <span className="i-lucide-x text-gray-500 w-4 h-4" />
+                      </Button>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => loadTemplate(template)}
+                      className="w-full"
+                    >
+                      <Download className="mr-1 h-3 w-3" /> Load
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="mt-6 flex justify-center">
             <Button
               onClick={handleProcessTasks}
@@ -206,6 +352,40 @@ const Index = () => {
           </div>
         </div>
       </div>
+      
+      {/* Save Tasks Dialog */}
+      {isSaveDialogOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Save Tasks as Template</h2>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Template Name</label>
+              <input
+                type="text"
+                value={saveTemplateName}
+                onChange={(e) => setSaveTemplateName(e.target.value)}
+                className="w-full border rounded-md px-3 py-2"
+                placeholder="My Task Template"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsSaveDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={saveTasksAsTemplate}
+                className="bg-monday-blue hover:bg-monday-darkBlue"
+              >
+                <SaveAll className="mr-2 h-4 w-4" />
+                Save Template
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <ApiTokenDialog
         open={isApiDialogOpen}

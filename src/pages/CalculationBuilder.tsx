@@ -106,10 +106,43 @@ const CalculationBuilder = () => {
   };
   
   const handleApplyFormula = () => {
-    // In a real implementation, this would send the calculation to the Monday API
-    toast.success("Formula applied successfully!");
-    // Navigate to the landing page instead of board page
-    navigate("/");
+    // Save the operation to the task
+    if (currentTask) {
+      // Load all tasks
+      const tasksData = localStorage.getItem("mondayTasks");
+      if (tasksData) {
+        try {
+          const tasks = JSON.parse(tasksData);
+          // Find the current task
+          const updatedTasks = tasks.map((task: Task) => {
+            if (task.id === currentTask.id) {
+              // Save the formula and target column
+              return {
+                ...task,
+                savedOperations: {
+                  formula: formula,
+                  targetColumn: targetColumn
+                }
+              };
+            }
+            return task;
+          });
+          
+          // Save updated tasks to localStorage
+          localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
+          toast.success("Formula saved and applied successfully!");
+          
+          // Navigate to the landing page
+          navigate("/");
+        } catch (error) {
+          console.error("Error saving operation:", error);
+          toast.error("Failed to save operation");
+        }
+      }
+    } else {
+      toast.success("Formula applied successfully!");
+      navigate("/");
+    }
   };
 
   const isFormulaValid = () => {
