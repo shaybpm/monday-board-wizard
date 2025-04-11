@@ -12,7 +12,7 @@ interface TemplateLoadButtonProps {
   onLoadTemplate: (template: SavedTaskTemplate) => void;
 }
 
-const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButtonProps) => {
+const TemplateLoadButton = ({ savedTemplates = [], onLoadTemplate }: TemplateLoadButtonProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -49,29 +49,27 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
               onValueChange={setSearchQuery}
             />
             
-            <div className="max-h-[300px] overflow-y-auto">
+            <CommandGroup>
               {filteredTemplates.length === 0 ? (
                 <CommandEmpty>No templates match your search.</CommandEmpty>
               ) : (
-                <CommandGroup>
-                  {filteredTemplates.map((template, index) => (
-                    <CommandItem
-                      key={index}
-                      onSelect={() => {
-                        onLoadTemplate(template);
-                        setOpen(false);
-                      }}
-                      className="flex flex-col items-start py-3"
-                    >
-                      <div className="font-medium">{template.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {template.dateCreated && format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                filteredTemplates.map((template, index) => (
+                  <CommandItem
+                    key={index}
+                    onSelect={() => {
+                      onLoadTemplate(template);
+                      setOpen(false);
+                    }}
+                    className="flex flex-col items-start py-3"
+                  >
+                    <div className="font-medium">{template.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {template.dateCreated && format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
+                    </div>
+                  </CommandItem>
+                ))
               )}
-            </div>
+            </CommandGroup>
           </Command>
         )}
       </PopoverContent>
