@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { toast } from "sonner";
 import { SavedTaskTemplate, Task } from "@/types/task";
@@ -36,12 +37,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentTemplate, setCurrentTemplate] = useState<SavedTaskTemplate | null>(null);
   const [saveTemplateName, setSaveTemplateName] = useState("");
 
+  // Load data from localStorage on component mount
   useEffect(() => {
+    // Load API token
     const storedApiToken = localStorage.getItem("mondayApiToken");
     if (storedApiToken) {
       setApiToken(storedApiToken);
     }
     
+    // Load tasks
     const storedTasks = localStorage.getItem("mondayTasks");
     if (storedTasks) {
       try {
@@ -54,18 +58,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
+    // Load saved templates
     const storedTemplates = localStorage.getItem("mondaySavedTemplates");
     if (storedTemplates) {
       try {
         const parsedTemplates = JSON.parse(storedTemplates);
         if (Array.isArray(parsedTemplates)) {
           setSavedTemplates(parsedTemplates);
-        } else {
-          setSavedTemplates([]);
         }
       } catch (e) {
         console.error("Error parsing saved templates:", e);
-        setSavedTemplates([]);
       }
     }
   }, []);
@@ -116,12 +118,17 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
+    // Create a copy of the tasks to save
+    const tasksToSave = [...tasks];
+
+    // Check if we're updating an existing template or creating a new one
     if (currentTemplate && currentTemplate.name === saveTemplateName) {
+      // Update existing template
       const updatedTemplates = savedTemplates.map(template => 
         template.name === saveTemplateName 
           ? {
               ...template,
-              tasks: [...tasks],
+              tasks: tasksToSave,
               apiToken: apiToken,
               dateCreated: new Date().toISOString()
             }
@@ -132,47 +139,56 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
       toast.success(`Template "${saveTemplateName}" updated successfully`);
     } else {
+      // Create new template
       const newTemplate: SavedTaskTemplate = {
         name: saveTemplateName,
-        tasks: [...tasks],
+        tasks: tasksToSave,
         apiToken: apiToken,
         dateCreated: new Date().toISOString()
       };
 
       const updatedTemplates = [...savedTemplates, newTemplate];
       setSavedTemplates(updatedTemplates);
-      localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
       setCurrentTemplate(newTemplate);
+      localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
       toast.success(`Template "${saveTemplateName}" saved successfully`);
     }
   };
 
   const loadTemplate = (template: SavedTaskTemplate) => {
-    setTasks(template.tasks);
-    localStorage.setItem("mondayTasks", JSON.stringify(template.tasks));
-    
-    if (template.apiToken) {
-      setApiToken(template.apiToken);
-      localStorage.setItem("mondayApiToken", template.apiToken);
+    if (template && Array.isArray(template.tasks) && template.tasks.length > 0) {
+      setTasks(template.tasks);
+      localStorage.setItem("mondayTasks", JSON.stringify(template.tasks));
+      
+      if (template.apiToken) {
+        setApiToken(template.apiToken);
+        localStorage.setItem("mondayApiToken", template.apiToken);
+      }
+      
+      setCurrentTemplate(template);
+      setSaveTemplateName(template.name || "");
+      toast.success(`Template "${template.name}" loaded successfully`);
+    } else {
+      toast.error("Invalid template or no tasks in template");
     }
-    
-    setCurrentTemplate(template);
-    setSaveTemplateName(template.name);
-    toast.success(`Template "${template.name}" loaded successfully`);
   };
 
   const deleteTemplate = (index: number) => {
-    const templateToDelete = savedTemplates[index];
-    const updatedTemplates = savedTemplates.filter((_, i) => i !== index);
-    setSavedTemplates(updatedTemplates);
-    localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
-    
-    if (currentTemplate && currentTemplate.name === templateToDelete.name) {
-      setCurrentTemplate(null);
-      setSaveTemplateName("");
+    if (index >= 0 && index < savedTemplates.length) {
+      const templateToDelete = savedTemplates[index];
+      const updatedTemplates = savedTemplates.filter((_, i) => i !== index);
+      setSavedTemplates(updatedTemplates);
+      localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
+      
+      if (currentTemplate && currentTemplate.name === templateToDelete.name) {
+        setCurrentTemplate(null);
+        setSaveTemplateName("");
+      }
+      
+      toast.success("Template deleted successfully");
+    } else {
+      toast.error("Invalid template index");
     }
-    
-    toast.success("Template deleted");
   };
 
   const value = {

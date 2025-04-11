@@ -12,14 +12,14 @@ interface TemplateLoadButtonProps {
   onLoadTemplate: (template: SavedTaskTemplate) => void;
 }
 
-const TemplateLoadButton = ({ savedTemplates = [], onLoadTemplate }: TemplateLoadButtonProps) => {
+const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButtonProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
   // Ensure we have a valid array for templates
   const templates = Array.isArray(savedTemplates) ? savedTemplates : [];
   
-  // Only filter when we have templates and a search query
+  // Filter templates based on search query
   const filteredTemplates = searchQuery.trim() !== "" 
     ? templates.filter(template => 
         template?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||

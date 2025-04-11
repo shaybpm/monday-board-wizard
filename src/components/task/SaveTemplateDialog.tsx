@@ -20,6 +20,16 @@ const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({ isOpen, onClose
 
   if (!isOpen) return null;
 
+  const handleSaveTemplate = () => {
+    saveTasksAsTemplate();
+    onClose();
+  };
+
+  const handleSaveAsNew = () => {
+    setSaveTemplateName(currentTemplate?.name ? `${currentTemplate.name} (Copy)` : "");
+    setCurrentTemplate(null);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -36,6 +46,7 @@ const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({ isOpen, onClose
             onChange={(e) => setSaveTemplateName(e.target.value)}
             className="w-full border rounded-md px-3 py-2"
             placeholder="My Task Template"
+            autoFocus
           />
         </div>
         <div className="flex justify-end gap-2">
@@ -47,21 +58,16 @@ const SaveTemplateDialog: React.FC<SaveTemplateDialogProps> = ({ isOpen, onClose
           </Button>
           {currentTemplate && currentTemplate.name === saveTemplateName && (
             <Button
-              onClick={() => {
-                setSaveTemplateName(currentTemplate.name + " (Copy)");
-                setCurrentTemplate(null);
-              }}
+              onClick={handleSaveAsNew}
               className="bg-gray-500 hover:bg-gray-600"
             >
               Save As New
             </Button>
           )}
           <Button
-            onClick={() => {
-              saveTasksAsTemplate();
-              onClose();
-            }}
+            onClick={handleSaveTemplate}
             className="bg-monday-blue hover:bg-monday-darkBlue"
+            disabled={!saveTemplateName.trim()}
           >
             <SaveAll className="mr-2 h-4 w-4" />
             {currentTemplate && currentTemplate.name === saveTemplateName

@@ -16,13 +16,10 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
 }) => {
   const { apiToken, savedTemplates, loadTemplate, currentTemplate } = useTaskContext();
   
-  // Ensure savedTemplates is always an array
-  const templates = Array.isArray(savedTemplates) ? savedTemplates : [];
-
   return (
     <div className="flex gap-2">
       <TemplateLoadButton 
-        savedTemplates={templates}
+        savedTemplates={Array.isArray(savedTemplates) ? savedTemplates : []}
         onLoadTemplate={loadTemplate}
       />
       <Button 
