@@ -12,18 +12,20 @@ interface FetchAllDataButtonProps {
 
 const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
   const [isFetching, setIsFetching] = useState(false);
+  const [progress, setProgress] = useState<{items: number, subitems: number}>({items: 0, subitems: 0});
 
   const fetchAllItemsWithPagination = async (credentials: any) => {
     let allItems: any[] = [];
     let hasMoreItems = true;
     let cursor = "";
     let page = 1;
+    setProgress({items: 0, subitems: 0});
     
-    // Monday API does not use page parameter but cursor for pagination
+    // Monday API uses cursor-based pagination
     while (hasMoreItems) {
       toast.info(`Fetching items page ${page}...`);
       
-      // Use cursor-based pagination instead of page-based
+      // Use cursor-based pagination
       const cursorParam = cursor ? `, cursor: "${cursor}"` : "";
       const query = `
         query {
@@ -77,14 +79,21 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
         
         console.log(`Fetched ${items.length} items on page ${page}`, items);
         
-        if (items.length === 0 || !cursor) {
+        if (items.length === 0) {
           hasMoreItems = false;
         } else {
           allItems = [...allItems, ...items];
+          setProgress(prev => ({...prev, items: allItems.length}));
           page++;
           
           // Update the UI with current progress
           toast.info(`Fetched ${allItems.length} items so far...`);
+          
+          // If no cursor is returned, we've reached the end
+          if (!cursor) {
+            hasMoreItems = false;
+            console.log("No more cursor returned, fetched all items");
+          }
         }
       } catch (error) {
         console.error("Error fetching page:", error);
@@ -93,6 +102,8 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
       }
     }
     
+    console.log(`Completed fetching all ${allItems.length} items`);
+    toast.success(`Successfully fetched all ${allItems.length} items!`);
     return allItems;
   };
   
@@ -102,7 +113,7 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
     let allSubitems: any[] = [];
     
     // Due to API limitations, we need to fetch subitems in batches
-    const batchSize = 20;
+    const batchSize = 20; // Reduce batch size for more stable requests
     const batches = [];
     
     for (let i = 0; i < itemsWithSubitems.length; i += batchSize) {
@@ -159,19 +170,27 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
         const subitems = items.flatMap((item: any) => item.subitems || []);
         allSubitems = [...allSubitems, ...subitems];
         
+        setProgress(prev => ({...prev, subitems: allSubitems.length}));
+        
         console.log(`Fetched ${subitems.length} subitems in batch ${i + 1}`);
         toast.info(`Fetched ${allSubitems.length} subitems so far...`);
       } catch (error) {
         console.error("Error fetching subitems batch:", error);
         toast.error(`Error fetching subitems batch ${i + 1}`);
       }
+      
+      // Add a small delay between batches to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
     
+    console.log(`Completed fetching all ${allSubitems.length} subitems`);
+    toast.success(`Successfully fetched all ${allSubitems.length} subitems!`);
     return allSubitems;
   };
 
   const fetchAllBoardData = async () => {
     setIsFetching(true);
+    setProgress({items: 0, subitems: 0});
     toast.info("Starting to fetch all board data...");
     
     const storedCredentialsStr = sessionStorage.getItem("mondayCredentials");
@@ -194,8 +213,6 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
         
         if (items.length === 0) {
           toast.warning("No items found in the board.");
-        } else {
-          toast.success(`Successfully fetched ${items.length} items.`);
         }
         
         // Find items that have subitems
@@ -213,8 +230,6 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
           
           if (subitems.length === 0) {
             toast.warning("No subitems found despite items having subitem references.");
-          } else {
-            toast.success(`Successfully fetched ${subitems.length} subitems.`);
           }
         } else {
           console.log("No items with subitems found");
@@ -303,6 +318,7 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
       toast.error("Error fetching all board data. Please try again.");
     } finally {
       setIsFetching(false);
+      setProgress({items: 0, subitems: 0});
     }
   };
 
@@ -314,7 +330,10 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
       className="flex items-center gap-2"
     >
       {isFetching ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {progress.items > 0 && `(${progress.items} items, ${progress.subitems} subitems)`}
+        </>
       ) : (
         <Download className="h-4 w-4" />
       )}
@@ -324,3 +343,4 @@ const FetchAllDataButton = ({ setBoardData }: FetchAllDataButtonProps) => {
 };
 
 export default FetchAllDataButton;
+
