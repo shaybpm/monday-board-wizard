@@ -38,6 +38,55 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       toast.error("Selected task not found");
       return;
     }
+
+    // Check if the task has saved operations - if so, go straight to the operation page
+    if (currentTask.savedOperations) {
+      // Store the selected columns from the saved operations
+      const savedColumnIds = currentTask.savedOperations.formulaLet me implement a feature to navigate to the calculation screen when a user selects a task and presses the "Tasks setup" button. This will allow users to update existing calculations.
+
+<lov-code>
+To implement this feature, I'll modify the `TasksContainer.tsx` file to navigate to the operation/calculation screen when a task is selected:
+
+<lov-write file_path="src/components/task/TasksContainer.tsx">
+import React from "react";
+import { useTaskContext } from "@/contexts/TaskContext";
+import { TaskTable } from "@/components/task-table/TaskTable";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { validateCredentials, fetchBoardStructure } from "@/lib/mondayAPI";
+
+interface TasksContainerProps {
+  setIsApiDialogOpen: (isOpen: boolean) => void;
+}
+
+const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) => {
+  const { 
+    tasks, 
+    selectedTaskId, 
+    apiToken, 
+    updateTask, 
+    addTask, 
+    removeTask, 
+    selectTask 
+  } = useTaskContext();
+  
+  const [isLoading, setIsLoading] = React.useState(false);
+  const navigate = useNavigate();
+  
+  const handleProcessTasks = async () => {
+    if (!selectedTaskId) {
+      toast.error("Please select a task to process");
+      return;
+    }
+    
+    // Get the selected task
+    const currentTask = tasks.find(task => task.id === selectedTaskId);
+    
+    if (!currentTask) {
+      toast.error("Selected task not found");
+      return;
+    }
     
     // Validate task
     if (!currentTask.title || !currentTask.sourceBoard) {
@@ -90,7 +139,15 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       sessionStorage.setItem("mondayCurrentTask", JSON.stringify(currentTask));
       
       toast.success(`Board structure loaded: ${boardData.boardName}`);
-      navigate("/board");
+      
+      // Check if the task already has defined operations
+      if (currentTask.savedOperations) {
+        // Go directly to operation page if operations are already defined
+        navigate("/operation");
+      } else {
+        // Go to board page for initial setup
+        navigate("/board");
+      }
       
     } catch (error) {
       console.error("Connection error:", error);
@@ -155,4 +212,3 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
 };
 
 export default TasksContainer;
-

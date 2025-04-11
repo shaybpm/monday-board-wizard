@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBoardData } from "@/hooks/useBoardData";
@@ -27,20 +26,59 @@ const CalculationBuilder = () => {
   const [targetColumn, setTargetColumn] = useState<BoardColumn | null>(null);
   const [previewResult, setPreviewResult] = useState<string | null>(null);
 
-  // Load current task info and selected columns
+  // Load current task info, selected columns, and any saved operations
   useEffect(() => {
     // Load task data
     const taskData = sessionStorage.getItem("mondayCurrentTask");
     if (taskData) {
-      setCurrentTask(JSON.parse(taskData));
+      const parsedTask = JSON.parse(taskData);
+      setCurrentTask(parsedTask);
+      
+      // If the task has saved operations, load them
+      if (parsedTask.savedOperations) {
+        setFormula(parsedTask.savedOperations.formula || []);
+        
+        // We'll set the target column when the board data is loaded
+        if (parsedTask.savedOperations.targetColumn) {
+          setTimeout(() => {
+            setTargetColumn(parsedTask.savedOperations.targetColumn);
+          }, 100);
+        }
+      }
     }
 
     // Load selected columns
     const columnsData = sessionStorage.getItem("selectedColumns");
     if (columnsData && boardData) {
-      const columnIds = JSON.parse(columnsData);
-      const columns = boardData.columns.filter(col => columnIds.includes(col.id));
-      setSelectedColumns(columns);
+      try {
+        const columnIds = JSON.parse(columnsData);
+        // If we have column IDs, use them, otherwise if a task has saved operations, use all columns
+        if (Array.isArray(columnIds) && columnIds.length > 0) {
+          const columns = boardData.columns.filter(col => columnIds.includes(col.id));
+          setSelectedColumns(columns);
+        } else if (boardData.columns && taskData) {
+          // If no columns are selected but we're editing an existing operation, make all columns available
+          const parsedTask = JSON.parse(taskData);
+          if (parsedTask.savedOperations) {
+            setSelectedColumns(boardData.columns);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing columns data:", error);
+      }
+    } else if (boardData && boardData.columns) {
+      // If no columns are stored and we have a task with saved operations, make all columns available
+      const taskData = sessionStorage.getItem("mondayCurrentTask");
+      if (taskData) {
+        try {
+          const parsedTask = JSON.parse(taskData);
+          if (parsedTask.savedOperations) {
+            setSelectedColumns(boardData.columns);
+          }
+        } catch (error) {
+          console.error("Error parsing task data:", error);
+        }
+      }
     }
   }, [boardData]);
 
@@ -155,7 +193,9 @@ const CalculationBuilder = () => {
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
-      <h1 className="text-2xl font-bold mb-1">Task Setup - Operation</h1>
+      <h1 className="text-2xl font-bold mb-1">
+        {currentTask?.savedOperations ? "Update Calculation" : "Task Setup - Operation"}
+      </h1>
       
       {currentTask && (
         <div className="bg-blue-50 p-3 rounded-md mb-4 text-blue-800 text-sm">
@@ -172,7 +212,7 @@ const CalculationBuilder = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calculator className="h-5 w-5" />
-            Build Your Calculation
+            {currentTask?.savedOperations ? "Update Your Calculation" : "Build Your Calculation"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -286,7 +326,8 @@ const CalculationBuilder = () => {
                   onClick={handleApplyFormula}
                   className="gap-2"
                 >
-                  <ArrowRight className="h-4 w-4" /> Apply and Return to Tasks
+                  <ArrowRight className="h-4 w-4" /> 
+                  {currentTask?.savedOperations ? "Update and Return" : "Apply and Return to Tasks"}
                 </Button>
               </div>
             </div>
