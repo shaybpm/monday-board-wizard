@@ -44,7 +44,7 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
         {templates.length === 0 ? (
           <div className="py-6 text-center text-sm">No saved templates yet.</div>
         ) : (
-          <Command>
+          <Command className="rounded-lg border shadow-md">
             <CommandInput 
               placeholder="Search templates..." 
               value={searchQuery}

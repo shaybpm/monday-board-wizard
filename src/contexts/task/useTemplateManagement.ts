@@ -86,6 +86,11 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
   };
 
   const loadTemplate = (template: SavedTaskTemplate) => {
+    if (!template) {
+      toast.error("Invalid template");
+      return null;
+    }
+    
     try {
       if (template && Array.isArray(template.tasks) && template.tasks.length > 0) {
         localStorage.setItem("mondayTasks", JSON.stringify(template.tasks));

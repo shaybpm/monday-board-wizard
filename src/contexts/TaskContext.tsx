@@ -1,6 +1,6 @@
 
-import React, { createContext, useContext, ReactNode, useEffect } from "react";
-import { Task, SavedTaskTemplate } from "@/types/task";
+import React, { createContext, useContext, ReactNode } from "react";
+import { SavedTaskTemplate } from "@/types/task";
 import { TaskContextProps } from "./task/types";
 import { useTaskManagement } from "./task/useTaskManagement";
 import { useApiToken } from "./task/useApiToken";
@@ -57,11 +57,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Wrap the load template function to update our local state
   const loadTemplate = (template: SavedTaskTemplate) => {
+    if (!template) return null;
+    
     const result = loadTemplateInternal(template);
     if (result) {
       setTasks(result.tasks);
       setApiToken(result.apiToken);
     }
+    return result;
   };
 
   const value: TaskContextProps = {
