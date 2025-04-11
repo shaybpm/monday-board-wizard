@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for calculation operations
  */
@@ -77,7 +76,6 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
               name
               column_values {
                 id
-                title
                 text
                 value
                 type
@@ -105,34 +103,30 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
     const firstItem = response.data.boards[0].items_page.items[0];
     console.log("First item data:", firstItem);
     
-    // Log all column titles to help debug
+    // Log all column values to help debug
     const availableColumns = firstItem.column_values.map(col => 
-      `${col.title || 'Untitled'} (${col.id}): ${col.text || 'No value'}`
+      `${col.id}: ${col.text || 'No value'} (${col.type})`
     ).join("\n");
     console.log("Available columns:\n", availableColumns);
     
     if (doSpecificCalculation) {
       // Find the specified columns (סכום בחשבון, סכום בתקבול)
       const accountColumn = firstItem.column_values.find(
-        col => col.title === "סכום בחשבון" || 
-              col.title?.includes("סכום בחשבון") ||
-              col.id.includes("סכום_בחשבון")
+        col => col.id === "numeric_mkpv862j"
       );
       
       const receiptColumn = firstItem.column_values.find(
-        col => col.title === "סכום בתקבול" || 
-              col.title?.includes("סכום בתקבול") ||
-              col.id.includes("סכום_בתקבול")
+        col => col.id === "numeric_mkpv3cnz"
       );
       
       if (!accountColumn || !receiptColumn) {
         const missingColumns = [];
-        if (!accountColumn) missingColumns.push("סכום בחשבון");
-        if (!receiptColumn) missingColumns.push("סכום בתקבול");
+        if (!accountColumn) missingColumns.push("סכום בחשבון (numeric_mkpv862j)");
+        if (!receiptColumn) missingColumns.push("סכום בתקבול (numeric_mkpv3cnz)");
         
-        toast.error(`Could not find the columns: ${missingColumns.join(", ")}`, {
+        toast.error(`Could not find required columns`, {
           id: "test-calculation",
-          description: "Available columns: " + firstItem.column_values.slice(0, 3).map(c => c.title || c.id).join(", ") + "..."
+          description: `Missing: ${missingColumns.join(", ")}\nAvailable columns: ${firstItem.column_values.slice(0, 3).map(c => c.id).join(", ")}...`
         });
         
         return null;
@@ -181,7 +175,7 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
       firstItem.column_values.forEach(col => {
         formattedItem.columns[col.id] = {
           id: col.id,
-          title: col.title || col.id,
+          title: col.id, // Using column ID as title since title is not available
           type: col.type,
           value: col.value,
           text: col.text
@@ -215,7 +209,7 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
         if (token.type === "column") {
           const columnValue = formattedItem.columns[token.id];
           const displayValue = columnValue.text || "N/A";
-          calculation += `${token.display} = ${displayValue}\n`;
+          calculation += `${token.display} (${token.id}) = ${displayValue}\n`;
         }
       });
       

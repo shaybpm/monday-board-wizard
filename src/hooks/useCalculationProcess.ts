@@ -22,6 +22,7 @@ export const useCalculationProcess = () => {
       // Display a pending toast
       toast.loading("Fetching data from Monday.com...", { id: "test-calculation" });
       
+      console.log("Testing calculation with formula:", formula);
       const result = await testCalculationFormula(formula);
       
       if (result) {
