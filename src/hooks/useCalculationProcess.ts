@@ -13,11 +13,16 @@ export const useCalculationProcess = () => {
   const [processedItems, setProcessedItems] = useState<number>(0);
   const [totalItems, setTotalItems] = useState<number>(0);
   
-  const testCalculation = (formula: CalculationToken[]) => {
+  const testCalculation = async (formula: CalculationToken[]) => {
     setIsCalculating(true);
-    const result = testCalculationFormula(formula);
-    setPreviewResult(result);
-    setIsCalculating(false);
+    try {
+      const result = await testCalculationFormula(formula);
+      setPreviewResult(result);
+    } catch (error) {
+      console.error("Error testing calculation:", error);
+    } finally {
+      setIsCalculating(false);
+    }
   };
   
   const processBoard = (
