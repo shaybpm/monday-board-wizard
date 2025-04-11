@@ -257,9 +257,9 @@ export const processBoardData = (
   setProcessedItems(0);
   
   try {
-    if (!boardData || !boardData.items || !targetColumn) {
-      toast.error("Missing data", {
-        description: "Board data or target column is missing."
+    if (!boardData || !boardData.items || boardData.items.length === 0 || !targetColumn) {
+      toast.error("No items to process", {
+        description: "The selected board has no items or target column is missing."
       });
       setIsCalculating(false);
       return;
