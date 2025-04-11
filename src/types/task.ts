@@ -1,0 +1,28 @@
+
+export interface Task {
+  id: string;
+  title: string;
+  sourceBoard: string;
+  destinationBoard: string;
+  savedOperations?: {
+    formula: Array<{
+      id: string;
+      type: string;
+      value: string;
+      display: string;
+    }>;
+    targetColumn?: {
+      id: string;
+      title: string;
+      type: string;
+    };
+  };
+}
+
+// Interface for saved task templates
+export interface SavedTaskTemplate {
+  name: string;
+  tasks: Task[];
+  apiToken?: string;
+  dateCreated: string;
+}
