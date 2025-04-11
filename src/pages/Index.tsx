@@ -21,6 +21,7 @@ const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([
     { id: "01", title: "", sourceBoard: "", destinationBoard: "" }
   ]);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isApiDialogOpen, setIsApiDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -55,19 +56,37 @@ const Index = () => {
   const removeTask = (id: string) => {
     if (tasks.length > 1) {
       setTasks(tasks.filter(task => task.id !== id));
+      
+      // If we're removing the currently selected task, clear the selection
+      if (selectedTaskId === id) {
+        setSelectedTaskId(null);
+      }
     } else {
       toast.error("You must have at least one task");
     }
   };
 
+  const selectTask = (id: string) => {
+    setSelectedTaskId(id);
+  };
+
   const handleProcessTasks = async () => {
-    // Validate tasks
-    const invalidTasks = tasks.filter(
-      task => !task.title || !task.sourceBoard
-    );
+    if (!selectedTaskId) {
+      toast.error("Please select a task to process");
+      return;
+    }
     
-    if (invalidTasks.length > 0) {
-      toast.error("Please fill in all required fields for each task");
+    // Get the selected task
+    const currentTask = tasks.find(task => task.id === selectedTaskId);
+    
+    if (!currentTask) {
+      toast.error("Selected task not found");
+      return;
+    }
+    
+    // Validate task
+    if (!currentTask.title || !currentTask.sourceBoard) {
+      toast.error("Please fill in all required fields for the selected task");
       return;
     }
     
@@ -77,8 +96,6 @@ const Index = () => {
       return;
     }
     
-    // Select first task to process
-    const currentTask = tasks[0];
     const destBoard = currentTask.destinationBoard || currentTask.sourceBoard;
     
     const credentials: MondayCredentials = {
@@ -110,7 +127,7 @@ const Index = () => {
       
       // Store tasks for later use
       localStorage.setItem("mondayTasks", JSON.stringify(tasks));
-      localStorage.setItem("mondayCurrentTaskIndex", "0");
+      localStorage.setItem("mondayCurrentTaskIndex", tasks.findIndex(task => task.id === selectedTaskId).toString());
       
       // Store current task data in session storage
       sessionStorage.setItem("mondayCredentials", JSON.stringify(credentials));
@@ -167,13 +184,15 @@ const Index = () => {
             updateTask={updateTask} 
             addTask={addTask}
             removeTask={removeTask}
+            selectedTaskId={selectedTaskId}
+            onSelectTask={selectTask}
           />
           
           <div className="mt-6 flex justify-center">
             <Button
               onClick={handleProcessTasks}
               className="bg-monday-blue hover:bg-monday-darkBlue w-full max-w-xs"
-              disabled={isLoading}
+              disabled={isLoading || !selectedTaskId}
             >
               {isLoading ? (
                 <>

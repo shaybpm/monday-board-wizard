@@ -4,25 +4,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/pages/Index";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TaskTableProps {
   tasks: Task[];
   updateTask: (id: string, field: keyof Task, value: string) => void;
   addTask: () => void;
   removeTask: (id: string) => void;
+  selectedTaskId: string | null;
+  onSelectTask: (id: string) => void;
 }
 
 export const TaskTable: React.FC<TaskTableProps> = ({ 
   tasks, 
   updateTask, 
   addTask,
-  removeTask 
+  removeTask,
+  selectedTaskId,
+  onSelectTask
 }) => {
   return (
     <div className="overflow-x-auto border rounded-md">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10"></TableHead>
             <TableHead className="w-16">No.</TableHead>
             <TableHead>Task Title</TableHead>
             <TableHead>Source Board</TableHead>
@@ -33,6 +39,13 @@ export const TaskTable: React.FC<TaskTableProps> = ({
         <TableBody>
           {tasks.map((task) => (
             <TableRow key={task.id}>
+              <TableCell className="px-2">
+                <Checkbox 
+                  checked={selectedTaskId === task.id}
+                  onCheckedChange={() => onSelectTask(task.id)} 
+                  aria-label={`Select task ${task.id}`}
+                />
+              </TableCell>
               <TableCell className="font-medium">{task.id}</TableCell>
               <TableCell>
                 <Input
