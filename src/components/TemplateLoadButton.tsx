@@ -1,20 +1,10 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuGroup
-} from "@/components/ui/dropdown-menu";
-import { Download, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Download } from "lucide-react";
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { SavedTaskTemplate } from "@/pages/Index";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 interface TemplateLoadButtonProps {
@@ -26,7 +16,10 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  const filteredTemplates = savedTemplates.filter(template => 
+  // Ensure we have a valid array for filteredTemplates
+  const templates = Array.isArray(savedTemplates) ? savedTemplates : [];
+  
+  const filteredTemplates = templates.filter(template => 
     template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -52,21 +45,25 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
           />
           <CommandEmpty>No templates found.</CommandEmpty>
           <CommandGroup className="max-h-[300px] overflow-y-auto">
-            {filteredTemplates.map((template, index) => (
-              <CommandItem
-                key={index}
-                onSelect={() => {
-                  onLoadTemplate(template);
-                  setOpen(false);
-                }}
-                className="flex flex-col items-start py-3"
-              >
-                <div className="font-medium">{template.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {format(new Date(template.dateCreated), "PPP")} • {template.tasks.length} tasks
-                </div>
-              </CommandItem>
-            ))}
+            {filteredTemplates.length > 0 ? (
+              filteredTemplates.map((template, index) => (
+                <CommandItem
+                  key={index}
+                  onSelect={() => {
+                    onLoadTemplate(template);
+                    setOpen(false);
+                  }}
+                  className="flex flex-col items-start py-3"
+                >
+                  <div className="font-medium">{template.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {format(new Date(template.dateCreated), "PPP")} • {template.tasks.length} tasks
+                  </div>
+                </CommandItem>
+              ))
+            ) : (
+              <div className="py-6 text-center text-sm">No templates match your search.</div>
+            )}
           </CommandGroup>
         </Command>
       </PopoverContent>
