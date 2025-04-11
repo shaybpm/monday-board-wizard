@@ -20,12 +20,16 @@ interface ColumnsTableProps {
   columns: ColumnRow[];
   searchTerm: string;
   showSubitems: boolean;
+  onToggleRowSelection: (id: string) => void;
+  onToggleAllSelection: (filteredColumns?: ColumnRow[]) => void;
 }
 
 const ColumnsTable: React.FC<ColumnsTableProps> = ({
   columns,
   searchTerm,
-  showSubitems
+  showSubitems,
+  onToggleRowSelection,
+  onToggleAllSelection
 }) => {
   const [columnRows, setColumnRows] = useState<ColumnRow[]>(columns);
   
@@ -91,6 +95,7 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
     };
   }, [handleResizeMouseMove, handleResizeMouseUp]);
 
+  // Use the passed down toggle functions instead of the local ones
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
@@ -104,7 +109,7 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
             columnOrder={columnOrder}
             columnWidths={columnWidths}
             filteredColumns={filteredColumns}
-            toggleAllSelection={() => toggleAllSelection(filteredColumns)}
+            toggleAllSelection={() => onToggleAllSelection(filteredColumns)}
             requestSort={requestSort}
             getSortIndicator={getSortIndicator}
             handleDragStart={handleDragStart}
@@ -132,7 +137,7 @@ const ColumnsTable: React.FC<ColumnsTableProps> = ({
                 column={column}
                 columnWidths={columnWidths}
                 columnOrder={columnOrder}
-                toggleRowSelection={toggleRowSelection}
+                toggleRowSelection={() => onToggleRowSelection(column.id)}
               />
             ))
           )}
