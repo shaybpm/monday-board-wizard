@@ -14,12 +14,12 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
   onOpenApiDialog, 
   onOpenSaveDialog 
 }) => {
-  const { apiToken, savedTemplates, loadTemplate, currentTemplate } = useTaskContext();
+  const { apiToken, savedTemplates = [], loadTemplate, currentTemplate } = useTaskContext();
 
   return (
     <div className="flex gap-2">
       <TemplateLoadButton 
-        savedTemplates={savedTemplates}
+        savedTemplates={savedTemplates || []}
         onLoadTemplate={loadTemplate}
       />
       <Button 

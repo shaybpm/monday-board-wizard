@@ -33,6 +33,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     { id: "01", title: "", sourceBoard: "", destinationBoard: "" }
   ]);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  // Initialize as empty array to prevent undefined issues
   const [savedTemplates, setSavedTemplates] = useState<SavedTaskTemplate[]>([]);
   const [currentTemplate, setCurrentTemplate] = useState<SavedTaskTemplate | null>(null);
   const [saveTemplateName, setSaveTemplateName] = useState("");

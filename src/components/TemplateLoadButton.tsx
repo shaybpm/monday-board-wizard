@@ -20,10 +20,10 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
   const templates = Array.isArray(savedTemplates) ? savedTemplates : [];
   
   // Only filter when we have templates
-  const filteredTemplates = templates.length > 0 ? templates.filter(template => 
-    template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase())
-  ) : [];
+  const filteredTemplates = templates.filter(template => 
+    template?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (template?.dateCreated && format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase()))
+  );
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -38,46 +38,43 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
         </Button>
       </PopoverTrigger>
       
-      {/* Only render PopoverContent when open */}
-      {open && (
-        <PopoverContent className="p-0" align="end" sideOffset={4} style={{ width: '300px' }}>
-          {templates.length === 0 ? (
-            <div className="py-6 text-center text-sm">No saved templates yet.</div>
-          ) : (
-            <Command shouldFilter={false}>
-              <CommandInput 
-                placeholder="Search templates..." 
-                value={searchQuery}
-                onValueChange={setSearchQuery}
-              />
-              
-              <div className="max-h-[300px] overflow-y-auto">
-                {filteredTemplates.length === 0 ? (
-                  <div className="py-6 text-center text-sm">No templates match your search.</div>
-                ) : (
-                  <CommandGroup>
-                    {filteredTemplates.map((template, index) => (
-                      <CommandItem
-                        key={index}
-                        onSelect={() => {
-                          onLoadTemplate(template);
-                          setOpen(false);
-                        }}
-                        className="flex flex-col items-start py-3"
-                      >
-                        <div className="font-medium">{template.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-              </div>
-            </Command>
-          )}
-        </PopoverContent>
-      )}
+      <PopoverContent className="p-0" align="end" sideOffset={4} style={{ width: '300px' }}>
+        {templates.length === 0 ? (
+          <div className="py-6 text-center text-sm">No saved templates yet.</div>
+        ) : (
+          <Command>
+            <CommandInput 
+              placeholder="Search templates..." 
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+            />
+            
+            <div className="max-h-[300px] overflow-y-auto">
+              {filteredTemplates.length === 0 ? (
+                <CommandEmpty>No templates match your search.</CommandEmpty>
+              ) : (
+                <CommandGroup>
+                  {filteredTemplates.map((template, index) => (
+                    <CommandItem
+                      key={index}
+                      onSelect={() => {
+                        onLoadTemplate(template);
+                        setOpen(false);
+                      }}
+                      className="flex flex-col items-start py-3"
+                    >
+                      <div className="font-medium">{template.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {template.dateCreated && format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </div>
+          </Command>
+        )}
+      </PopoverContent>
     </Popover>
   );
 };
