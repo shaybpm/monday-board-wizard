@@ -57,75 +57,95 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
     // Get credentials from session storage
     const credsStr = sessionStorage.getItem("mondayCredentials");
     if (!credsStr) {
-      toast.error("No Monday.com credentials found");
+      toast.error("No Monday.com credentials found", { id: "test-calculation" });
       return null;
     }
     
     const credentials = JSON.parse(credsStr);
-    const boardId = credentials.sourceBoard || "1909452712"; // Use specified board ID
+    const boardId = credentials.sourceBoard || "1909452712"; // Use specified board ID or fallback
     
-    // If formula is empty, we'll perform the specific calculation requested
-    if (!formula || formula.length === 0) {
-      // Fetch the first item from the specified board
-      const query = `
-        query {
-          boards(ids: ${boardId}) {
-            items_page(limit: 1) {
-              items {
+    // If formula is empty or if we're doing the specific Hebrew column calculation
+    const doSpecificCalculation = !formula || formula.length === 0;
+    
+    // Fetch the first item from the specified board
+    const query = `
+      query {
+        boards(ids: ${boardId}) {
+          items_page(limit: 1) {
+            items {
+              id
+              name
+              column_values {
                 id
-                name
-                column_values {
-                  id
-                  title
-                  text
-                  value
-                  type
-                }
+                title
+                text
+                value
+                type
               }
             }
           }
         }
-      `;
-      
-      toast.info("Fetching data from Monday.com...");
-      
-      const response = await fetchFromMonday(query, credentials.apiToken);
-      
-      if (!response?.data?.boards?.[0]?.items_page?.items?.[0]) {
-        toast.error("No items found in the specified board");
-        return null;
       }
-      
-      const firstItem = response.data.boards[0].items_page.items[0];
-      
+    `;
+    
+    console.log("Fetching data from Monday.com for test calculation...");
+    console.log("Query:", query);
+    
+    const response = await fetchFromMonday(query, credentials.apiToken);
+    console.log("Monday API response:", response);
+    
+    if (!response?.data?.boards?.[0]?.items_page?.items?.[0]) {
+      toast.error("No items found in the board", { 
+        id: "test-calculation",
+        description: "Board ID: " + boardId
+      });
+      return null;
+    }
+    
+    const firstItem = response.data.boards[0].items_page.items[0];
+    console.log("First item data:", firstItem);
+    
+    // Log all column titles to help debug
+    const availableColumns = firstItem.column_values.map(col => 
+      `${col.title || 'Untitled'} (${col.id}): ${col.text || 'No value'}`
+    ).join("\n");
+    console.log("Available columns:\n", availableColumns);
+    
+    if (doSpecificCalculation) {
       // Find the specified columns (סכום בחשבון, סכום בתקבול)
-      const amountInAccountColumn = firstItem.column_values.find(
-        col => col.title === "סכום בחשבון" || col.id.includes("סכום_בחשבון")
+      const accountColumn = firstItem.column_values.find(
+        col => col.title === "סכום בחשבון" || 
+              col.title?.includes("סכום בחשבון") ||
+              col.id.includes("סכום_בחשבון")
       );
       
-      const amountInReceiptColumn = firstItem.column_values.find(
-        col => col.title === "סכום בתקבול" || col.id.includes("סכום_בתקבול")
+      const receiptColumn = firstItem.column_values.find(
+        col => col.title === "סכום בתקבול" || 
+              col.title?.includes("סכום בתקבול") ||
+              col.id.includes("סכום_בתקבול")
       );
       
-      if (!amountInAccountColumn || !amountInReceiptColumn) {
-        toast.error("Could not find the specified columns", {
-          description: "Looking for 'סכום בחשבון' and 'סכום בתקבול' columns"
-        });
+      if (!accountColumn || !receiptColumn) {
+        const missingColumns = [];
+        if (!accountColumn) missingColumns.push("סכום בחשבון");
+        if (!receiptColumn) missingColumns.push("סכום בתקבול");
         
-        // Log all available columns to help debug
-        const availableColumns = firstItem.column_values.map(col => `${col.title} (${col.id})`).join(", ");
-        console.log("Available columns:", availableColumns);
+        toast.error(`Could not find the columns: ${missingColumns.join(", ")}`, {
+          id: "test-calculation",
+          description: "Available columns: " + firstItem.column_values.slice(0, 3).map(c => c.title || c.id).join(", ") + "..."
+        });
         
         return null;
       }
       
       // Parse the values and calculate difference
-      const accountValue = parseFloat(amountInAccountColumn.text || "0");
-      const receiptValue = parseFloat(amountInReceiptColumn.text || "0");
+      const accountValue = parseFloat(accountColumn.text || "0");
+      const receiptValue = parseFloat(receiptColumn.text || "0");
       
       if (isNaN(accountValue) || isNaN(receiptValue)) {
         toast.error("Column values are not valid numbers", {
-          description: `Account: ${amountInAccountColumn.text}, Receipt: ${amountInReceiptColumn.text}`
+          id: "test-calculation",
+          description: `Account: ${accountColumn.text}, Receipt: ${receiptColumn.text}`
         });
         return null;
       }
@@ -134,41 +154,45 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
       
       // Create calculation display
       let calculation = `Calculation for item "${firstItem.name}":\n`;
-      calculation += `סכום בחשבון = ${accountValue}\n`;
-      calculation += `סכום בתקבול = ${receiptValue}\n`;
+      calculation += `סכום בחשבון (${accountColumn.id}): ${accountValue}\n`;
+      calculation += `סכום בתקבול (${receiptColumn.id}): ${receiptValue}\n`;
       calculation += `\nDifference = ${difference}`;
       
       toast.success("Calculation successful!", {
+        id: "test-calculation",
         description: calculation,
-        duration: 5000
+        duration: 8000
       });
       
       return difference.toString();
     } else {
       // Original implementation with provided formula
-      // Get board data from session storage
-      const boardDataStr = sessionStorage.getItem("mondayBoardData");
-      if (!boardDataStr) {
-        toast.error("No board data available for testing");
-        return null;
-      }
+      // Convert the first item to our internal format
+      const formattedItem: BoardItem = {
+        id: firstItem.id,
+        name: firstItem.name,
+        groupId: "",
+        groupTitle: "",
+        type: 'item',
+        columns: {}
+      };
       
-      const boardData = JSON.parse(boardDataStr);
-      
-      // Check if we have any items
-      if (!boardData.items || boardData.items.length === 0) {
-        toast.error("No items available for testing");
-        return null;
-      }
-      
-      // Get the first item for testing
-      const firstItem = boardData.items[0];
+      // Add all columns to our formatted item
+      firstItem.column_values.forEach(col => {
+        formattedItem.columns[col.id] = {
+          id: col.id,
+          title: col.title || col.id,
+          type: col.type,
+          value: col.value,
+          text: col.text
+        };
+      });
       
       // Check if the first item has all required columns
       const missingColumns: string[] = [];
       formula.forEach(token => {
         if (token.type === "column") {
-          if (!firstItem.columns[token.id] || !firstItem.columns[token.id].text) {
+          if (!formattedItem.columns[token.id] || !formattedItem.columns[token.id].text) {
             missingColumns.push(token.display);
           }
         }
@@ -176,21 +200,20 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
       
       if (missingColumns.length > 0) {
         toast.error("First item is missing required columns", {
+          id: "test-calculation",
           description: `Missing columns: ${missingColumns.join(", ")}`
         });
         return null;
       }
       
-      // Create a human-readable representation of the calculation with first item values
-      let calculation = `Test calculation using first item "${firstItem.name}":\n`;
-      
       // Evaluate the formula for the first item
-      const result = evaluateFormulaForItem(formula, firstItem);
+      const result = evaluateFormulaForItem(formula, formattedItem);
       
       // Build the calculation display string with actual values
+      let calculation = `Test calculation using first item "${formattedItem.name}":\n`;
       formula.forEach(token => {
         if (token.type === "column") {
-          const columnValue = firstItem.columns[token.id];
+          const columnValue = formattedItem.columns[token.id];
           const displayValue = columnValue.text || "N/A";
           calculation += `${token.display} = ${displayValue}\n`;
         }
@@ -200,14 +223,16 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
       
       if (typeof result === "string" && result.startsWith("Error")) {
         toast.error("Calculation error", {
+          id: "test-calculation",
           description: result,
           duration: 5000
         });
         return null;
       } else {
         toast.success("Test successful!", {
+          id: "test-calculation",
           description: calculation,
-          duration: 5000
+          duration: 8000
         });
         
         return result.toString();
@@ -216,6 +241,7 @@ export const testCalculationFormula = async (formula: CalculationToken[]) => {
   } catch (error) {
     console.error("Test calculation error:", error);
     toast.error("Test failed", {
+      id: "test-calculation",
       description: error instanceof Error ? error.message : "An error occurred while testing the calculation."
     });
     return null;
