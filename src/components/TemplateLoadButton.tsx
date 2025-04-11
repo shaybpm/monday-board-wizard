@@ -55,11 +55,11 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
               onValueChange={setSearchQuery}
             />
             
-            <CommandGroup className="max-h-[300px] overflow-y-auto">
-              {filteredTemplates.length === 0 ? (
-                <CommandEmpty>No templates match your search.</CommandEmpty>
-              ) : (
-                filteredTemplates.map((template, index) => (
+            <CommandEmpty>No templates match your search.</CommandEmpty>
+            
+            {filteredTemplates.length > 0 && (
+              <CommandGroup className="max-h-[300px] overflow-y-auto">
+                {filteredTemplates.map((template, index) => (
                   template && (
                     <CommandItem
                       key={`template-${index}-${template.name || 'unnamed'}`}
@@ -75,9 +75,9 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
                       </div>
                     </CommandItem>
                   )
-                ))
-              )}
-            </CommandGroup>
+                ))}
+              </CommandGroup>
+            )}
           </Command>
         )}
       </PopoverContent>
