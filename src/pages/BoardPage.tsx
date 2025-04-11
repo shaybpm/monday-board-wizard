@@ -7,12 +7,15 @@ import BoardHeader from "@/components/board-page/BoardHeader";
 import BoardSummary from "@/components/board-page/BoardSummary";
 import BackToConnectButton from "@/components/board-page/BackToConnectButton";
 import ItemsTable from "@/components/board-page/ItemsTable";
+import OperationButton from "@/components/board-page/OperationButton";
 import { useEffect, useState } from "react";
 import { Task } from "@/pages/Index";
 
 const BoardPage = () => {
   const { boardData, setBoardData, isLoading, loadBoardData } = useBoardData();
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [showItemsTable, setShowItemsTable] = useState(true);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
 
   // Load current task info
   useEffect(() => {
@@ -21,6 +24,11 @@ const BoardPage = () => {
       setCurrentTask(JSON.parse(taskData));
     }
   }, []);
+
+  // Handle column selection state
+  const handleColumnSelection = (columnIds: string[]) => {
+    setSelectedColumns(columnIds);
+  };
 
   if (isLoading) {
     return <LoadingState />;
@@ -56,14 +64,24 @@ const BoardPage = () => {
         setBoardData={setBoardData} 
       />
 
-      <ItemsTable 
-        items={boardData.items || []} 
-        isLoading={isLoading} 
-      />
+      {showItemsTable && (
+        <ItemsTable 
+          items={boardData.items || []} 
+          isLoading={isLoading} 
+        />
+      )}
 
-      <BackToConnectButton />
+      <BoardStructure 
+        boardData={boardData} 
+        onColumnSelection={handleColumnSelection}
+      />
       
-      <BoardStructure boardData={boardData} />
+      <OperationButton 
+        disabled={selectedColumns.length === 0}
+        selectedColumns={selectedColumns}
+      />
+      
+      <BackToConnectButton />
     </div>
   );
 };

@@ -5,9 +5,12 @@ import { List } from "lucide-react";
 
 interface TableEmptyStateProps {
   isLoading: boolean;
+  hidden?: boolean;
 }
 
-const TableEmptyState: React.FC<TableEmptyStateProps> = ({ isLoading }) => {
+const TableEmptyState: React.FC<TableEmptyStateProps> = ({ isLoading, hidden }) => {
+  if (hidden) return null;
+  
   if (isLoading) {
     return (
       <Card className="mb-6">

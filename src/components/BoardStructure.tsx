@@ -1,20 +1,22 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { ParsedBoardData, BoardColumn } from "@/lib/types";
 import SearchBar from "./board/search-bar";
 import ColumnsTable from "./board/columns-table";
 import { ColumnRow } from "./board/types";
+import { useColumnSelect } from "./board/hooks/useColumnSelect";
 
 interface BoardStructureProps {
   boardData: ParsedBoardData;
+  onColumnSelection?: (columnIds: string[]) => void;
 }
 
-const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
+const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSelection }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSubitems, setShowSubitems] = useState(false);
   
   // Transform boardData columns to ColumnRow format based on showSubitems toggle
-  const columnRows: ColumnRow[] = React.useMemo(() => {
+  const [columnRows, setColumnRows] = useState<ColumnRow[]>(() => {
     // If showing subitems and we have subitem columns data, use that instead of regular columns
     const columnsToDisplay = (showSubitems && boardData.subitemColumns) 
       ? boardData.subitemColumns 
@@ -52,10 +54,22 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         selected: false
       };
     });
-  }, [boardData, showSubitems]);
+  });
+  
+  const { toggleRowSelection, toggleAllSelection } = useColumnSelect(columnRows, setColumnRows);
   
   // Count selected rows
   const selectedCount = columnRows.filter(col => col.selected).length;
+  
+  // Update parent component when selections change
+  React.useEffect(() => {
+    if (onColumnSelection) {
+      const selectedColumnIds = columnRows
+        .filter(col => col.selected)
+        .map(col => col.id);
+      onColumnSelection(selectedColumnIds);
+    }
+  }, [columnRows, onColumnSelection]);
 
   return (
     <div className="space-y-4">
@@ -71,6 +85,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData }) => {
         columns={columnRows}
         searchTerm={searchTerm}
         showSubitems={showSubitems}
+        onToggleRowSelection={toggleRowSelection}
+        onToggleAllSelection={toggleAllSelection}
       />
     </div>
   );

@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import BoardPage from "./pages/BoardPage";
+import CalculationBuilder from "./pages/CalculationBuilder";
 import Header from "./components/Header";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/board" element={<BoardPage />} />
+            <Route path="/operation" element={<CalculationBuilder />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
