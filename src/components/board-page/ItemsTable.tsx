@@ -21,7 +21,7 @@ interface ItemsTableProps {
 
 const ItemsTable: React.FC<ItemsTableProps> = ({ items, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showType, setShowType] = useState<"all" | "items" | "subitems">("all");
+  const [showType, setShowType] = useState<"all" | "item" | "subitem">("all");
   
   // Filter items based on search term and type
   const filteredItems = items.filter(item => {
@@ -93,15 +93,15 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, isLoading }) => {
               </Button>
               <Button 
                 size="sm" 
-                variant={showType === "items" ? "default" : "outline"}
-                onClick={() => setShowType("items")}
+                variant={showType === "item" ? "default" : "outline"}
+                onClick={() => setShowType("item")}
               >
                 Items
               </Button>
               <Button 
                 size="sm" 
-                variant={showType === "subitems" ? "default" : "outline"}
-                onClick={() => setShowType("subitems")}
+                variant={showType === "subitem" ? "default" : "outline"}
+                onClick={() => setShowType("subitem")}
               >
                 Subitems
               </Button>
