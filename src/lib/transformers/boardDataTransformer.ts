@@ -24,6 +24,7 @@ export const transformBoardData = (
     item.column_values.forEach((cv: any) => {
       transformedItem.columns[cv.id] = {
         id: cv.id,
+        title: cv.title || cv.id, // Add title property (use id as fallback)
         type: cv.type || '',
         value: cv.value || '',
         text: cv.text || ''
@@ -49,6 +50,7 @@ export const transformBoardData = (
     subitem.column_values.forEach((cv: any) => {
       transformedSubitem.columns[cv.id] = {
         id: cv.id,
+        title: cv.title || cv.id, // Add title property (use id as fallback)
         type: cv.type || '',
         value: cv.value || '',
         text: cv.text || ''
