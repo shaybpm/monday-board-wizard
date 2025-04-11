@@ -45,14 +45,20 @@ export const useCalculationProcess = () => {
     }
   };
   
-  const processBoard = (
+  const processBoard = async (
     boardData: any, 
     formula: CalculationToken[], 
     targetColumn: BoardColumn | null
   ) => {
-    if (!targetColumn) return;
+    if (!targetColumn) {
+      toast.error("No target column selected", {
+        description: "Please select a target column for the calculation results."
+      });
+      return;
+    }
     
-    processBoardData(
+    // Call the updated processBoardData function which now handles fetching data if needed
+    await processBoardData(
       boardData,
       formula,
       targetColumn,
