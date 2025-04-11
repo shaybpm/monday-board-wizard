@@ -16,7 +16,7 @@ const TemplateLoadButton = ({ savedTemplates = [], onLoadTemplate }: TemplateLoa
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Ensure we have a valid array for templates
+  // Ensure we have a valid array for templates (defensive programming)
   const templates = Array.isArray(savedTemplates) ? savedTemplates : [];
   
   // Only filter when we have templates
@@ -49,7 +49,7 @@ const TemplateLoadButton = ({ savedTemplates = [], onLoadTemplate }: TemplateLoa
               onValueChange={setSearchQuery}
             />
             
-            <CommandGroup>
+            <CommandGroup className="max-h-[300px] overflow-y-auto">
               {filteredTemplates.length === 0 ? (
                 <CommandEmpty>No templates match your search.</CommandEmpty>
               ) : (
