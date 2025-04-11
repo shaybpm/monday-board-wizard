@@ -9,7 +9,8 @@ interface BoardSummaryProps {
 
 const BoardSummary = ({ boardData, setBoardData }: BoardSummaryProps) => {
   const totalColumns = boardData?.columns?.length || 0;
-  const itemColumnsCount = boardData?.items?.length || 0;
+  const itemCount = boardData?.items?.length || 0;
+  const subitemCount = boardData?.subitems?.length || 0;
 
   return (
     <div className="mb-4 bg-gray-50 rounded-md p-4 border">
@@ -23,8 +24,14 @@ const BoardSummary = ({ boardData, setBoardData }: BoardSummaryProps) => {
             </div>
             <div className="stat-item">
               <span className="text-sm text-gray-500">Items:</span>
-              <span className="ml-2 font-semibold">{itemColumnsCount}</span>
+              <span className="ml-2 font-semibold">{itemCount}</span>
             </div>
+            {subitemCount > 0 && (
+              <div className="stat-item">
+                <span className="text-sm text-gray-500">Subitems:</span>
+                <span className="ml-2 font-semibold">{subitemCount}</span>
+              </div>
+            )}
           </div>
         </div>
         <FetchAllDataButton setBoardData={setBoardData} />
