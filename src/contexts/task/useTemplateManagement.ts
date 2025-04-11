@@ -9,33 +9,37 @@ interface UseTemplateManagementProps {
 }
 
 export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagementProps) {
-  // Initialize with empty array to avoid undefined issues
+  // Always initialize with empty array
   const [savedTemplates, setSavedTemplates] = useState<SavedTaskTemplate[]>([]);
   const [currentTemplate, setCurrentTemplate] = useState<SavedTaskTemplate | null>(null);
   const [saveTemplateName, setSaveTemplateName] = useState("");
 
-  // Load saved templates from localStorage on mount
+  // Ensure localStorage is initialized with an empty array if no templates exist
   useEffect(() => {
     try {
+      // Set default empty templates in localStorage if it doesn't exist yet
+      if (!localStorage.getItem("mondaySavedTemplates")) {
+        localStorage.setItem("mondaySavedTemplates", JSON.stringify([]));
+      }
+      
       const storedTemplates = localStorage.getItem("mondaySavedTemplates");
       if (storedTemplates) {
-        const parsedTemplates = JSON.parse(storedTemplates);
-        if (Array.isArray(parsedTemplates)) {
-          setSavedTemplates(parsedTemplates);
-        } else {
-          console.warn("Stored templates is not an array, resetting to empty array");
+        try {
+          const parsedTemplates = JSON.parse(storedTemplates);
+          // Always ensure it's an array
+          setSavedTemplates(Array.isArray(parsedTemplates) ? parsedTemplates : []);
+        } catch (e) {
+          console.error("Error parsing saved templates:", e);
+          // Reset to empty array on parse error
           setSavedTemplates([]);
           localStorage.setItem("mondaySavedTemplates", JSON.stringify([]));
         }
       } else {
-        // Initialize to empty array if no templates are found
         setSavedTemplates([]);
-        localStorage.setItem("mondaySavedTemplates", JSON.stringify([]));
       }
     } catch (e) {
-      console.error("Error parsing saved templates:", e);
+      console.error("Error accessing localStorage:", e);
       setSavedTemplates([]);
-      localStorage.setItem("mondaySavedTemplates", JSON.stringify([]));
     }
   }, []);
 
@@ -46,13 +50,16 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
     }
 
     try {
-      // Create a copy of the tasks to save
+      // Create a copy of the tasks to save - ensure it's an array
       const tasksToSave = Array.isArray(tasks) ? [...tasks] : [];
+      
+      // Ensure we have savedTemplates as an array
+      const existingTemplates = Array.isArray(savedTemplates) ? savedTemplates : [];
 
       // Check if we're updating an existing template or creating a new one
       if (currentTemplate && currentTemplate.name === saveTemplateName) {
         // Update existing template
-        const updatedTemplates = (Array.isArray(savedTemplates) ? savedTemplates : []).map(template => 
+        const updatedTemplates = existingTemplates.map(template => 
           template.name === saveTemplateName 
             ? {
                 ...template,
@@ -75,7 +82,7 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
           dateCreated: new Date().toISOString()
         };
 
-        const updatedTemplates = [...(Array.isArray(savedTemplates) ? savedTemplates : []), newTemplate];
+        const updatedTemplates = [...existingTemplates, newTemplate];
         setSavedTemplates(updatedTemplates);
         setCurrentTemplate(newTemplate);
         localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
@@ -94,25 +101,23 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
     }
     
     try {
-      if (template && Array.isArray(template.tasks)) {
-        localStorage.setItem("mondayTasks", JSON.stringify(template.tasks));
-        
-        if (template.apiToken) {
-          localStorage.setItem("mondayApiToken", template.apiToken);
-        }
-        
-        setCurrentTemplate(template);
-        setSaveTemplateName(template.name || "");
-        toast.success(`Template "${template.name}" loaded successfully`);
-        
-        return { 
-          tasks: Array.isArray(template.tasks) ? template.tasks : [], 
-          apiToken: template.apiToken || "" 
-        };
-      } else {
-        toast.error("Invalid template or no tasks in template");
-        return null;
+      // Ensure template.tasks is an array
+      const templateTasks = Array.isArray(template.tasks) ? template.tasks : [];
+      
+      localStorage.setItem("mondayTasks", JSON.stringify(templateTasks));
+      
+      if (template.apiToken) {
+        localStorage.setItem("mondayApiToken", template.apiToken);
       }
+      
+      setCurrentTemplate(template);
+      setSaveTemplateName(template.name || "");
+      toast.success(`Template "${template.name}" loaded successfully`);
+      
+      return { 
+        tasks: templateTasks,
+        apiToken: template.apiToken || "" 
+      };
     } catch (error) {
       console.error("Error loading template:", error);
       toast.error("Failed to load template");
@@ -122,7 +127,7 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
 
   const deleteTemplate = (index: number) => {
     try {
-      // Ensure savedTemplates is an array before operations
+      // Ensure savedTemplates is an array
       const templatesArray = Array.isArray(savedTemplates) ? savedTemplates : [];
       
       if (index >= 0 && index < templatesArray.length) {
@@ -131,7 +136,8 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
         setSavedTemplates(updatedTemplates);
         localStorage.setItem("mondaySavedTemplates", JSON.stringify(updatedTemplates));
         
-        if (currentTemplate && currentTemplate.name === templateToDelete.name) {
+        // Reset current template if it was the deleted one
+        if (currentTemplate && templateToDelete && currentTemplate.name === templateToDelete.name) {
           setCurrentTemplate(null);
           setSaveTemplateName("");
         }
@@ -147,6 +153,7 @@ export function useTemplateManagement({ tasks, apiToken }: UseTemplateManagement
   };
 
   return {
+    // Always return an array for savedTemplates, never undefined
     savedTemplates: Array.isArray(savedTemplates) ? savedTemplates : [],
     setSavedTemplates,
     currentTemplate,

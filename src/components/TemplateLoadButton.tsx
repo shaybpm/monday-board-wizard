@@ -16,19 +16,20 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Ensure templates is ALWAYS an array, even if savedTemplates is undefined or null
+  // Ensure templates is ALWAYS an array, no matter what
   const templates = Array.isArray(savedTemplates) ? savedTemplates : [];
   
-  // Filter templates based on search query
-  const filteredTemplates = templates.length > 0 && searchQuery.trim() !== "" 
-    ? templates.filter(template => 
-        template?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (template?.dateCreated && format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    : templates;
-  
-  // Make absolutely sure filteredTemplates is an array
-  const safeFilteredTemplates = Array.isArray(filteredTemplates) ? filteredTemplates : [];
+  // Make sure we're not calling filter on undefined
+  const filteredTemplates = templates.filter(template => {
+    if (!template) return false;
+    
+    const nameMatch = template.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const dateMatch = template.dateCreated ? 
+      format(new Date(template.dateCreated), "PPP").toLowerCase().includes(searchQuery.toLowerCase()) : 
+      false;
+      
+    return searchQuery.trim() === "" || nameMatch || dateMatch;
+  });
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -55,13 +56,13 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
             />
             
             <CommandGroup className="max-h-[300px] overflow-y-auto">
-              {safeFilteredTemplates.length === 0 ? (
+              {filteredTemplates.length === 0 ? (
                 <CommandEmpty>No templates match your search.</CommandEmpty>
               ) : (
-                safeFilteredTemplates.map((template, index) => (
+                filteredTemplates.map((template, index) => (
                   template && (
                     <CommandItem
-                      key={template?.name || index}
+                      key={`template-${index}-${template.name || 'unnamed'}`}
                       onSelect={() => {
                         onLoadTemplate(template);
                         setOpen(false);
@@ -70,7 +71,7 @@ const TemplateLoadButton = ({ savedTemplates, onLoadTemplate }: TemplateLoadButt
                     >
                       <div className="font-medium">{template.name || 'Unnamed Template'}</div>
                       <div className="text-xs text-muted-foreground">
-                        {template.dateCreated && format(new Date(template.dateCreated), "PPP")} • {template.tasks?.length || 0} tasks
+                        {template.dateCreated ? format(new Date(template.dateCreated), "PPP") : 'No date'} • {Array.isArray(template.tasks) ? template.tasks.length : 0} tasks
                       </div>
                     </CommandItem>
                   )

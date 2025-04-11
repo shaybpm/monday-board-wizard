@@ -16,7 +16,7 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
 }) => {
   const { apiToken, savedTemplates, loadTemplate, currentTemplate } = useTaskContext();
   
-  // Ensure savedTemplates is always an array
+  // Always ensure savedTemplates is an array
   const safeTemplates = Array.isArray(savedTemplates) ? savedTemplates : [];
   
   // Create a safe loadTemplate function that prevents null templates

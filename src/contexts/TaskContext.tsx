@@ -13,7 +13,7 @@ const TaskContext = createContext<TaskContextProps>({
   apiToken: "",
   currentTemplate: null,
   saveTemplateName: "",
-  savedTemplates: [], // Ensure this has a default empty array
+  savedTemplates: [], // Default to empty array 
   setTasks: () => {},
   setSelectedTaskId: () => {},
   setApiToken: () => {},
@@ -67,14 +67,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return result;
   };
 
+  // Ensure savedTemplates is ALWAYS an array before passing it to children
+  const safeTemplates = Array.isArray(savedTemplates) ? savedTemplates : [];
+
   const value: TaskContextProps = {
     tasks,
     selectedTaskId,
     apiToken,
     currentTemplate,
     saveTemplateName,
-    // Ensure savedTemplates is always an array with a fallback
-    savedTemplates: Array.isArray(savedTemplates) ? savedTemplates : [],
+    savedTemplates: safeTemplates, // Use the safe array
     setTasks,
     setSelectedTaskId,
     setApiToken,
