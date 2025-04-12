@@ -167,10 +167,19 @@ const processSpecificHebrewFormula = async (
   let successCount = 0;
   const results: {id: string, name: string, result: number | string}[] = [];
   
-  // Process each item with the specific calculation (account - receipt)
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    setProcessedItems(i + 1);
+  // Get the credentials for API updates
+  const credsStr = sessionStorage.getItem("mondayCredentials");
+  if (!credsStr) {
+    toast.error("No Monday.com credentials found");
+    return;
+  }
+  
+  const credentials = JSON.parse(credsStr);
+  
+  // Process only the first item for debug
+  if (items.length > 0) {
+    const item = items[0];
+    setProcessedItems(1);
     
     try {
       const accountValue = parseFloat(item.columns["numeric_mkpv862j"]?.text || "0");
@@ -182,17 +191,37 @@ const processSpecificHebrewFormula = async (
           name: item.name,
           result: "Invalid number values"
         });
-        continue;
+      } else {
+        validItems++;
+        const difference = accountValue - receiptValue;
+        
+        // Update the target column with the difference
+        // For debug, we'll use a specific column (numeric_mkpvgf7j - ח. פנימי)
+        const targetColumnId = "numeric_mkpvgf7j";
+        
+        // Call the Monday API to update the column
+        const updateSuccess = await updateColumnValue(
+          item.id, 
+          targetColumnId, 
+          difference.toString(),
+          credentials.apiToken
+        );
+        
+        if (updateSuccess) {
+          successCount++;
+          results.push({
+            id: item.id,
+            name: item.name,
+            result: difference
+          });
+        } else {
+          results.push({
+            id: item.id,
+            name: item.name,
+            result: "Failed to update column"
+          });
+        }
       }
-      
-      validItems++;
-      const difference = accountValue - receiptValue;
-      results.push({
-        id: item.id,
-        name: item.name,
-        result: difference
-      });
-      successCount++;
     } catch (error) {
       console.error(`Error processing item ${item.name}:`, error);
       results.push({
@@ -204,7 +233,7 @@ const processSpecificHebrewFormula = async (
   }
   
   // Generate the summary message
-  generateSummaryMessage(items.length, successCount, items.length - successCount, 0, results);
+  generateSummaryMessage(1, successCount, 1 - successCount, 0, results);
 };
 
 /**
@@ -216,71 +245,84 @@ const processGenericFormula = async (
   targetColumn: any,
   setProcessedItems: (count: number) => void
 ) => {
-  // Count items that can be processed (have all required columns)
-  const validItems: BoardItem[] = [];
-  const invalidItems: {item: BoardItem, reason: string}[] = [];
+  // Get the credentials for API updates
+  const credsStr = sessionStorage.getItem("mondayCredentials");
+  if (!credsStr) {
+    toast.error("No Monday.com credentials found");
+    return;
+  }
   
-  // First pass: validate all items
-  items.forEach((item: BoardItem) => {
-    let isValid = true;
-    let invalidReason = "";
+  const credentials = JSON.parse(credsStr);
+  
+  // For debug, only process the first item
+  if (items.length > 0) {
+    const item = items[0];
+    const results: {id: string, name: string, result: number | string}[] = [];
+    let successCount = 0;
     
-    // Check if the item has all required columns from the formula
-    formula.forEach(token => {
-      if (token.type === "column") {
-        const columnExists = item.columns[token.id];
-        if (!columnExists) {
-          isValid = false;
-          invalidReason = `Missing column: ${token.display}`;
-          return;
-        }
-        
-        // Check if column value can be parsed as a number
-        const textValue = columnExists.text || "";
-        const numValue = parseFloat(textValue);
-        if (isNaN(numValue)) {
-          isValid = false;
-          invalidReason = `Column "${token.display}" value "${textValue}" is not a number`;
-          return;
-        }
-      }
-    });
-    
-    // Also check if target column exists in the item
-    if (!item.columns[targetColumn.id]) {
-      isValid = false;
-      invalidReason = `Target column "${targetColumn.title}" does not exist in this item`;
-    }
-    
-    if (isValid) {
-      validItems.push(item);
-    } else {
-      invalidItems.push({item, reason: invalidReason});
-    }
-  });
-  
-  // Log validation results
-  console.log(`Valid items: ${validItems.length}, Invalid items: ${invalidItems.length}`);
-  
-  // Second pass: process valid items
-  const results: {id: string, name: string, result: number | string}[] = [];
-  let successCount = 0;
-  
-  validItems.forEach((item, index) => {
     try {
-      const result = evaluateFormulaForItem(formula, item);
-      results.push({
-        id: item.id,
-        name: item.name,
-        result: result
+      // Check if the item has all required columns for formula
+      let isValid = true;
+      let invalidReason = "";
+      
+      // Validate the formula can be applied to this item
+      formula.forEach(token => {
+        if (token.type === "column") {
+          const columnExists = item.columns[token.id];
+          if (!columnExists) {
+            isValid = false;
+            invalidReason = `Missing column: ${token.display}`;
+            return;
+          }
+          
+          // Check if column value can be parsed as a number
+          const textValue = columnExists.text || "";
+          const numValue = parseFloat(textValue);
+          if (isNaN(numValue)) {
+            isValid = false;
+            invalidReason = `Column "${token.display}" value "${textValue}" is not a number`;
+            return;
+          }
+        }
       });
       
-      if (typeof result === "number") {
-        successCount++;
+      if (!isValid) {
+        results.push({
+          id: item.id,
+          name: item.name,
+          result: invalidReason
+        });
+      } else {
+        // Calculate the result using the formula
+        const result = evaluateFormulaForItem(formula, item);
+        
+        // Update the target column with the result
+        if (typeof result === "number") {
+          const updateSuccess = await updateColumnValue(
+            item.id, 
+            targetColumn.id, 
+            result.toString(),
+            credentials.apiToken
+          );
+          
+          if (updateSuccess) {
+            successCount++;
+          }
+        }
+        
+        results.push({
+          id: item.id,
+          name: item.name,
+          result: result
+        });
       }
       
       // Update progress
-      setProcessedItems(index + 1);
+      setProcessedItems(1);
+      
+      // Generate summary message for just this one item
+      generateSummaryMessage(1, successCount, 1 - successCount, 0, results);
+      
     } catch (error) {
       console.error(`Error processing item ${item.name}:`, error);
       results.push({
@@ -288,17 +330,63 @@ const processGenericFormula = async (
         name: item.name,
         result: error instanceof Error ? error.message : "Error"
       });
+      
+      // Generate error summary
+      generateSummaryMessage(1, 0, 1, 0, results);
     }
-  });
-  
-  // Generate summary message
-  generateSummaryMessage(
-    validItems.length, 
-    successCount, 
-    validItems.length - successCount,
-    invalidItems.length,
-    results
-  );
+  } else {
+    toast.error("No items found to process");
+  }
+};
+
+/**
+ * Update a column value in Monday.com
+ */
+const updateColumnValue = async (itemId: string, columnId: string, value: string, apiToken: string): Promise<boolean> => {
+  try {
+    // Show updating toast
+    toast.loading(`Updating column value for item ${itemId}...`, { id: `update-${itemId}` });
+    
+    // Prepare the mutation query
+    const mutation = `
+      mutation {
+        change_column_value(
+          item_id: ${itemId},
+          column_id: "${columnId}",
+          value: "${value}"
+        ) {
+          id
+        }
+      }
+    `;
+    
+    console.log(`Updating item ${itemId}, column ${columnId} with value: ${value}`);
+    
+    // Call the Monday API
+    const response = await fetchFromMonday(mutation, apiToken);
+    
+    if (response?.data?.change_column_value?.id) {
+      toast.success(`Updated item ${itemId}`, { 
+        id: `update-${itemId}`,
+        description: `Column ${columnId} set to ${value}`
+      });
+      return true;
+    } else {
+      console.error("Failed to update column value:", response);
+      toast.error(`Failed to update item ${itemId}`, { 
+        id: `update-${itemId}`,
+        description: `Check console for details`
+      });
+      return false;
+    }
+  } catch (error) {
+    console.error("Error updating column value:", error);
+    toast.error(`Error updating item ${itemId}`, { 
+      id: `update-${itemId}`,
+      description: error instanceof Error ? error.message : "An unknown error occurred"
+    });
+    return false;
+  }
 };
 
 /**
