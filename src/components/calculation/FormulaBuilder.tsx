@@ -120,7 +120,7 @@ const getBadgeVariant = (type: string) => {
   switch (type) {
     case 'operator': return 'secondary';
     case 'number': return 'outline';
-    case 'condition': return 'warning';
+    case 'condition': return 'destructive'; // Changed from 'warning' to 'destructive' as it's a supported variant
     case 'logical': 
       return 'default';
     default: return 'default';

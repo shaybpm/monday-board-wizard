@@ -9,7 +9,7 @@ export const generateSummaryMessage = (
   successCount: number,
   failureCount: number,
   skippedCount: number,
-  results: {id: string, name: string, result: number | string}[]
+  results: {id: string, name: string, result: number | string | boolean}[]
 ) => {
   let summaryMessage = `Processed ${processedCount} items:\n`;
   summaryMessage += `✅ ${successCount} calculations successful\n`;
