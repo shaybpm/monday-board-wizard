@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { fetchFromMonday } from "../api/mondayApiClient";
 import { processGenericFormula } from "./processGenericFormula";
 import { processSpecificHebrewFormula } from "./processSpecificHebrewFormula";
+import { fetchAllItemsWithPagination } from "../api/paginationApi";
 
 /**
  * Processes board data using the provided formula and target column
@@ -30,10 +31,10 @@ export const processBoardData = async (
       return;
     }
     
-    // If boardData doesn't have items or has empty items array, fetch them directly
+    // If boardData doesn't have items or has empty items array, fetch them directly with pagination
     let processableData = boardData;
     if (!boardData || !boardData.items || boardData.items.length === 0) {
-      processableData = await fetchBoardDataFromAPI();
+      processableData = await fetchBoardDataFromAPIWithPagination();
       if (!processableData) {
         setIsCalculating(false);
         return;
@@ -64,9 +65,9 @@ export const processBoardData = async (
 };
 
 /**
- * Fetches board data from Monday.com API
+ * Fetches board data from Monday.com API with pagination
  */
-const fetchBoardDataFromAPI = async () => {
+const fetchBoardDataFromAPIWithPagination = async () => {
   const credsStr = sessionStorage.getItem("mondayCredentials");
   if (!credsStr) {
     toast.error("No Monday.com credentials found");
@@ -74,50 +75,29 @@ const fetchBoardDataFromAPI = async () => {
   }
   
   const credentials = JSON.parse(credsStr);
-  const boardId = credentials.sourceBoard || "1909452712"; // Use specified board ID or fallback
   
   // Show a loading toast
-  toast.loading("Fetching board items...", { id: "process-board" });
-  
-  // Fetch items from Monday.com API (similar to test function)
-  const query = `
-    query {
-      boards(ids: ${boardId}) {
-        items_page(limit: 100) {
-          items {
-            id
-            name
-            column_values {
-              id
-              text
-              value
-              type
-            }
-          }
-        }
-      }
-    }
-  `;
+  toast.loading("Fetching all board items with pagination...", { id: "process-board" });
   
   try {
-    const response = await fetchFromMonday(query, credentials.apiToken);
+    // Use the pagination API to fetch all items
+    const allItems = await fetchAllItemsWithPagination(credentials);
     
-    if (!response?.data?.boards?.[0]?.items_page?.items) {
+    if (!allItems || allItems.length === 0) {
       toast.error("No items found in the board", { 
         id: "process-board",
-        description: "Board ID: " + boardId
+        description: "Board ID: " + credentials.sourceBoard
       });
       return null;
     }
     
     // Convert API response to our format
-    const apiItems = response.data.boards[0].items_page.items;
-    const items = apiItems.map((item: any) => {
+    const items = allItems.map((item: any) => {
       const formattedItem: BoardItem = {
         id: item.id,
         name: item.name,
-        groupId: "",
-        groupTitle: "",
+        groupId: item.group?.id || "",
+        groupTitle: item.group?.title || "",
         type: 'item',
         columns: {}
       };
@@ -126,7 +106,7 @@ const fetchBoardDataFromAPI = async () => {
       item.column_values.forEach((col: any) => {
         formattedItem.columns[col.id] = {
           id: col.id,
-          title: col.id, // Using column ID as title since title is not available
+          title: col.title || col.id,
           type: col.type,
           value: col.value,
           text: col.text
@@ -142,7 +122,7 @@ const fetchBoardDataFromAPI = async () => {
     };
     
     // Success toast
-    toast.success(`Fetched ${items.length} items from the board`, { 
+    toast.success(`Fetched all ${items.length} items from the board`, { 
       id: "process-board"
     });
     

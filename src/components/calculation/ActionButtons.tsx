@@ -2,6 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TestTube2, Calculator } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface ActionButtonsProps {
   onBack: () => void;
@@ -72,6 +73,15 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           {isEditing ? "Update and Return" : "Apply and Return to Tasks"}
         </Button>
       </div>
+      
+      {showProgress && (
+        <div className="w-full mt-3">
+          <Progress value={progressPercent} className="h-2" />
+          <p className="text-xs text-center mt-1 text-muted-foreground">
+            Processed {processProgress.current} of {processProgress.total} items
+          </p>
+        </div>
+      )}
     </div>
   );
 };
