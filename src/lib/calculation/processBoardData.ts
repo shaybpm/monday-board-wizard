@@ -106,7 +106,8 @@ const fetchBoardDataFromAPIWithPagination = async () => {
       item.column_values.forEach((col: any) => {
         formattedItem.columns[col.id] = {
           id: col.id,
-          title: col.title || col.id,
+          // Use column ID as title since title might not be available
+          title: col.id,
           type: col.type,
           value: col.value,
           text: col.text

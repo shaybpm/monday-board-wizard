@@ -1,4 +1,3 @@
-
 import { fetchFromMonday } from "./mondayApiClient";
 import { toast } from "sonner";
 
@@ -23,7 +22,6 @@ export const fetchAllItemsWithPagination = async (credentials: any) => {
                 }
                 column_values {
                   id
-                  title
                   type
                   value
                   text
