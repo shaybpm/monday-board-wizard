@@ -53,6 +53,9 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   onTest,
   onProcessBoard
 }) => {
+  // Get debug info from sessionStorage
+  const debugInfo = sessionStorage.getItem("calculationDebugInfo");
+  
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -90,6 +93,13 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
             {previewResult && (
               <div className="bg-green-50 p-3 rounded-md mb-4">
                 <p className="text-sm text-green-800">Preview result: {previewResult}</p>
+              </div>
+            )}
+            
+            {debugInfo && (
+              <div className="bg-blue-50 p-3 rounded-md mb-4 whitespace-pre-wrap">
+                <p className="text-sm font-medium text-blue-800 mb-1">Debug Information:</p>
+                <p className="text-xs text-blue-700 font-mono">{debugInfo}</p>
               </div>
             )}
             

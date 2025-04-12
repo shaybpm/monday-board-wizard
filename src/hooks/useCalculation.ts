@@ -42,6 +42,11 @@ export const useCalculation = (currentTask: Task | null) => {
   
   // Process the board data
   const processBoardData = (boardData: any) => {
+    // Store debug info in session storage for easy access in UI components
+    if (calculationProcess.debugInfo) {
+      sessionStorage.setItem("calculationDebugInfo", calculationProcess.debugInfo);
+    }
+    
     calculationProcess.processBoard(
       boardData, 
       formulaBuilder.formula, 
@@ -66,6 +71,7 @@ export const useCalculation = (currentTask: Task | null) => {
     isCalculating: calculationProcess.isCalculating,
     processedItems: calculationProcess.processedItems,
     totalItems: calculationProcess.totalItems,
+    debugInfo: calculationProcess.debugInfo,
     
     // Utility methods
     isFormulaValid,
