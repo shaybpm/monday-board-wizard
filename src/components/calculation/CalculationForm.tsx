@@ -26,6 +26,8 @@ interface CalculationFormProps {
   onAddNumber: () => void;
   onRemoveToken: (index: number) => void;
   onSetTarget: (column: BoardColumn) => void;
+  onAddCondition: (condition: string) => void;
+  onAddLogical: (logical: string) => void;
   isFormulaValid: () => boolean;
   onBack: () => void;
   onApply: () => void;
@@ -47,6 +49,8 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   onAddNumber,
   onRemoveToken,
   onSetTarget,
+  onAddCondition,
+  onAddLogical,
   isFormulaValid,
   onBack,
   onApply,
@@ -79,6 +83,8 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
             onAddOperator={onAddOperator}
             onAddNumber={onAddNumber}
             onRemoveToken={onRemoveToken}
+            onAddCondition={onAddCondition}
+            onAddLogical={onAddLogical}
           />
 
           {/* Target Column */}
@@ -92,7 +98,11 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
           <div className="border-t pt-4 mt-4">
             {previewResult && (
               <div className="bg-green-50 p-3 rounded-md mb-4">
-                <p className="text-sm text-green-800">Preview result: {previewResult}</p>
+                <p className="text-sm text-green-800">
+                  Preview result: {previewResult === 'true' ? 'TRUE' : 
+                                  previewResult === 'false' ? 'FALSE' : 
+                                  previewResult}
+                </p>
               </div>
             )}
             

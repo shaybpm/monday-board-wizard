@@ -20,7 +20,7 @@ export const useCalculation = (currentTask: Task | null) => {
       // Ensure the type is correctly cast to the expected type
       const typedFormula = currentTask.savedOperations.formula.map(token => ({
         ...token,
-        type: token.type as "column" | "operator" | "number"
+        type: token.type as "column" | "operator" | "number" | "condition" | "logical"
       }));
       formulaBuilder.setFormula(typedFormula);
     }
@@ -61,6 +61,8 @@ export const useCalculation = (currentTask: Task | null) => {
     handleAddNumber: formulaBuilder.handleAddNumber,
     handleAddColumn: formulaBuilder.handleAddColumn,
     handleRemoveToken: formulaBuilder.handleRemoveToken,
+    handleAddCondition: formulaBuilder.handleAddCondition,
+    handleAddLogical: formulaBuilder.handleAddLogical,
     
     // Target column state
     targetColumn: targetColumnState.targetColumn,

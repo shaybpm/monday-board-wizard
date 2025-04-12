@@ -28,7 +28,7 @@ export const processGenericFormula = async (
   let successCount = 0;
   let failedCount = 0;
   let skippedCount = 0;
-  const results: {id: string, name: string, result: number | string}[] = [];
+  const results: {id: string, name: string, result: number | string | boolean}[] = [];
   
   // Show a processing toast
   toast.loading(`Processing ${items.length} items...`, { id: "process-board-items" });
@@ -43,26 +43,32 @@ export const processGenericFormula = async (
       let isValid = true;
       let invalidReason = "";
       
-      // Validate the formula can be applied to this item
-      formula.forEach(token => {
-        if (token.type === "column") {
-          const columnExists = item.columns[token.id];
-          if (!columnExists) {
-            isValid = false;
-            invalidReason = `Missing column: ${token.display}`;
-            return;
-          }
-          
+      // Find all column tokens in the formula
+      const columnTokens = formula.filter(token => token.type === "column");
+      
+      // Validate that all required column tokens exist in the item
+      for (const token of columnTokens) {
+        const columnExists = item.columns[token.id];
+        if (!columnExists) {
+          isValid = false;
+          invalidReason = `Missing column: ${token.display}`;
+          break;
+        }
+        
+        // Only validate as number if not used in a logical expression
+        const isInLogicalContext = isColumnInLogicalContext(token, formula);
+        
+        if (!isInLogicalContext) {
           // Check if column value can be parsed as a number
           const textValue = columnExists.text || "";
           const numValue = parseFloat(textValue);
           if (isNaN(numValue)) {
             isValid = false;
             invalidReason = `Column "${token.display}" value "${textValue}" is not a number`;
-            return;
+            break;
           }
         }
-      });
+      }
       
       if (!isValid) {
         skippedCount++;
@@ -76,36 +82,38 @@ export const processGenericFormula = async (
         const result = evaluateFormulaForItem(formula, item);
         
         // Update the target column with the result
-        if (typeof result === "number") {
-          const updateSuccess = await updateColumnValue(
-            item.id,
-            boardId,
-            targetColumn.id, 
-            result.toString(),
-            credentials.apiToken
-          );
-          
-          if (updateSuccess) {
-            successCount++;
-            results.push({
-              id: item.id,
-              name: item.name,
-              result: result
-            });
-          } else {
-            failedCount++;
-            results.push({
-              id: item.id,
-              name: item.name,
-              result: "Failed to update column"
-            });
-          }
+        let valueToUpdate: string;
+        
+        if (typeof result === "boolean") {
+          // Convert boolean to string
+          valueToUpdate = result ? "true" : "false";
+        } else if (typeof result === "number") {
+          valueToUpdate = result.toString();
         } else {
-          skippedCount++;
+          valueToUpdate = result as string;
+        }
+        
+        const updateSuccess = await updateColumnValue(
+          item.id,
+          boardId,
+          targetColumn.id, 
+          valueToUpdate,
+          credentials.apiToken
+        );
+        
+        if (updateSuccess) {
+          successCount++;
           results.push({
             id: item.id,
             name: item.name,
             result: result
+          });
+        } else {
+          failedCount++;
+          results.push({
+            id: item.id,
+            name: item.name,
+            result: "Failed to update column"
           });
         }
       }
@@ -131,4 +139,21 @@ export const processGenericFormula = async (
   
   // Generate summary message for all items
   generateSummaryMessage(items.length, successCount, failedCount, skippedCount, results);
+};
+
+/**
+ * Helper function to determine if a column token is used in a logical context
+ * where string values might be acceptable
+ */
+const isColumnInLogicalContext = (columnToken: CalculationToken, formula: CalculationToken[]): boolean => {
+  // Check if formula contains logical operators
+  const hasLogical = formula.some(token => token.type === "logical");
+  if (!hasLogical) return false;
+  
+  const columnIndex = formula.findIndex(token => token.id === columnToken.id);
+  if (columnIndex === -1) return false;
+  
+  // Check if column is near a condition token (==, !=)
+  const nearbyTokens = formula.slice(Math.max(0, columnIndex - 2), columnIndex + 3);
+  return nearbyTokens.some(token => token.type === "condition" && ["==", "!="].includes(token.value));
 };

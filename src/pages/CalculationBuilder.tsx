@@ -41,6 +41,8 @@ const CalculationBuilder = () => {
         onAddOperator={calculation.handleAddOperator}
         onAddNumber={calculation.handleAddNumber}
         onRemoveToken={calculation.handleRemoveToken}
+        onAddCondition={calculation.handleAddCondition}
+        onAddLogical={calculation.handleAddLogical}
         onSetTarget={calculation.handleSetTarget}
         isFormulaValid={calculation.isFormulaValid}
         onBack={handleBackToBoard}

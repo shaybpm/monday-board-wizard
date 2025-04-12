@@ -27,6 +27,35 @@ export const useFormulaBuilder = () => {
     }]);
   };
 
+  const handleAddCondition = (condition: string) => {
+    const conditionMap: Record<string, string> = {
+      "==": "equals",
+      "!=": "not equals",
+      "<": "less than",
+      ">": "greater than",
+      "<=": "less than or equal",
+      ">=": "greater than or equal"
+    };
+    
+    setFormula([...formula, {
+      id: `cond-${Date.now()}`,
+      type: "condition" as const,
+      value: condition,
+      display: condition
+    }]);
+  };
+
+  const handleAddLogical = (logical: string) => {
+    const logicalDisplay = logical.toUpperCase();
+    
+    setFormula([...formula, {
+      id: `log-${Date.now()}`,
+      type: "logical" as const,
+      value: logical.toLowerCase(),
+      display: logicalDisplay
+    }]);
+  };
+
   const handleAddNumber = () => {
     // Simple implementation - in a real app, would use a dialog
     const number = prompt("Enter a number:");
@@ -63,6 +92,8 @@ export const useFormulaBuilder = () => {
     formula,
     setFormula,
     handleAddOperator,
+    handleAddCondition,
+    handleAddLogical,
     handleAddNumber,
     handleAddColumn,
     handleRemoveToken,
