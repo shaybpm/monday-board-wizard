@@ -16,7 +16,8 @@ export const processBoardData = async (
   targetColumn: any,
   setIsCalculating: (state: boolean) => void,
   setProcessedItems: (count: number) => void,
-  setTotalItems: (count: number) => void
+  setTotalItems: (count: number) => void,
+  shouldCancel?: () => boolean
 ) => {
   setIsCalculating(true);
   setProcessedItems(0);
@@ -49,9 +50,9 @@ export const processBoardData = async (
     const useSpecificFormula = !formula || formula.length === 0;
     
     if (useSpecificFormula) {
-      await processSpecificHebrewFormula(items, setProcessedItems);
+      await processSpecificHebrewFormula(items, setProcessedItems, shouldCancel);
     } else {
-      await processGenericFormula(items, formula, targetColumn, setProcessedItems);
+      await processGenericFormula(items, formula, targetColumn, setProcessedItems, shouldCancel);
     }
   } catch (error) {
     toast.error("Processing error", {

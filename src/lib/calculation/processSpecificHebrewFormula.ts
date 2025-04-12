@@ -9,7 +9,8 @@ import { generateSummaryMessage } from "./resultSummary";
  */
 export const processSpecificHebrewFormula = async (
   items: BoardItem[],
-  setProcessedItems: (count: number) => void
+  setProcessedItems: (count: number) => void,
+  shouldCancel?: () => boolean
 ) => {
   let validItems = 0;
   let successCount = 0;
@@ -33,6 +34,21 @@ export const processSpecificHebrewFormula = async (
   
   // Process all items instead of just the first one
   for (let i = 0; i < items.length; i++) {
+    // Check if processing should be cancelled
+    if (shouldCancel && shouldCancel()) {
+      toast.info("Processing cancelled", { 
+        id: "process-board-items",
+        description: `Processed ${i} of ${items.length} items before cancellation`
+      });
+      
+      // Generate partial results summary
+      if (i > 0) {
+        generateSummaryMessage(i, successCount, failedCount, skippedCount, results);
+      }
+      
+      return;
+    }
+    
     const item = items[i];
     setProcessedItems(i + 1);
     

@@ -49,6 +49,7 @@ const CalculationBuilder = () => {
         onApply={handleApplyFormula}
         onTest={testCalculation}
         onProcessBoard={handleProcessBoard}
+        onCancelProcessing={calculation.cancelProcessing}
       />
     </div>
   );

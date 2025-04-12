@@ -1,4 +1,3 @@
-
 import { BoardItem } from "@/lib/types";
 import { CalculationToken } from "@/types/calculation";
 import { toast } from "sonner";
@@ -13,7 +12,8 @@ export const processGenericFormula = async (
   items: BoardItem[],
   formula: CalculationToken[],
   targetColumn: any,
-  setProcessedItems: (count: number) => void
+  setProcessedItems: (count: number) => void,
+  shouldCancel?: () => boolean
 ) => {
   // Get the credentials for API updates
   const credsStr = sessionStorage.getItem("mondayCredentials");
@@ -35,6 +35,21 @@ export const processGenericFormula = async (
   
   // Process all items instead of just the first one
   for (let i = 0; i < items.length; i++) {
+    // Check if processing should be cancelled
+    if (shouldCancel && shouldCancel()) {
+      toast.info("Processing cancelled", { 
+        id: "process-board-items",
+        description: `Processed ${i} of ${items.length} items before cancellation`
+      });
+      
+      // Generate partial results summary
+      if (i > 0) {
+        generateSummaryMessage(i, successCount, failedCount, skippedCount, results);
+      }
+      
+      return;
+    }
+    
     const item = items[i];
     setProcessedItems(i + 1);
     

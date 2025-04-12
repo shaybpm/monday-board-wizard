@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useRef } from 'react';
 import { testCalculationFormula, processBoardData } from '@/lib/calculation';
 import { CalculationToken } from '@/types/calculation';
 import { BoardColumn } from '@/lib/types';
@@ -13,6 +14,7 @@ export const useCalculationProcess = () => {
   const [processedItems, setProcessedItems] = useState<number>(0);
   const [totalItems, setTotalItems] = useState<number>(0);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const cancelProcessingRef = useRef(false);
   
   const testCalculation = async (formula: CalculationToken[]) => {
     setIsCalculating(true);
@@ -57,6 +59,8 @@ export const useCalculationProcess = () => {
       return;
     }
     
+    // Reset cancel flag before starting
+    cancelProcessingRef.current = false;
     setIsCalculating(true);
     setProcessedItems(0);
     setDebugInfo(null);
@@ -80,7 +84,8 @@ export const useCalculationProcess = () => {
         targetColumn,
         setIsCalculating,
         setProcessedItems,
-        setTotalItems
+        setTotalItems,
+        () => cancelProcessingRef.current // Pass the cancel check function
       );
       
       // Debug info will be shown by processBoardData function
@@ -96,6 +101,14 @@ export const useCalculationProcess = () => {
     }
   };
   
+  const cancelProcess = () => {
+    cancelProcessingRef.current = true;
+    toast.info("Cancelling board processing...", {
+      id: "cancel-process",
+      description: "The operation will stop after the current item completes."
+    });
+  };
+  
   return {
     previewResult,
     isCalculating,
@@ -104,6 +117,7 @@ export const useCalculationProcess = () => {
     debugInfo,
     setPreviewResult,
     testCalculation,
-    processBoard
+    processBoard,
+    cancelProcess
   };
 };

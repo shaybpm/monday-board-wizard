@@ -54,6 +54,11 @@ export const useCalculation = (currentTask: Task | null) => {
     );
   };
 
+  // Cancel the processing
+  const cancelProcessing = () => {
+    calculationProcess.cancelProcess();
+  };
+
   return {
     // Formula state
     formula: formulaBuilder.formula,
@@ -78,6 +83,7 @@ export const useCalculation = (currentTask: Task | null) => {
     // Utility methods
     isFormulaValid,
     testCalculation,
-    processBoardData
+    processBoardData,
+    cancelProcessing
   };
 };

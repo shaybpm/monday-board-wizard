@@ -33,6 +33,7 @@ interface CalculationFormProps {
   onApply: () => void;
   onTest: () => void;
   onProcessBoard: () => void;
+  onCancelProcessing?: () => void;
 }
 
 const CalculationForm: React.FC<CalculationFormProps> = ({
@@ -55,7 +56,8 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   onBack,
   onApply,
   onTest,
-  onProcessBoard
+  onProcessBoard,
+  onCancelProcessing
 }) => {
   // Get debug info from sessionStorage
   const debugInfo = sessionStorage.getItem("calculationDebugInfo");
@@ -124,6 +126,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
               onApply={onApply}
               onTest={onTest}
               onProcessBoard={onProcessBoard}
+              onCancelProcess={onCancelProcessing}
               isFormValid={isFormulaValid()}
               isEditing={!!task?.savedOperations}
               isCalculating={isCalculating}

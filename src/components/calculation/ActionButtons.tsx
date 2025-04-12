@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, TestTube2, Calculator } from "lucide-react";
+import { ArrowRight, TestTube2, Calculator, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface ActionButtonsProps {
@@ -9,6 +9,7 @@ interface ActionButtonsProps {
   onApply: () => void;
   onTest?: () => void;
   onProcessBoard?: () => void;
+  onCancelProcess?: () => void;
   isFormValid: boolean;
   isEditing: boolean;
   isCalculating: boolean;
@@ -23,6 +24,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   onApply,
   onTest,
   onProcessBoard,
+  onCancelProcess,
   isFormValid,
   isEditing,
   isCalculating,
@@ -52,15 +54,26 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           </Button>
         )}
         
-        {onProcessBoard && (
+        {onProcessBoard && !isCalculating && (
           <Button 
             variant="outline"
-            disabled={!isFormValid || isCalculating}
+            disabled={!isFormValid}
             onClick={onProcessBoard}
             className="gap-2"
           >
             <Calculator className="h-4 w-4" />
-            {showProgress ? `Processing... ${progressPercent}%` : "Process Board"}
+            Process Board
+          </Button>
+        )}
+        
+        {onCancelProcess && isCalculating && showProgress && (
+          <Button 
+            variant="destructive"
+            onClick={onCancelProcess}
+            className="gap-2"
+          >
+            <X className="h-4 w-4" />
+            Cancel Processing
           </Button>
         )}
         
