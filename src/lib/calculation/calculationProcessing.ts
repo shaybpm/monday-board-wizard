@@ -1,3 +1,4 @@
+
 import { BoardItem } from "@/lib/types";
 import { CalculationToken } from "@/types/calculation";
 import { toast } from "sonner";
@@ -164,6 +165,8 @@ const processSpecificHebrewFormula = async (
 ) => {
   let validItems = 0;
   let successCount = 0;
+  let failedCount = 0;
+  let skippedCount = 0;
   const results: {id: string, name: string, result: number | string}[] = [];
   
   // Get the credentials for API updates
@@ -174,17 +177,23 @@ const processSpecificHebrewFormula = async (
   }
   
   const credentials = JSON.parse(credsStr);
+  const boardId = credentials.sourceBoard;
+  const targetColumnId = "numeric_mkpvgf7j"; // ח. פנימי column
   
-  // Process only the first item for debug
-  if (items.length > 0) {
-    const item = items[0];
-    setProcessedItems(1);
+  // Show a processing toast
+  toast.loading(`Processing ${items.length} items...`, { id: "process-board-items" });
+  
+  // Process all items instead of just the first one
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    setProcessedItems(i + 1);
     
     try {
       const accountValue = parseFloat(item.columns["numeric_mkpv862j"]?.text || "0");
       const receiptValue = parseFloat(item.columns["numeric_mkpv3cnz"]?.text || "0");
       
       if (isNaN(accountValue) || isNaN(receiptValue)) {
+        skippedCount++;
         results.push({
           id: item.id,
           name: item.name,
@@ -195,11 +204,6 @@ const processSpecificHebrewFormula = async (
         const difference = accountValue - receiptValue;
         
         // Update the target column with the difference
-        // For debug, we'll use a specific column (numeric_mkpvgf7j - ח. פנימי)
-        const targetColumnId = "numeric_mkpvgf7j";
-        const boardId = credentials.sourceBoard;
-        
-        // Call the Monday API to update the column with board_id
         const updateSuccess = await updateColumnValue(
           item.id, 
           boardId,
@@ -216,6 +220,7 @@ const processSpecificHebrewFormula = async (
             result: difference
           });
         } else {
+          failedCount++;
           results.push({
             id: item.id,
             name: item.name,
@@ -223,7 +228,14 @@ const processSpecificHebrewFormula = async (
           });
         }
       }
+      
+      // Update progress toast every 5 items
+      if (i % 5 === 0 || i === items.length - 1) {
+        toast.loading(`Processed ${i + 1} of ${items.length} items...`, { id: "process-board-items" });
+      }
+      
     } catch (error) {
+      failedCount++;
       console.error(`Error processing item ${item.name}:`, error);
       results.push({
         id: item.id,
@@ -233,8 +245,11 @@ const processSpecificHebrewFormula = async (
     }
   }
   
+  // Dismiss the processing toast
+  toast.dismiss("process-board-items");
+  
   // Generate the summary message
-  generateSummaryMessage(1, successCount, 1 - successCount, 0, results);
+  generateSummaryMessage(items.length, successCount, failedCount, skippedCount, results);
 };
 
 /**
@@ -256,11 +271,18 @@ const processGenericFormula = async (
   const credentials = JSON.parse(credsStr);
   const boardId = credentials.sourceBoard;
   
-  // For debug, only process the first item
-  if (items.length > 0) {
-    const item = items[0];
-    const results: {id: string, name: string, result: number | string}[] = [];
-    let successCount = 0;
+  let successCount = 0;
+  let failedCount = 0;
+  let skippedCount = 0;
+  const results: {id: string, name: string, result: number | string}[] = [];
+  
+  // Show a processing toast
+  toast.loading(`Processing ${items.length} items...`, { id: "process-board-items" });
+  
+  // Process all items instead of just the first one
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    setProcessedItems(i + 1);
     
     try {
       // Check if the item has all required columns for formula
@@ -289,6 +311,7 @@ const processGenericFormula = async (
       });
       
       if (!isValid) {
+        skippedCount++;
         results.push({
           id: item.id,
           name: item.name,
@@ -310,36 +333,50 @@ const processGenericFormula = async (
           
           if (updateSuccess) {
             successCount++;
+            results.push({
+              id: item.id,
+              name: item.name,
+              result: result
+            });
+          } else {
+            failedCount++;
+            results.push({
+              id: item.id,
+              name: item.name,
+              result: "Failed to update column"
+            });
           }
+        } else {
+          skippedCount++;
+          results.push({
+            id: item.id,
+            name: item.name,
+            result: result
+          });
         }
-        
-        results.push({
-          id: item.id,
-          name: item.name,
-          result: result
-        });
       }
       
-      // Update progress
-      setProcessedItems(1);
-      
-      // Generate summary message for just this one item
-      generateSummaryMessage(1, successCount, 1 - successCount, 0, results);
+      // Update progress toast every 5 items
+      if (i % 5 === 0 || i === items.length - 1) {
+        toast.loading(`Processed ${i + 1} of ${items.length} items...`, { id: "process-board-items" });
+      }
       
     } catch (error) {
+      failedCount++;
       console.error(`Error processing item ${item.name}:`, error);
       results.push({
         id: item.id,
         name: item.name,
         result: error instanceof Error ? error.message : "Error"
       });
-      
-      // Generate error summary
-      generateSummaryMessage(1, 0, 1, 0, results);
     }
-  } else {
-    toast.error("No items found to process");
   }
+  
+  // Dismiss the processing toast
+  toast.dismiss("process-board-items");
+  
+  // Generate summary message for all items
+  generateSummaryMessage(items.length, successCount, failedCount, skippedCount, results);
 };
 
 /**
