@@ -1,4 +1,3 @@
-
 import { BoardItem } from "@/lib/types";
 import { CalculationToken } from "@/types/calculation";
 import { toast } from "sonner";
@@ -198,10 +197,12 @@ const processSpecificHebrewFormula = async (
         // Update the target column with the difference
         // For debug, we'll use a specific column (numeric_mkpvgf7j - ח. פנימי)
         const targetColumnId = "numeric_mkpvgf7j";
+        const boardId = credentials.sourceBoard;
         
-        // Call the Monday API to update the column
+        // Call the Monday API to update the column with board_id
         const updateSuccess = await updateColumnValue(
           item.id, 
+          boardId,
           targetColumnId, 
           difference.toString(),
           credentials.apiToken
@@ -253,6 +254,7 @@ const processGenericFormula = async (
   }
   
   const credentials = JSON.parse(credsStr);
+  const boardId = credentials.sourceBoard;
   
   // For debug, only process the first item
   if (items.length > 0) {
@@ -299,7 +301,8 @@ const processGenericFormula = async (
         // Update the target column with the result
         if (typeof result === "number") {
           const updateSuccess = await updateColumnValue(
-            item.id, 
+            item.id,
+            boardId,
             targetColumn.id, 
             result.toString(),
             credentials.apiToken
@@ -341,17 +344,30 @@ const processGenericFormula = async (
 
 /**
  * Update a column value in Monday.com
+ * @param itemId The ID of the item to update
+ * @param boardId The ID of the board containing the item
+ * @param columnId The ID of the column to update
+ * @param value The new value for the column
+ * @param apiToken The Monday.com API token
+ * @returns A promise that resolves to true if the update was successful
  */
-const updateColumnValue = async (itemId: string, columnId: string, value: string, apiToken: string): Promise<boolean> => {
+const updateColumnValue = async (
+  itemId: string, 
+  boardId: string,
+  columnId: string, 
+  value: string, 
+  apiToken: string
+): Promise<boolean> => {
   try {
     // Show updating toast
     toast.loading(`Updating column value for item ${itemId}...`, { id: `update-${itemId}` });
     
-    // Prepare the mutation query
+    // Prepare the mutation query with board_id parameter
     const mutation = `
       mutation {
         change_column_value(
           item_id: ${itemId},
+          board_id: ${boardId},
           column_id: "${columnId}",
           value: "${value}"
         ) {
@@ -360,7 +376,7 @@ const updateColumnValue = async (itemId: string, columnId: string, value: string
       }
     `;
     
-    console.log(`Updating item ${itemId}, column ${columnId} with value: ${value}`);
+    console.log(`Updating item ${itemId}, board ${boardId}, column ${columnId} with value: ${value}`);
     
     // Call the Monday API
     const response = await fetchFromMonday(mutation, apiToken);
