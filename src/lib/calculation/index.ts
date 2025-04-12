@@ -1,4 +1,9 @@
 
+// Re-export everything from the calculation modules
 export { evaluateFormulaForItem } from './formulaEvaluation';
 export { testCalculationFormula } from './calculationTesting';
-export { processBoardData } from './calculationProcessing';
+export { processBoardData } from './processBoardData';
+export { processGenericFormula } from './processGenericFormula';
+export { processSpecificHebrewFormula } from './processSpecificHebrewFormula';
+export { updateColumnValue } from './updateColumnApi';
+export { generateSummaryMessage } from './resultSummary';
