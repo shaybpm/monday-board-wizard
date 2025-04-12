@@ -14,7 +14,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
       duration={10000}  // 10 seconds before auto-dismiss
       closeButton
       richColors
-      dismissible={true}  // Added to ensure toasts are dismissible on click
       toastOptions={{
         classNames: {
           toast:
