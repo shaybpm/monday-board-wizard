@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { testCalculationFormula, processBoardData } from '@/lib/calculationUtils';
+import { testCalculationFormula, processBoardData } from '@/lib/calculation';
 import { CalculationToken } from '@/types/calculation';
 import { BoardColumn } from '@/lib/types';
 import { toast } from 'sonner';
