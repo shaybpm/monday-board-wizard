@@ -95,16 +95,21 @@ export const useFormulaTokenAdder = (
   };
 
   const handleAddNumberWrapped = () => {
-    // Fix: Get number input and directly create the token without going through onAddNumber
-    const number = prompt("Enter a number:");
-    if (number && !isNaN(Number(number))) {
-      // Directly use addTokenToFormula to add the number token to the formula
+    // Fix: Get number input once and directly create the token
+    const numberPrompt = prompt("Enter a number:");
+    
+    // Only continue if the user entered a valid number
+    if (numberPrompt && !isNaN(Number(numberPrompt))) {
+      // Create the token and add it to the formula directly
       addTokenToFormula(() => ({
         id: `num-${Date.now()}`,
         type: "number" as const,
-        value: number,
-        display: number
+        value: numberPrompt,
+        display: numberPrompt
       }));
+    } else if (numberPrompt !== null) {
+      // Show error only if user didn't cancel
+      toast.error("Please enter a valid number");
     }
   };
 
