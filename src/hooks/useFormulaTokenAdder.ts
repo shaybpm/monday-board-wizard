@@ -95,9 +95,10 @@ export const useFormulaTokenAdder = (
   };
 
   const handleAddNumberWrapped = () => {
-    // Fix: Get number input directly and pass it through our token adder
+    // Fix: Get number input and directly create the token without going through onAddNumber
     const number = prompt("Enter a number:");
     if (number && !isNaN(Number(number))) {
+      // Directly use addTokenToFormula to add the number token to the formula
       addTokenToFormula(() => ({
         id: `num-${Date.now()}`,
         type: "number" as const,

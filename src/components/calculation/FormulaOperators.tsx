@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus, X as Multiply, Divide } from "lucide-react";
+import { Plus, Minus, X as Multiply, Divide, Calculator } from "lucide-react";
 
 interface FormulaOperatorsProps {
   onAddOperator: (operator: string) => void;
@@ -63,12 +63,12 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
         )
       </Button>
       <Button 
-        variant="outline" 
+        variant="secondary" 
         size="sm" 
         onClick={onAddNumber}
-        className="bg-purple-50 hover:bg-purple-100 transition-colors active:scale-95 font-medium"
+        className="bg-purple-100 hover:bg-purple-200 transition-colors active:scale-95 font-medium"
       >
-        123
+        <Calculator className="h-4 w-4 mr-1" /> 123
       </Button>
     </div>
   );
