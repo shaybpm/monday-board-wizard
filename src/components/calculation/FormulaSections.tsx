@@ -65,7 +65,8 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           const adjustedIndex = ifIndex > -1 ? index + ifIndex + 1 : index;
           onRemoveToken(adjustedIndex);
         }}
-        disabled={isLogicTestMode && ifIndex === -1} 
+        // Important: Removed the disabled={isLogicTestMode && ifIndex === -1} condition
+        // to allow clicking on the condition section even when there's no IF token yet
         onClick={() => onSectionClick("condition")}
       />
       
