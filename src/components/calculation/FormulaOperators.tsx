@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, X as Multiply, Divide, Calculator } from "lucide-react";
 
@@ -12,32 +12,15 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
   onAddOperator,
   onAddNumber,
 }) => {
-  // Use a ref to track if we're currently processing a number input
-  const isProcessingRef = useRef(false);
-  
   const handleNumberButtonClick = (e: React.MouseEvent) => {
     // Prevent default behavior and stop propagation
     e.preventDefault(); 
     e.stopPropagation();
     
-    // Check if we're already processing a click
-    if (isProcessingRef.current) {
-      console.log("[Number Button] Already processing a click, ignoring duplicate");
-      return;
-    }
-    
-    // Set processing flag
-    isProcessingRef.current = true;
     console.log("[Number Button] Number button clicked - starting number input");
     
-    // Call the handler immediately
+    // Call the handler immediately - we now handle debouncing in the hook
     onAddNumber();
-    
-    // Reset flag after a delay to prevent multiple rapid clicks
-    setTimeout(() => {
-      console.log("[Number Button] Processing complete, resetting flag");
-      isProcessingRef.current = false;
-    }, 1200); // Increased delay to give more time for prompt to appear and complete
   };
   
   return (

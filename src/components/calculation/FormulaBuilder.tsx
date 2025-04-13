@@ -8,7 +8,7 @@ import FormulaBuilderHeader from "./FormulaBuilderHeader";
 import FormulaSections from "./FormulaSections";
 import FormulaInstructions from "./FormulaInstructions";
 import { useFormulaSections } from "@/hooks/useFormulaSections";
-import { useFormulaTokenAdder } from "@/hooks/useFormulaTokenAdder";
+import { useFormulaTokens } from "@/hooks/formula/useFormulaTokens";
 
 interface FormulaBuilderProps {
   formula: CalculationToken[];
@@ -37,18 +37,17 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     handleModeToggle
   } = useFormulaSections(formula);
   
-  // Use our custom hook for token adding logic
+  // Use our refactored hooks system for token handling
   const {
     handleAddColumnWrapped,
     handleAddOperatorWrapped,
     handleAddNumberWrapped,
     handleAddConditionWrapped
-  } = useFormulaTokenAdder(
+  } = useFormulaTokens({
     formula,
     isLogicTestMode,
     activeSection,
-    // Pass the actual handler functions
-    (token) => {
+    onAddToken: (token) => {
       // This is a simple pass-through since we're using the external handlers
       if (token.type === "column") {
         const column = { id: token.value, title: token.display };
@@ -62,7 +61,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
       }
     },
     onAddLogical
-  );
+  });
   
   // Handle mode toggle with IF token check
   const handleModeToggleWithIFCheck = (checked: boolean) => {

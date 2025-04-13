@@ -11,8 +11,8 @@ export const useNumberInputState = () => {
   };
 
   const setNumberInputInactive = () => {
-    console.log("[Number Input] Reset global flag");
     isGlobalNumberInputActive = false;
+    console.log("[Number Input] Reset global flag");
   };
 
   const isNumberInputActive = () => isGlobalNumberInputActive;

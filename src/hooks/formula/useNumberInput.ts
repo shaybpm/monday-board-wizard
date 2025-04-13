@@ -28,11 +28,11 @@ export const useNumberInput = ({
     // Set global flag to prevent multiple simultaneous processes
     setNumberInputActive();
     
-    // Immediately show the prompt to get user input for the number
-    const numberPrompt = prompt("Enter a number:");
-    console.log(`[Number Input] User entered: "${numberPrompt}"`);
-    
     try {
+      // Immediately show the prompt to get user input for the number
+      const numberPrompt = prompt("Enter a number:");
+      console.log(`[Number Input] User entered: "${numberPrompt}"`);
+      
       // Only continue if the user entered a valid number
       if (numberPrompt && !isNaN(Number(numberPrompt))) {
         console.log(`[Number Input] Valid number input: ${numberPrompt}`);
@@ -93,10 +93,8 @@ export const useNumberInput = ({
         console.log("[Number Input] User cancelled input");
       }
     } finally {
-      // Reset the global flag after a delay
-      setTimeout(() => {
-        setNumberInputInactive();
-      }, 500);
+      // Reset the global flag immediately when we're done with processing
+      setNumberInputInactive();
     }
   };
 
