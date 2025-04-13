@@ -1,3 +1,4 @@
+
 import React from "react";
 import { CalculationToken } from "@/types/calculation";
 import LogicalOperators from "./LogicalOperators";
@@ -58,9 +59,9 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         // For operator tokens, pass through to onAddOperator
         onAddOperator(token.value);
       } else if (token.type === "number") {
-        // For number tokens, pass directly to the parent's function
-        console.log("[FormulaBuilder] Adding number token directly to formula");
-        onAddToken(token);
+        // For number tokens, use the original onAddNumber handler
+        console.log("[FormulaBuilder] Adding number token to formula");
+        onAddNumber();
       } else if (token.type === "condition") {
         // For condition tokens, pass through to onAddCondition
         onAddCondition(token.value);
