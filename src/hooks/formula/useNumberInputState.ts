@@ -8,11 +8,13 @@ export const useNumberInputState = () => {
   const setNumberInputActive = () => {
     isGlobalNumberInputActive = true;
     console.log("[Number Input] Starting number input flow - GLOBAL FLAG SET to TRUE");
+    return isGlobalNumberInputActive;
   };
 
   const setNumberInputInactive = () => {
     isGlobalNumberInputActive = false;
     console.log("[Number Input] Reset global flag to FALSE");
+    return isGlobalNumberInputActive;
   };
 
   const isNumberInputActive = () => {

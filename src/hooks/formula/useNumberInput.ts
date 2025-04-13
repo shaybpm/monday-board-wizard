@@ -27,15 +27,16 @@ export const useNumberInput = ({
     
     // Set global flag to prevent multiple simultaneous processes
     setNumberInputActive();
-    console.log("[Number Input] Starting number input flow - GLOBAL FLAG SET");
+    console.log("[Number Input Debug] Starting number input process");
     
+    // Wrap in a try/finally to ensure flag gets reset
     try {
       // Show the prompt to get user input for the number
       const numberPrompt = prompt("Enter a number:");
       console.log(`[Number Input] User entered: "${numberPrompt}"`);
       
       // Only continue if the user entered a valid number
-      if (numberPrompt && !isNaN(Number(numberPrompt))) {
+      if (numberPrompt !== null && !isNaN(Number(numberPrompt))) {
         console.log(`[Number Input] Valid number input: ${numberPrompt}`);
         
         // Create the number token
@@ -98,11 +99,9 @@ export const useNumberInput = ({
       } else {
         console.log("[Number Input] User cancelled input");
       }
-    } catch (error) {
-      console.error("[Number Input] Error processing number input:", error);
-      toast.error("Error processing number input");
     } finally {
-      // Reset the global flag IMMEDIATELY when we're done with processing
+      // IMPORTANT: Reset the global flag IMMEDIATELY when done 
+      // This avoids race conditions that might be causing the first attempt to fail
       console.log("[Number Input] Resetting global flag");
       setNumberInputInactive();
     }
