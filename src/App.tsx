@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,7 +10,27 @@ import BoardPage from "./pages/BoardPage";
 import CalculationBuilder from "./pages/CalculationBuilder";
 import Header from "./components/Header";
 
-const queryClient = new QueryClient();
+// Create a query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Keep data in cache for 5 minutes to help with navigation
+      staleTime: 5 * 60 * 1000,
+      // Don't refetch on window focus
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Layout component to wrap all routes with common elements
+const Layout = ({ children }: { children: React.ReactNode }) => (
+  <>
+    <Header />
+    <main className="flex-1">
+      {children}
+    </main>
+  </>
+);
 
 const App = () => (
   <React.StrictMode>
@@ -20,12 +39,11 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Header />
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/board" element={<BoardPage />} />
-            <Route path="/operation" element={<CalculationBuilder />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<Layout><Index /></Layout>} />
+            <Route path="/board" element={<Layout><BoardPage /></Layout>} />
+            <Route path="/operation" element={<Layout><CalculationBuilder /></Layout>} />
+            <Route path="*" element={<Layout><NotFound /></Layout>} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
