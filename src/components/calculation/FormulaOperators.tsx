@@ -14,25 +14,60 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
 }) => {
   return (
     <div className="flex flex-wrap gap-2 mt-2">
-      <Button variant="outline" size="sm" onClick={() => onAddOperator("+")}>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => onAddOperator("+")}
+        className="hover:bg-blue-50 transition-colors active:scale-95"
+      >
         <Plus className="h-4 w-4" />
       </Button>
-      <Button variant="outline" size="sm" onClick={() => onAddOperator("-")}>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => onAddOperator("-")}
+        className="hover:bg-blue-50 transition-colors active:scale-95"
+      >
         <Minus className="h-4 w-4" />
       </Button>
-      <Button variant="outline" size="sm" onClick={() => onAddOperator("*")}>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => onAddOperator("*")}
+        className="hover:bg-blue-50 transition-colors active:scale-95"
+      >
         <Multiply className="h-4 w-4" />
       </Button>
-      <Button variant="outline" size="sm" onClick={() => onAddOperator("/")}>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => onAddOperator("/")}
+        className="hover:bg-blue-50 transition-colors active:scale-95"
+      >
         <Divide className="h-4 w-4" />
       </Button>
-      <Button variant="outline" size="sm" onClick={() => onAddOperator("(")}>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => onAddOperator("(")}
+        className="hover:bg-blue-50 transition-colors active:scale-95"
+      >
         (
       </Button>
-      <Button variant="outline" size="sm" onClick={() => onAddOperator(")")}>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => onAddOperator(")")}
+        className="hover:bg-blue-50 transition-colors active:scale-95"
+      >
         )
       </Button>
-      <Button variant="outline" size="sm" onClick={onAddNumber}>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={onAddNumber}
+        className="hover:bg-blue-50 transition-colors active:scale-95"
+      >
         123
       </Button>
     </div>

@@ -104,6 +104,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
             ) : null}
             onRemoveToken={onRemoveToken}
             startIndex={thenIndex + 1}
+            disabled={!isLogicTestMode}
           />
           
           {/* ELSE part */}
@@ -123,6 +124,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
             ) : null}
             onRemoveToken={onRemoveToken}
             startIndex={elseIndex + 1}
+            disabled={!isLogicTestMode}
           />
         </div>
       </div>

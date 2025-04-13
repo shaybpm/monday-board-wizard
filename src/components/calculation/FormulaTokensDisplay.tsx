@@ -11,6 +11,7 @@ interface FormulaTokensDisplayProps {
   className?: string;
   onRemoveToken: (index: number) => void;
   startIndex?: number;
+  disabled?: boolean;
 }
 
 const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
@@ -21,19 +22,23 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   className = "bg-gray-50",
   onRemoveToken,
   startIndex = 0,
+  disabled = false,
 }) => {
   return (
     <div>
       <h4 className="text-sm font-medium mb-1 text-gray-600">{label}</h4>
-      <div className={`p-4 border rounded-md ${className} min-h-16 flex flex-wrap gap-2 items-center`}>
+      <div 
+        className={`p-4 border rounded-md ${className} min-h-16 flex flex-wrap gap-2 items-center ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+        aria-disabled={disabled}
+      >
         {badgePrefix}
         {tokens.length > 0 ? (
           tokens.map((token, index) => (
             <Badge 
               key={token.id}
               variant={getBadgeVariant(token.type)}
-              className="px-3 py-1"
-              onClick={() => onRemoveToken(index + startIndex)}
+              className={`px-3 py-1 ${!disabled ? 'cursor-pointer hover:bg-opacity-80' : ''}`}
+              onClick={() => !disabled && onRemoveToken(index + startIndex)}
             >
               {token.display}
             </Badge>

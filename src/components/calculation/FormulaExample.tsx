@@ -20,6 +20,10 @@ const FormulaExample: React.FC<FormulaExampleProps> = ({
             This will check if Column2 equals 0, and if true, store Column2 + 1 in the target column.
             If false, the original value in Column2 is stored.
           </p>
+          <p className="mt-2 text-xs">
+            To build this formula: Click columns and operators in sequence. First build the IF condition, 
+            then add a THEN operator, build the TRUE result, add an ELSE operator, and finally build the FALSE result.
+          </p>
         </>
       ) : (
         <>
@@ -28,6 +32,9 @@ const FormulaExample: React.FC<FormulaExampleProps> = ({
           </p>
           <p className="mt-1">
             This will multiply Column3 by 2 and add it to Column2, storing the result in the target column.
+          </p>
+          <p className="mt-2 text-xs">
+            To build this formula: Click on columns and math operators in the desired sequence.
           </p>
         </>
       )}
