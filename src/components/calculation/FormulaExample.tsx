@@ -21,8 +21,8 @@ const FormulaExample: React.FC<FormulaExampleProps> = ({
             If false, the original value in Column2 is stored.
           </p>
           <p className="mt-2 text-xs">
-            To build this formula: Click columns and operators in sequence. First build the IF condition, 
-            then add a THEN operator, build the TRUE result, add an ELSE operator, and finally build the FALSE result.
+            <strong>How to build:</strong> First click the IF button, then select columns and comparison operators for your condition.
+            Next, click the THEN button and build what happens when true. Finally, click the ELSE button and build what happens when false.
           </p>
         </>
       ) : (

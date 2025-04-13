@@ -102,7 +102,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
                 THEN
               </Badge>
             ) : null}
-            onRemoveToken={onRemoveToken}
+            onRemoveToken={(index) => onRemoveToken(index + thenIndex + 1)}
             startIndex={thenIndex + 1}
             disabled={!isLogicTestMode}
           />
@@ -122,7 +122,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
                 ELSE
               </Badge>
             ) : null}
-            onRemoveToken={onRemoveToken}
+            onRemoveToken={(index) => onRemoveToken(index + elseIndex + 1)}
             startIndex={elseIndex + 1}
             disabled={!isLogicTestMode}
           />
