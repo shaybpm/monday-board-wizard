@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator } from "lucide-react";
@@ -78,7 +77,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
             onSelectColumn={onAddColumn} 
           />
 
-          {/* Formula Builder */}
+          {/* Formula Builder - with divided sections for condition and action */}
           <FormulaBuilder
             formula={formula}
             onAddColumn={onAddColumn}

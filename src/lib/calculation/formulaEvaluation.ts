@@ -1,4 +1,3 @@
-
 import { BoardItem } from "@/lib/types";
 import { CalculationToken } from "@/types/calculation";
 
@@ -58,7 +57,8 @@ const evaluateMathFormula = (formula: CalculationToken[], item: BoardItem): numb
 };
 
 /**
- * Evaluates a conditional formula with if/then/else logic
+ * Evaluates a conditional formula with if-then-else logic
+ * Now enhanced to support our divided formula UI
  */
 const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem): number | string | boolean => {
   try {
@@ -91,11 +91,27 @@ const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem
     if (conditionResult === true) {
       if (thenTokens.length === 1 && thenTokens[0].type === 'logical') {
         return thenTokens[0].value === 'true';
+      } else if (thenTokens.length === 0) {
+        // If no "then" action specified, return true
+        return true;
       } else {
         return evaluateMathFormula(thenTokens, item);
       }
     } else {
       if (elseTokens.length === 0) {
+        // If no "else" clause and condition is false, return original column value if possible
+        // This helps with the pattern requested by the user
+        if (conditionTokens.length > 0 && conditionTokens[0].type === "column") {
+          const columnId = conditionTokens[0].id;
+          const columnValue = item.columns[columnId];
+          if (columnValue && columnValue.text) {
+            const numValue = parseFloat(columnValue.text);
+            if (!isNaN(numValue)) {
+              return numValue;
+            }
+            return columnValue.text;
+          }
+        }
         return false;
       } else if (elseTokens.length === 1 && elseTokens[0].type === 'logical') {
         return elseTokens[0].value === 'true';
@@ -151,3 +167,5 @@ const evaluateCondition = (conditionTokens: CalculationToken[], item: BoardItem)
     default: throw new Error(`Unknown comparison operator: ${operator}`);
   }
 };
+
+export { evaluateMathFormula, evaluateConditionalFormula };
