@@ -17,8 +17,11 @@ const FormulaInstructions: React.FC<FormulaInstructionsProps> = ({
         <ol className="mt-1 list-decimal list-inside">
           <li>First add IF, THEN, and ELSE operators using the buttons below</li>
           <li>Click on a section to make it active (blue border)</li>
-          <li>Add columns, numbers, and operators to the active section</li>
+          <li>Add columns, comparison operators (&lt;, =, etc.), and numbers to build your formula</li>
         </ol>
+        <p className="mt-2 text-xs">
+          <strong>Troubleshooting:</strong> If you can't add operators, check which section is active and make sure you've added the IF, THEN, or ELSE operator for that section first.
+        </p>
       </p>
     </div>
   );

@@ -47,8 +47,20 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     formula,
     isLogicTestMode,
     activeSection,
-    // Use a dummy function for direct token adding since we're reusing existing functions
-    (token) => { /* This is handled by the wrapped functions */ },
+    // Pass the actual handler functions
+    (token) => {
+      // This is a simple pass-through since we're using the external handlers
+      if (token.type === "column") {
+        const column = { id: token.value, title: token.display };
+        onAddColumn(column);
+      } else if (token.type === "operator") {
+        onAddOperator(token.value);
+      } else if (token.type === "number") {
+        // Number is handled in handleAddNumberWrapped
+      } else if (token.type === "condition") {
+        onAddCondition(token.value);
+      }
+    },
     onAddLogical
   );
   
