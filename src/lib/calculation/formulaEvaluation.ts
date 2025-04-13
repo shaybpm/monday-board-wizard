@@ -1,3 +1,4 @@
+
 import { BoardItem } from "@/lib/types";
 import { CalculationToken } from "@/types/calculation";
 
@@ -58,7 +59,6 @@ const evaluateMathFormula = (formula: CalculationToken[], item: BoardItem): numb
 
 /**
  * Evaluates a conditional formula with if-then-else logic
- * Now enhanced to support our divided formula UI
  */
 const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem): number | string | boolean => {
   try {
@@ -74,7 +74,7 @@ const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem
     // Extract the condition part (between if and then)
     const conditionTokens = formula.slice(ifIndex + 1, thenIndex);
     
-    // Extract the "then" result part
+    // Extract the "then" result part (between then and else, or until the end if no else)
     const thenTokens = elseIndex !== -1 ? 
       formula.slice(thenIndex + 1, elseIndex) : 
       formula.slice(thenIndex + 1);
@@ -89,6 +89,7 @@ const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem
     
     // Based on condition result, evaluate the appropriate branch
     if (conditionResult === true) {
+      // THEN branch
       if (thenTokens.length === 1 && thenTokens[0].type === 'logical') {
         return thenTokens[0].value === 'true';
       } else if (thenTokens.length === 0) {
@@ -98,9 +99,9 @@ const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem
         return evaluateMathFormula(thenTokens, item);
       }
     } else {
+      // ELSE branch
       if (elseTokens.length === 0) {
-        // If no "else" clause and condition is false, return original column value if possible
-        // This helps with the pattern requested by the user
+        // If no "else" clause specified, return original column value if possible
         if (conditionTokens.length > 0 && conditionTokens[0].type === "column") {
           const columnId = conditionTokens[0].id;
           const columnValue = item.columns[columnId];
