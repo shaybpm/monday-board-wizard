@@ -59,9 +59,15 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         // For operator tokens, pass through to onAddOperator
         onAddOperator(token.value);
       } else if (token.type === "number") {
-        // For number tokens, use the original onAddNumber handler
+        // For number tokens, we need to handle differently from columns
         console.log("[FormulaBuilder] Adding number token to formula");
-        onAddNumber();
+        // Pass the number token directly to the parent component
+        onAddColumn({
+          id: token.id,
+          title: token.display,
+          type: "number",
+          value: token.value
+        });
       } else if (token.type === "condition") {
         // For condition tokens, pass through to onAddCondition
         onAddCondition(token.value);

@@ -38,17 +38,16 @@ export const useNumberInput = ({
       if (numberPrompt !== null && !isNaN(Number(numberPrompt))) {
         console.log(`[Number Input] Valid number input: ${numberPrompt}`);
         
-        // IMPORTANT: Create number token with "number" type instead of treating it like a column
+        // Create number token with "number" type
         const numberToken: CalculationToken = {
           id: `num-${Date.now()}`,
-          type: "number",
+          type: "number", // Ensure this is "number" not "column"
           value: numberPrompt,
           display: numberPrompt
         };
         console.log("[Number Input] Token created:", numberToken);
         
         // Add the token directly to the formula
-        console.log("[Number Input] Adding token DIRECTLY to formula");
         onAddToken(numberToken);
       } else if (numberPrompt !== null) {
         // Show error only if user didn't cancel

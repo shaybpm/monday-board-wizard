@@ -37,7 +37,8 @@ const evaluateMathFormula = (formula: CalculationToken[], item: BoardItem): numb
         }
         evaluationString += numValue;
       } else if (token.type === "number") {
-        evaluationString += token.value;
+        // Directly use the value from number tokens
+        evaluationString += parseFloat(token.value);
       } else if (token.type === "operator") {
         evaluationString += token.value;
       }

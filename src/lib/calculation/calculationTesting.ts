@@ -1,4 +1,3 @@
-
 import { CalculationToken } from "@/types/calculation";
 import { BoardItem } from "@/lib/types";
 import { toast } from "sonner";
@@ -161,9 +160,11 @@ const handleGenericFormula = (formula: CalculationToken[], firstItem: any) => {
     };
   });
   
-  // Check if the first item has all required columns
+  // Check if the first item has all required columns, but only check for actual columns
+  // not number literals
   const missingColumns: string[] = [];
   formula.forEach(token => {
+    // Only validate column tokens, not number tokens
     if (token.type === "column") {
       if (!formattedItem.columns[token.id] || !formattedItem.columns[token.id].text) {
         missingColumns.push(token.display);
@@ -184,11 +185,15 @@ const handleGenericFormula = (formula: CalculationToken[], firstItem: any) => {
   
   // Build the calculation display string with actual values
   let calculation = `Test calculation using first item "${formattedItem.name}":\n`;
+  
+  // Include actual column values in the display
   formula.forEach(token => {
     if (token.type === "column") {
       const columnValue = formattedItem.columns[token.id];
-      const displayValue = columnValue.text || "N/A";
+      const displayValue = columnValue?.text || "N/A";
       calculation += `${token.display} (${token.id}) = ${displayValue}\n`;
+    } else if (token.type === "number") {
+      calculation += `Number: ${token.display}\n`;
     }
   });
   
