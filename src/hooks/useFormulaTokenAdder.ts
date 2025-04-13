@@ -38,7 +38,6 @@ export const useFormulaTokenAdder = (
         const conditionToken = tokenGenerator();
         
         // Insert at the right position (before THEN or at the end)
-        const insertPosition = thenIndex > -1 ? thenIndex : formula.length;
         onAddToken(conditionToken);
         break;
       
@@ -54,8 +53,7 @@ export const useFormulaTokenAdder = (
         // Generate the token
         const thenToken = tokenGenerator();
         
-        // Insert at the right position (before ELSE or at the end)
-        const thenInsertPosition = elseIndex > -1 ? elseIndex : formula.length;
+        // Insert at the right position
         onAddToken(thenToken);
         break;
       
@@ -95,18 +93,52 @@ export const useFormulaTokenAdder = (
   };
 
   const handleAddNumberWrapped = () => {
-    // Fix: Get number input once and directly create the token
+    // Get user input for the number
     const numberPrompt = prompt("Enter a number:");
     
     // Only continue if the user entered a valid number
     if (numberPrompt && !isNaN(Number(numberPrompt))) {
-      // Create the token and add it to the formula directly
-      addTokenToFormula(() => ({
+      // Create the number token
+      const numberToken = {
         id: `num-${Date.now()}`,
         type: "number" as const,
         value: numberPrompt,
         display: numberPrompt
-      }));
+      };
+      
+      // Special case for number tokens - add directly instead of using addTokenToFormula
+      // This bypasses the issue with the double prompt
+      if (!isLogicTestMode) {
+        onAddToken(numberToken);
+        return;
+      }
+      
+      // For logic test mode, check which section is active
+      switch (activeSection) {
+        case "condition":
+          if (formula.some(token => token.type === "logical" && token.value === "if")) {
+            onAddToken(numberToken);
+          } else {
+            toast.warning("Add an IF operator first");
+          }
+          break;
+          
+        case "then":
+          if (formula.some(token => token.type === "logical" && token.value === "then")) {
+            onAddToken(numberToken);
+          } else {
+            toast.warning("Add a THEN operator first");
+          }
+          break;
+          
+        case "else":
+          if (formula.some(token => token.type === "logical" && token.value === "else")) {
+            onAddToken(numberToken);
+          } else {
+            toast.warning("Add an ELSE operator first");
+          }
+          break;
+      }
     } else if (numberPrompt !== null) {
       // Show error only if user didn't cancel
       toast.error("Please enter a valid number");
