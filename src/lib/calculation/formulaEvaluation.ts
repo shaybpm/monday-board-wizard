@@ -80,8 +80,16 @@ const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem
       throw new Error("Invalid conditional formula: missing IF");
     }
     
+    // If there's only an IF statement without THEN, evaluate just the condition itself
     if (thenIndex === -1) {
-      throw new Error("Invalid conditional formula: missing THEN");
+      // Extract the condition part (after IF)
+      const conditionTokens = formula.slice(ifIndex + 1);
+      if (conditionTokens.length === 0) {
+        throw new Error("Invalid condition: The IF section cannot be empty");
+      }
+      
+      // Just evaluate the condition and return its boolean result
+      return evaluateCondition(conditionTokens, item);
     }
     
     // Extract the condition part (between if and then)

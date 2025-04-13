@@ -41,7 +41,7 @@ export const useNumberInput = ({
         // Create number token with "number" type
         const numberToken: CalculationToken = {
           id: `num-${Date.now()}`,
-          type: "number", // This is already correct - ensure we're using "number" type
+          type: "number", // Ensure we're using "number" type
           value: numberPrompt,
           display: numberPrompt
         };

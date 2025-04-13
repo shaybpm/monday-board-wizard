@@ -18,6 +18,18 @@ export const handleGenericFormula = (formula: CalculationToken[], firstItem: any
     columns: {}
   };
   
+  // Log the formula for debugging
+  console.log("Processing formula tokens:", formula);
+  
+  // Verify if this is a logical formula (IF without THEN) or a regular formula
+  const hasIf = formula.some(token => token.type === 'logical' && token.value === 'if');
+  const hasThen = formula.some(token => token.type === 'logical' && token.value === 'then');
+  
+  // If we have an IF without a THEN, add a message to explain
+  if (hasIf && !hasThen) {
+    console.log("Formula contains IF without THEN - will evaluate as condition only");
+  }
+  
   // Add all columns to our formatted item
   firstItem.column_values.forEach((col: any) => {
     formattedItem.columns[col.id] = {
@@ -44,6 +56,24 @@ export const handleGenericFormula = (formula: CalculationToken[], firstItem: any
     toast.error("First item is missing required columns", {
       id: "test-calculation",
       description: `Missing columns: ${missingColumns.join(", ")}`
+    });
+    return null;
+  }
+  
+  // Validate if number tokens are properly formatted
+  const invalidNumbers: string[] = [];
+  formula.forEach(token => {
+    if (token.type === "number") {
+      if (isNaN(parseFloat(token.value))) {
+        invalidNumbers.push(`${token.display} (${token.value})`);
+      }
+    }
+  });
+  
+  if (invalidNumbers.length > 0) {
+    toast.error("Formula contains invalid numbers", {
+      id: "test-calculation",
+      description: `Invalid numbers: ${invalidNumbers.join(", ")}`
     });
     return null;
   }

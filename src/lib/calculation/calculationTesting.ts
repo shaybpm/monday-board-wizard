@@ -10,6 +10,9 @@ import { handleSpecificHebrewCalculation } from "./hebrewCalculation";
  */
 export const testCalculationFormula = async (formula: CalculationToken[]) => {
   try {
+    // Log what we're testing with
+    console.log("Testing calculation with formula:", formula);
+    
     // Get credentials from session storage
     const credsStr = sessionStorage.getItem("mondayCredentials");
     if (!credsStr) {

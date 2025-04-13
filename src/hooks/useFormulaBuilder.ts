@@ -60,18 +60,24 @@ export const useFormulaBuilder = () => {
     // Simple implementation - in a real app, would use a dialog
     const number = prompt("Enter a number:");
     if (number && !isNaN(Number(number))) {
+      console.log(`Adding number token with value: ${number}`);
       setFormula([...formula, {
         id: `num-${Date.now()}`,
         type: "number" as const, // Ensure this is "number" not "column"
         value: number,
         display: number
       }]);
+    } else {
+      console.log(`Invalid number input: ${number}`);
     }
   };
 
   const handleAddColumn = (column: BoardColumn | any) => {
+    console.log("Adding column or number:", column);
+    
     // Check if this is actually a number token coming from the number input hook
     if (column.type === "number" || column.isNumberToken) {
+      console.log(`Adding number token from column object: ${column.value || column.title}`);
       setFormula([...formula, {
         id: column.id || `num-${Date.now()}`,
         type: "number" as const,
@@ -80,6 +86,7 @@ export const useFormulaBuilder = () => {
       }]);
     } else {
       // Regular column
+      console.log(`Adding regular column: ${column.id} (${column.title})`);
       setFormula([...formula, {
         id: column.id,
         type: "column" as const,
