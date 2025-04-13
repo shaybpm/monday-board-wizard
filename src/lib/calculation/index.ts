@@ -7,3 +7,6 @@ export { processGenericFormula } from './processGenericFormula';
 export { processSpecificHebrewFormula } from './processSpecificHebrewFormula';
 export { updateColumnValue } from './updateColumnApi';
 export { generateSummaryMessage } from './resultSummary';
+export { handleGenericFormula } from './genericFormula';
+export { handleSpecificHebrewCalculation } from './hebrewCalculation';
+export { fetchTestData } from './testDataFetcher';
