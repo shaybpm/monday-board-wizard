@@ -12,6 +12,11 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
   onAddOperator,
   onAddNumber,
 }) => {
+  const handleNumberButtonClick = () => {
+    console.log("[Number Button] Number button clicked");
+    onAddNumber();
+  };
+  
   return (
     <div className="flex flex-wrap gap-2 mt-2">
       <Button 
@@ -65,7 +70,7 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
       <Button 
         variant="secondary" 
         size="sm" 
-        onClick={onAddNumber}
+        onClick={handleNumberButtonClick}
         className="bg-purple-100 hover:bg-purple-200 transition-colors active:scale-95 font-medium"
       >
         <Calculator className="h-4 w-4 mr-1" /> 123

@@ -93,11 +93,16 @@ export const useFormulaTokenAdder = (
   };
 
   const handleAddNumberWrapped = () => {
+    console.log("[Number Input] Starting number input flow");
+    
     // Get user input for the number
     const numberPrompt = prompt("Enter a number:");
+    console.log(`[Number Input] User entered: "${numberPrompt}"`);
     
     // Only continue if the user entered a valid number
     if (numberPrompt && !isNaN(Number(numberPrompt))) {
+      console.log(`[Number Input] Valid number input: ${numberPrompt}`);
+      
       // Create the number token
       const numberToken = {
         id: `num-${Date.now()}`,
@@ -105,43 +110,57 @@ export const useFormulaTokenAdder = (
         value: numberPrompt,
         display: numberPrompt
       };
+      console.log("[Number Input] Token created:", numberToken);
       
-      // Special case for number tokens - add directly instead of using addTokenToFormula
-      // This bypasses the issue with the double prompt
+      // Skip the token generator function entirely for numbers
+      // This is the fix: Don't use addTokenToFormula for numbers at all
+      
+      // For regular calculation mode, add directly
       if (!isLogicTestMode) {
+        console.log("[Number Input] Adding in calculation mode");
         onAddToken(numberToken);
         return;
       }
       
       // For logic test mode, check which section is active
+      console.log(`[Number Input] Logic test mode, active section: ${activeSection}`);
       switch (activeSection) {
         case "condition":
           if (formula.some(token => token.type === "logical" && token.value === "if")) {
+            console.log("[Number Input] Adding to condition section");
             onAddToken(numberToken);
           } else {
+            console.log("[Number Input] Error: No IF operator found");
             toast.warning("Add an IF operator first");
           }
           break;
           
         case "then":
           if (formula.some(token => token.type === "logical" && token.value === "then")) {
+            console.log("[Number Input] Adding to THEN section");
             onAddToken(numberToken);
           } else {
+            console.log("[Number Input] Error: No THEN operator found");
             toast.warning("Add a THEN operator first");
           }
           break;
           
         case "else":
           if (formula.some(token => token.type === "logical" && token.value === "else")) {
+            console.log("[Number Input] Adding to ELSE section");
             onAddToken(numberToken);
           } else {
+            console.log("[Number Input] Error: No ELSE operator found");
             toast.warning("Add an ELSE operator first");
           }
           break;
       }
     } else if (numberPrompt !== null) {
       // Show error only if user didn't cancel
+      console.log("[Number Input] Invalid number input");
       toast.error("Please enter a valid number");
+    } else {
+      console.log("[Number Input] User cancelled input");
     }
   };
 
