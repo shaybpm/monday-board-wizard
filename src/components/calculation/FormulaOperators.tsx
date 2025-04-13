@@ -107,8 +107,8 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
         <Calculator className="h-4 w-4 mr-1" /> 123
       </Button>
       
-      {/* Add a style tag for the pulse animation */}
-      <style jsx>{`
+      {/* Fix: Remove the "jsx" attribute from style tag */}
+      <style>{`
         @keyframes pulse {
           0% {
             box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4);
