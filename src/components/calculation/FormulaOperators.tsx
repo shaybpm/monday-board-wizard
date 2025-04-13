@@ -12,9 +12,16 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
   onAddOperator,
   onAddNumber,
 }) => {
-  const handleNumberButtonClick = () => {
-    console.log("[Number Button] Number button clicked");
-    onAddNumber();
+  const handleNumberButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default behavior
+    e.stopPropagation(); // Stop event propagation
+    console.log("[Number Button] Number button clicked - with event prevention");
+    
+    // Add a small delay before triggering the number input
+    // This helps prevent any potential double-triggering issues
+    setTimeout(() => {
+      onAddNumber();
+    }, 10);
   };
   
   return (

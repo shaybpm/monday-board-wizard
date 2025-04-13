@@ -22,7 +22,7 @@ const FormulaInstructions: React.FC<FormulaInstructionsProps> = ({
         <div className="mt-2 text-xs">
           <strong>Tips:</strong> 
           <ul className="mt-1 list-disc list-inside">
-            <li>When adding a number, type your number in the popup and click OK <strong>(only once - if prompted again, cancel)</strong>.</li>
+            <li>When adding a number, click the <span className="bg-purple-100 px-1 py-0.5 rounded">123</span> button, type your number in the popup, and click OK. <strong>If prompted twice, something went wrong - please report it.</strong></li>
             <li>If you can't add operators or numbers, check which section is active.</li>
             <li>Make sure you've added the IF, THEN, or ELSE operator for that section first.</li>
           </ul>
