@@ -62,20 +62,31 @@ export const useFormulaBuilder = () => {
     if (number && !isNaN(Number(number))) {
       setFormula([...formula, {
         id: `num-${Date.now()}`,
-        type: "number" as const,
+        type: "number" as const, // Ensure this is "number" not "column"
         value: number,
         display: number
       }]);
     }
   };
 
-  const handleAddColumn = (column: BoardColumn) => {
-    setFormula([...formula, {
-      id: column.id,
-      type: "column" as const,
-      value: column.id,
-      display: column.title
-    }]);
+  const handleAddColumn = (column: BoardColumn | any) => {
+    // Check if this is actually a number token coming from the number input hook
+    if (column.type === "number" || column.isNumberToken) {
+      setFormula([...formula, {
+        id: column.id || `num-${Date.now()}`,
+        type: "number" as const,
+        value: column.value || column.title,
+        display: column.title
+      }]);
+    } else {
+      // Regular column
+      setFormula([...formula, {
+        id: column.id,
+        type: "column" as const,
+        value: column.id,
+        display: column.title
+      }]);
+    }
   };
 
   const handleRemoveToken = (index: number) => {

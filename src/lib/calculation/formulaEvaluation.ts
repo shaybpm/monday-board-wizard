@@ -37,24 +37,31 @@ const evaluateMathFormula = (formula: CalculationToken[], item: BoardItem): numb
         }
         evaluationString += numValue;
       } else if (token.type === "number") {
-        // Directly use the value from number tokens
-        evaluationString += parseFloat(token.value);
+        // Use the token's value directly as a number
+        const numValue = parseFloat(token.value);
+        if (isNaN(numValue)) {
+          throw new Error(`Number token ${token.display} value "${token.value}" is not a valid number`);
+        }
+        evaluationString += numValue;
       } else if (token.type === "operator") {
         evaluationString += token.value;
       }
     });
     
+    // Log for debugging
+    console.log("Evaluating formula:", evaluationString);
+    
     // Evaluate the formula
     const result = new Function(`return ${evaluationString}`)();
     
-    if (isNaN(result)) {
-      return "NaN";
+    if (typeof result === 'undefined' || isNaN(result)) {
+      return "Error: Invalid calculation result";
     }
     
     return result;
   } catch (error) {
     console.error(`Error evaluating formula for item ${item.name}:`, error);
-    return error instanceof Error ? error.message : "Error";
+    return error instanceof Error ? `Error: ${error.message}` : "Error: Unknown calculation error";
   }
 };
 
@@ -131,7 +138,7 @@ const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem
     }
   } catch (error) {
     console.error(`Error evaluating conditional formula for item ${item.name}:`, error);
-    return error instanceof Error ? error.message : "Error in conditional";
+    return error instanceof Error ? `Error: ${error.message}` : "Error in conditional";
   }
 };
 
@@ -165,6 +172,9 @@ const evaluateCondition = (conditionTokens: CalculationToken[], item: BoardItem)
   const rightValue = rightTokens.length === 1 && rightTokens[0].type === 'logical' ?
     rightTokens[0].value === 'true' :
     evaluateMathFormula(rightTokens, item);
+  
+  // Log for debugging
+  console.log(`Comparing: ${leftValue} ${operator} ${rightValue}`);
   
   // Perform the comparison
   switch (operator) {

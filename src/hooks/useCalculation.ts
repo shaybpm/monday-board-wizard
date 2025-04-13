@@ -47,11 +47,18 @@ export const useCalculation = (currentTask: Task | null) => {
       sessionStorage.setItem("calculationDebugInfo", calculationProcess.debugInfo);
     }
     
+    // Make sure we pass the correct formula and target column
     calculationProcess.processBoard(
       boardData, 
       formulaBuilder.formula, 
       targetColumnState.targetColumn
     );
+  };
+
+  // Add a number token properly
+  const handleAddNumber = () => {
+    // This ensures the number token is created with the proper type
+    formulaBuilder.handleAddNumber();
   };
 
   // Cancel the processing
@@ -63,7 +70,7 @@ export const useCalculation = (currentTask: Task | null) => {
     // Formula state
     formula: formulaBuilder.formula,
     handleAddOperator: formulaBuilder.handleAddOperator,
-    handleAddNumber: formulaBuilder.handleAddNumber,
+    handleAddNumber, // Use our wrapped function
     handleAddColumn: formulaBuilder.handleAddColumn,
     handleRemoveToken: formulaBuilder.handleRemoveToken,
     handleAddCondition: formulaBuilder.handleAddCondition,
