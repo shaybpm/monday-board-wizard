@@ -39,15 +39,50 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   const elseIndex = formula.findIndex(token => token.type === "logical" && token.value === "else");
   
   // Divide formula into condition, then, and else parts
-  const conditionPart = thenIndex > -1 ? formula.slice(0, thenIndex) : formula;
+  const conditionPart = thenIndex > -1 ? formula.slice(ifIndex + 1, thenIndex) : 
+                        (ifIndex > -1 ? formula.slice(ifIndex + 1) : formula);
   const thenPart = elseIndex > -1 
     ? formula.slice(thenIndex + 1, elseIndex) 
     : (thenIndex > -1 ? formula.slice(thenIndex + 1) : []);
   const elsePart = elseIndex > -1 ? formula.slice(elseIndex + 1) : [];
 
+  // Enable token addition to a specific part of the formula
+  const addTokenToPart = (tokenGenerator: () => CalculationToken, target: "condition" | "then" | "else") => {
+    const newToken = tokenGenerator();
+    let insertIndex: number;
+    
+    switch (target) {
+      case "condition":
+        // Add to condition part - if thenIndex exists, insert before it, otherwise at the end
+        insertIndex = thenIndex > -1 ? thenIndex : formula.length;
+        break;
+      case "then":
+        // Add to then part - if elseIndex exists, insert before it, otherwise at the end
+        insertIndex = elseIndex > -1 ? elseIndex : formula.length;
+        break;
+      case "else":
+        // Add to else part - always at the end
+        insertIndex = formula.length;
+        break;
+    }
+    
+    // Create a new array with the token inserted at the right position
+    const newFormula = [...formula.slice(0, insertIndex), newToken, ...formula.slice(insertIndex)];
+    
+    // Replace the entire formula
+    // We're modifying the component props directly, so handle with care!
+    formula.length = 0;
+    formula.push(...newFormula);
+  };
+
   // Handle mode toggle
   const handleModeToggle = (checked: boolean) => {
     setIsLogicTestMode(checked);
+    
+    // If switching to logic test mode and no IF token yet, add one
+    if (checked && ifIndex === -1) {
+      onAddLogical("if");
+    }
   };
 
   return (
@@ -67,6 +102,12 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         </div>
       </div>
       
+      <div className={`${isLogicTestMode ? "mb-3" : ""}`}>
+        <div className="text-sm text-blue-600 font-medium mb-2">
+          {isLogicTestMode && "Click on a section below to add elements to it:"}
+        </div>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left side - Condition part */}
         <FormulaTokensDisplay
@@ -82,7 +123,12 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
               IF
             </Badge>
           ) : null}
-          onRemoveToken={onRemoveToken}
+          onRemoveToken={(index) => {
+            // For condition part, we need to adjust the index if if-token exists
+            const adjustedIndex = ifIndex > -1 ? index + ifIndex + 1 : index;
+            onRemoveToken(adjustedIndex);
+          }}
+          disabled={false}  // Always enabled
         />
         
         {/* Right side - divided into THEN and ELSE sections */}
@@ -128,6 +174,16 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
           />
         </div>
       </div>
+      
+      {/* Active Section Indicator */}
+      {isLogicTestMode && (
+        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-sm text-yellow-700">
+            <strong>Important:</strong> In Logic Test mode, first add IF, THEN, and ELSE operators using the buttons below.
+            Then add columns, numbers, and operators to each section separately.
+          </p>
+        </div>
+      )}
       
       {/* Logic Operators - only visible in logic test mode */}
       {isLogicTestMode && (

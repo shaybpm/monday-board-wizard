@@ -67,22 +67,31 @@ const evaluateConditionalFormula = (formula: CalculationToken[], item: BoardItem
     const thenIndex = formula.findIndex(token => token.type === 'logical' && token.value === 'then');
     const elseIndex = formula.findIndex(token => token.type === 'logical' && token.value === 'else');
     
-    if (ifIndex === -1 || thenIndex === -1) {
-      throw new Error("Invalid conditional formula: missing IF or THEN");
+    // Check if we have the minimum required tokens for a conditional formula
+    if (ifIndex === -1) {
+      throw new Error("Invalid conditional formula: missing IF");
     }
     
-    // Extract the condition part (between if and then)
-    const conditionTokens = formula.slice(ifIndex + 1, thenIndex);
+    // Extract the condition part (between if and then, or until the end if no then)
+    const conditionTokens = thenIndex !== -1 
+      ? formula.slice(ifIndex + 1, thenIndex) 
+      : formula.slice(ifIndex + 1);
+    
+    // If we don't have a THEN token, the entire formula is just a condition
+    if (thenIndex === -1) {
+      // Just evaluate the condition
+      return evaluateCondition(conditionTokens, item);
+    }
     
     // Extract the "then" result part (between then and else, or until the end if no else)
-    const thenTokens = elseIndex !== -1 ? 
-      formula.slice(thenIndex + 1, elseIndex) : 
-      formula.slice(thenIndex + 1);
+    const thenTokens = elseIndex !== -1 
+      ? formula.slice(thenIndex + 1, elseIndex) 
+      : formula.slice(thenIndex + 1);
     
     // Extract the "else" result part if it exists
-    const elseTokens = elseIndex !== -1 ? 
-      formula.slice(elseIndex + 1) : 
-      [];
+    const elseTokens = elseIndex !== -1 
+      ? formula.slice(elseIndex + 1) 
+      : [];
     
     // Evaluate the condition
     const conditionResult = evaluateCondition(conditionTokens, item);

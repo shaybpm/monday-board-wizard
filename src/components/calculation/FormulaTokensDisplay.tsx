@@ -35,10 +35,10 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
         {tokens.length > 0 ? (
           tokens.map((token, index) => (
             <Badge 
-              key={token.id}
+              key={token.id || index}
               variant={getBadgeVariant(token.type)}
               className={`px-3 py-1 ${!disabled ? 'cursor-pointer hover:bg-opacity-80' : ''}`}
-              onClick={() => !disabled && onRemoveToken(index + startIndex)}
+              onClick={() => !disabled && onRemoveToken(index)}
             >
               {token.display}
             </Badge>
