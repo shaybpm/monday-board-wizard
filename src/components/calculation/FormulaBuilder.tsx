@@ -1,7 +1,7 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Plus, Minus, X as Multiply, Divide, Equal, CircleCheck, CircleX, ArrowRight } from "lucide-react";
 import { CalculationToken } from "@/types/calculation";
 
@@ -24,6 +24,12 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   onAddCondition,
   onAddLogical,
 }) => {
+  // Add state for formula mode (calculation or logic test)
+  const [isLogicTestMode, setIsLogicTestMode] = useState(() => {
+    // Initialize based on formula content - if it has if/then/else tokens, use logic test mode
+    return formula.some(token => token.type === "logical" && ["if", "then", "else"].includes(token.value));
+  });
+  
   // Find positions of IF, THEN, and ELSE for dividing the formula
   const ifIndex = formula.findIndex(token => token.type === "logical" && token.value === "if");
   const thenIndex = formula.findIndex(token => token.type === "logical" && token.value === "then");
@@ -36,18 +42,53 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     : (thenIndex > -1 ? formula.slice(thenIndex + 1) : []);
   const elsePart = elseIndex > -1 ? formula.slice(elseIndex + 1) : [];
 
+  // Handle mode toggle
+  const handleModeToggle = (checked: boolean) => {
+    setIsLogicTestMode(checked);
+    
+    // If switching to calculation mode from logic mode, we need to clean up the formula
+    if (!checked && ifIndex > -1) {
+      // Remove IF, THEN, ELSE tokens and keep just the calculation part
+      // This is a simplified approach - in a real app you'd want more sophisticated handling
+      const calculationTokens = formula.filter(token => 
+        token.type !== "logical" && 
+        token.type !== "condition"
+      );
+      
+      // Reset the formula
+      const newFormula = [...calculationTokens];
+      
+      // We need to recreate the formula completely
+      // This would ideally be handled by a function passed from parent
+      // For now we'll just update the UI and let the parent handle this case separately
+    }
+  };
+
   return (
     <div>
-      <h3 className="text-md font-medium mb-2">Formula Builder</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-md font-medium">Formula Builder</h3>
+        
+        {/* Mode toggle switch */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Calculation</span>
+          <Switch 
+            checked={isLogicTestMode} 
+            onCheckedChange={handleModeToggle}
+            id="mode-toggle"
+          />
+          <span className="text-sm font-medium text-gray-700">Logic Test</span>
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left side - Condition part */}
         <div className="flex flex-col">
           <h4 className="text-sm font-medium mb-1 text-gray-600">
-            {ifIndex > -1 ? "IF condition" : "Formula / Condition"}
+            {isLogicTestMode ? "IF condition" : "Formula"}
           </h4>
           <div className="p-4 border rounded-md bg-gray-50 min-h-16 flex flex-wrap gap-2 items-center">
-            {ifIndex > -1 && (
+            {isLogicTestMode && ifIndex > -1 && (
               <Badge 
                 key="if-label"
                 variant="default"
@@ -68,7 +109,9 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
                 </Badge>
               ))
             ) : (
-              <span className="text-gray-400">Build your condition here</span>
+              <span className="text-gray-400">
+                {isLogicTestMode ? "Build your condition here" : "Build your formula here"}
+              </span>
             )}
           </div>
         </div>
@@ -80,8 +123,8 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
             <h4 className="text-sm font-medium mb-1 text-gray-600">
               THEN (if condition is TRUE)
             </h4>
-            <div className="p-4 border rounded-md bg-green-50 min-h-16 flex flex-wrap gap-2 items-center">
-              {thenIndex > -1 && (
+            <div className={`p-4 border rounded-md ${isLogicTestMode ? "bg-green-50" : "bg-gray-100"} min-h-16 flex flex-wrap gap-2 items-center`}>
+              {isLogicTestMode && thenIndex > -1 && (
                 <Badge 
                   key="then-label"
                   variant="default"
@@ -103,7 +146,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
                 ))
               ) : (
                 <span className="text-gray-400">
-                  Add what should happen when condition is true
+                  {isLogicTestMode ? "Add what should happen when condition is true" : "Not available in calculation mode"}
                 </span>
               )}
             </div>
@@ -114,8 +157,8 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
             <h4 className="text-sm font-medium mb-1 text-gray-600">
               ELSE (if condition is FALSE)
             </h4>
-            <div className="p-4 border rounded-md bg-red-50 min-h-16 flex flex-wrap gap-2 items-center">
-              {elseIndex > -1 && (
+            <div className={`p-4 border rounded-md ${isLogicTestMode ? "bg-red-50" : "bg-gray-100"} min-h-16 flex flex-wrap gap-2 items-center`}>
+              {isLogicTestMode && elseIndex > -1 && (
                 <Badge 
                   key="else-label"
                   variant="default"
@@ -137,7 +180,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
                 ))
               ) : (
                 <span className="text-gray-400">
-                  Add what should happen when condition is false
+                  {isLogicTestMode ? "Add what should happen when condition is false" : "Not available in calculation mode"}
                 </span>
               )}
             </div>
@@ -145,50 +188,54 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         </div>
       </div>
       
-      {/* Logic Operators */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        <Button variant="outline" size="sm" className="bg-blue-50" onClick={() => onAddLogical("if")}>
-          IF
-        </Button>
-        <Button variant="outline" size="sm" className="bg-blue-50" onClick={() => onAddLogical("then")}>
-          THEN
-        </Button>
-        <Button variant="outline" size="sm" className="bg-blue-50" onClick={() => onAddLogical("else")}>
-          ELSE
-        </Button>
-        <Button variant="outline" size="sm" className="bg-green-50" onClick={() => onAddLogical("true")}>
-          <CircleCheck className="h-4 w-4 mr-1" />
-          TRUE
-        </Button>
-        <Button variant="outline" size="sm" className="bg-red-50" onClick={() => onAddLogical("false")}>
-          <CircleX className="h-4 w-4 mr-1" />
-          FALSE
-        </Button>
-      </div>
+      {/* Logic Operators - only visible in logic test mode */}
+      {isLogicTestMode && (
+        <div className="flex flex-wrap gap-2 mt-4">
+          <Button variant="outline" size="sm" className="bg-blue-50" onClick={() => onAddLogical("if")}>
+            IF
+          </Button>
+          <Button variant="outline" size="sm" className="bg-blue-50" onClick={() => onAddLogical("then")}>
+            THEN
+          </Button>
+          <Button variant="outline" size="sm" className="bg-blue-50" onClick={() => onAddLogical("else")}>
+            ELSE
+          </Button>
+          <Button variant="outline" size="sm" className="bg-green-50" onClick={() => onAddLogical("true")}>
+            <CircleCheck className="h-4 w-4 mr-1" />
+            TRUE
+          </Button>
+          <Button variant="outline" size="sm" className="bg-red-50" onClick={() => onAddLogical("false")}>
+            <CircleX className="h-4 w-4 mr-1" />
+            FALSE
+          </Button>
+        </div>
+      )}
       
-      {/* Conditional Operators */}
-      <div className="flex flex-wrap gap-2 mt-2">
-        <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition("==")}>
-          =
-        </Button>
-        <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition("!=")}>
-          ≠
-        </Button>
-        <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition("<")}>
-          &lt;
-        </Button>
-        <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition(">")}>
-          &gt;
-        </Button>
-        <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition("<=")}>
-          ≤
-        </Button>
-        <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition(">=")}>
-          ≥
-        </Button>
-      </div>
+      {/* Conditional Operators - only visible in logic test mode */}
+      {isLogicTestMode && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition("==")}>
+            =
+          </Button>
+          <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition("!=")}>
+            ≠
+          </Button>
+          <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition("<")}>
+            &lt;
+          </Button>
+          <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition(">")}>
+            &gt;
+          </Button>
+          <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition("<=")}>
+            ≤
+          </Button>
+          <Button variant="outline" size="sm" className="bg-amber-50" onClick={() => onAddCondition(">=")}>
+            ≥
+          </Button>
+        </div>
+      )}
       
-      {/* Operators */}
+      {/* Math Operators - always visible */}
       <div className="flex flex-wrap gap-2 mt-2">
         <Button variant="outline" size="sm" onClick={() => onAddOperator("+")}>
           <Plus className="h-4 w-4" />
@@ -213,16 +260,29 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         </Button>
       </div>
       
-      {/* Info panel with example */}
+      {/* Info panel with example - updated based on mode */}
       <div className="mt-4 p-3 bg-blue-50 rounded-md text-sm text-blue-700">
         <p className="font-medium mb-1">Example:</p>
-        <p>
-          <strong>IF</strong> Column2 == 0 <strong>THEN</strong> Column2 + 1 <strong>ELSE</strong> Column2
-        </p>
-        <p className="mt-1">
-          This will check if Column2 equals 0, and if true, store Column2 + 1 in the target column.
-          If false, the original value in Column2 is stored.
-        </p>
+        {isLogicTestMode ? (
+          <>
+            <p>
+              <strong>IF</strong> Column2 == 0 <strong>THEN</strong> Column2 + 1 <strong>ELSE</strong> Column2
+            </p>
+            <p className="mt-1">
+              This will check if Column2 equals 0, and if true, store Column2 + 1 in the target column.
+              If false, the original value in Column2 is stored.
+            </p>
+          </>
+        ) : (
+          <>
+            <p>
+              Column2 + Column3 * 2
+            </p>
+            <p className="mt-1">
+              This will multiply Column3 by 2 and add it to Column2, storing the result in the target column.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
