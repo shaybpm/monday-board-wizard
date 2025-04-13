@@ -27,9 +27,10 @@ export const useNumberInput = ({
     
     // Set global flag to prevent multiple simultaneous processes
     setNumberInputActive();
+    console.log("[Number Input] Starting number input flow - GLOBAL FLAG SET");
     
     try {
-      // Immediately show the prompt to get user input for the number
+      // Show the prompt to get user input for the number
       const numberPrompt = prompt("Enter a number:");
       console.log(`[Number Input] User entered: "${numberPrompt}"`);
       
@@ -38,9 +39,9 @@ export const useNumberInput = ({
         console.log(`[Number Input] Valid number input: ${numberPrompt}`);
         
         // Create the number token
-        const numberToken = {
+        const numberToken: CalculationToken = {
           id: `num-${Date.now()}`,
-          type: "number" as const,
+          type: "number",
           value: numberPrompt,
           display: numberPrompt
         };
@@ -53,9 +54,14 @@ export const useNumberInput = ({
         } else {
           // For logic test mode, check which section is active
           console.log(`[Number Input] Logic test mode, active section: ${activeSection}`);
+          
+          const ifExists = formula.some(token => token.type === "logical" && token.value === "if");
+          const thenExists = formula.some(token => token.type === "logical" && token.value === "then");
+          const elseExists = formula.some(token => token.type === "logical" && token.value === "else");
+          
           switch (activeSection) {
             case "condition":
-              if (formula.some(token => token.type === "logical" && token.value === "if")) {
+              if (ifExists) {
                 console.log("[Number Input] Adding to condition section");
                 onAddToken(numberToken);
               } else {
@@ -65,7 +71,7 @@ export const useNumberInput = ({
               break;
               
             case "then":
-              if (formula.some(token => token.type === "logical" && token.value === "then")) {
+              if (thenExists) {
                 console.log("[Number Input] Adding to THEN section");
                 onAddToken(numberToken);
               } else {
@@ -75,7 +81,7 @@ export const useNumberInput = ({
               break;
               
             case "else":
-              if (formula.some(token => token.type === "logical" && token.value === "else")) {
+              if (elseExists) {
                 console.log("[Number Input] Adding to ELSE section");
                 onAddToken(numberToken);
               } else {
@@ -92,8 +98,12 @@ export const useNumberInput = ({
       } else {
         console.log("[Number Input] User cancelled input");
       }
+    } catch (error) {
+      console.error("[Number Input] Error processing number input:", error);
+      toast.error("Error processing number input");
     } finally {
-      // Reset the global flag immediately when we're done with processing
+      // Reset the global flag IMMEDIATELY when we're done with processing
+      console.log("[Number Input] Resetting global flag");
       setNumberInputInactive();
     }
   };

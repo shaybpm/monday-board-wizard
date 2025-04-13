@@ -19,7 +19,7 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
     
     console.log("[Number Button] Number button clicked - starting number input");
     
-    // Call the handler immediately - we now handle debouncing in the hook
+    // Call the handler directly - no debouncing needed as we handle that in the hook
     onAddNumber();
   };
   
