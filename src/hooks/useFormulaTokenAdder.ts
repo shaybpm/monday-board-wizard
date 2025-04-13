@@ -39,7 +39,6 @@ export const useFormulaTokenAdder = (
         
         // Insert at the right position (before THEN or at the end)
         const insertPosition = thenIndex > -1 ? thenIndex : formula.length;
-        const newFormula = [...formula.slice(0, insertPosition), conditionToken, ...formula.slice(insertPosition)];
         onAddToken(conditionToken);
         break;
       
@@ -57,7 +56,6 @@ export const useFormulaTokenAdder = (
         
         // Insert at the right position (before ELSE or at the end)
         const thenInsertPosition = elseIndex > -1 ? elseIndex : formula.length;
-        const newThenFormula = [...formula.slice(0, thenInsertPosition), thenToken, ...formula.slice(thenInsertPosition)];
         onAddToken(thenToken);
         break;
       

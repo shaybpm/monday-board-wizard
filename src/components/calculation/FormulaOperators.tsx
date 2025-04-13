@@ -66,7 +66,7 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
         variant="outline" 
         size="sm" 
         onClick={onAddNumber}
-        className="hover:bg-blue-50 transition-colors active:scale-95"
+        className="bg-purple-50 hover:bg-purple-100 transition-colors active:scale-95 font-medium"
       >
         123
       </Button>

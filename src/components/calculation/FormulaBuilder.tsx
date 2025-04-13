@@ -56,7 +56,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
       } else if (token.type === "operator") {
         onAddOperator(token.value);
       } else if (token.type === "number") {
-        // Number is handled in handleAddNumberWrapped
+        onAddNumber();
       } else if (token.type === "condition") {
         onAddCondition(token.value);
       }
