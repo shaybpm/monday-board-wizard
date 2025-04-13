@@ -13,17 +13,24 @@ const FormulaExample: React.FC<FormulaExampleProps> = ({
       <p className="font-medium mb-1">Example:</p>
       {isLogicTestMode ? (
         <>
-          <p>
-            <strong>IF</strong> Column2 == 0 <strong>THEN</strong> Column2 + 1 <strong>ELSE</strong> Column2
+          <p className="font-medium">
+            <strong>IF</strong> Column1 &lt; 1500 <strong>THEN</strong> Column3 = 0 <strong>ELSE</strong> Column3 = 5
           </p>
           <p className="mt-1">
-            This will check if Column2 equals 0, and if true, store Column2 + 1 in the target column.
-            If false, the original value in Column2 is stored.
+            This will check if Column1 is less than 1500. If true, it will set Column3 to 0.
+            If false, it will set Column3 to 5.
           </p>
-          <p className="mt-2 text-xs">
-            <strong>How to build:</strong> First click the IF button, then select columns and comparison operators for your condition.
-            Next, click the THEN button and build what happens when true. Finally, click the ELSE button and build what happens when false.
+          <p className="mt-2 text-xs font-medium">
+            <strong>How to build:</strong>
           </p>
+          <ol className="mt-1 text-xs list-decimal ml-4">
+            <li>Click the IF button, then click on the blue IF section</li>
+            <li>Add Column1, add &lt; operator, add number 1500</li>
+            <li>Click the THEN button, then click on the green THEN section</li>
+            <li>Add Column3, add = operator, add number 0</li>
+            <li>Click the ELSE button, then click on the red ELSE section</li>
+            <li>Add Column3, add = operator, add number 5</li>
+          </ol>
         </>
       ) : (
         <>

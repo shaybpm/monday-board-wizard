@@ -12,6 +12,7 @@ interface FormulaTokensDisplayProps {
   onRemoveToken: (index: number) => void;
   startIndex?: number;
   disabled?: boolean;
+  onClick?: () => void; // Add click handler for the container
 }
 
 const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
@@ -23,13 +24,16 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   onRemoveToken,
   startIndex = 0,
   disabled = false,
+  onClick, // Use the click handler
 }) => {
   return (
     <div>
       <h4 className="text-sm font-medium mb-1 text-gray-600">{label}</h4>
       <div 
-        className={`p-4 border rounded-md ${className} min-h-16 flex flex-wrap gap-2 items-center ${disabled ? 'opacity-60' : ''}`}
+        className={`p-4 border rounded-md ${className} min-h-16 flex flex-wrap gap-2 items-center ${disabled ? 'opacity-60' : ''} ${onClick && !disabled ? 'cursor-pointer hover:bg-opacity-90' : ''}`}
         aria-disabled={disabled}
+        onClick={() => onClick && !disabled && onClick()} // Add click handler
+        role={onClick && !disabled ? "button" : undefined}
       >
         {badgePrefix}
         {tokens.length > 0 ? (
@@ -38,13 +42,16 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
               key={token.id || index}
               variant={getBadgeVariant(token.type)}
               className={`px-3 py-1 ${!disabled ? 'cursor-pointer hover:bg-opacity-80' : ''}`}
-              onClick={() => !disabled && onRemoveToken(index)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent triggering container click
+                if (!disabled) onRemoveToken(index);
+              }}
             >
               {token.display}
             </Badge>
           ))
         ) : (
-          <span className="text-gray-400">{emptyMessage}</span>
+          <span className={`text-gray-400 ${onClick && !disabled ? 'pointer-events-none' : ''}`}>{emptyMessage}</span>
         )}
       </div>
     </div>
