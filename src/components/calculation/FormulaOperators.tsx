@@ -30,18 +30,14 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
     isProcessingRef.current = true;
     console.log("[Number Button] Number button clicked - starting number input");
     
-    // Call the handler with a delay
+    // Call the handler immediately
+    onAddNumber();
+    
+    // Reset flag after a delay to prevent multiple rapid clicks
     setTimeout(() => {
-      try {
-        onAddNumber();
-      } finally {
-        // Reset flag after a longer delay to ensure prompt has time to appear
-        setTimeout(() => {
-          console.log("[Number Button] Processing complete, resetting flag");
-          isProcessingRef.current = false;
-        }, 800);
-      }
-    }, 50);
+      console.log("[Number Button] Processing complete, resetting flag");
+      isProcessingRef.current = false;
+    }, 1200); // Increased delay to give more time for prompt to appear and complete
   };
   
   return (
@@ -107,8 +103,8 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
         <Calculator className="h-4 w-4 mr-1" /> 123
       </Button>
       
-      {/* Fix: Remove the "jsx" attribute from style tag */}
-      <style>{`
+      <style>
+        {`
         @keyframes pulse {
           0% {
             box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4);
@@ -120,7 +116,8 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
             box-shadow: 0 0 0 0 rgba(147, 51, 234, 0);
           }
         }
-      `}</style>
+      `}
+      </style>
     </div>
   );
 };
