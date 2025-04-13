@@ -25,9 +25,10 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
   const elseIndex = formula.findIndex(token => token.type === "logical" && token.value === "else");
   
   // Divide formula into condition, then, and else parts
-  const conditionPart = thenIndex > -1 ? formula.slice(ifIndex + 1, thenIndex) : 
-                        (ifIndex > -1 ? formula.slice(ifIndex + 1) : formula);
-  
+  const conditionPart = isLogicTestMode 
+    ? (thenIndex > -1 ? formula.slice(ifIndex + 1, thenIndex) : (ifIndex > -1 ? formula.slice(ifIndex + 1) : []))
+    : formula; // In calculation mode, show the entire formula as the condition part
+    
   const thenPart = elseIndex > -1 
     ? formula.slice(thenIndex + 1, elseIndex) 
     : (thenIndex > -1 ? formula.slice(thenIndex + 1) : []);
@@ -61,65 +62,70 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           </Badge>
         ) : null}
         onRemoveToken={(index) => {
-          // For condition part, we need to adjust the index if if-token exists
-          const adjustedIndex = ifIndex > -1 ? index + ifIndex + 1 : index;
-          onRemoveToken(adjustedIndex);
+          // For condition part, adjust the index based on mode
+          if (isLogicTestMode && ifIndex > -1) {
+            const adjustedIndex = index + ifIndex + 1;
+            onRemoveToken(adjustedIndex);
+          } else {
+            // In calculation mode, use the direct index
+            onRemoveToken(index);
+          }
         }}
-        // Important: Removed the disabled={isLogicTestMode && ifIndex === -1} condition
-        // to allow clicking on the condition section even when there's no IF token yet
         onClick={() => onSectionClick("condition")}
       />
       
-      {/* Right side - divided into THEN and ELSE sections */}
-      <div className="flex flex-col gap-3">
-        {/* THEN part */}
-        <FormulaTokensDisplay
-          tokens={thenPart}
-          label="THEN (if condition is TRUE)"
-          emptyMessage={isLogicTestMode ? "Add what should happen when condition is true" : "Not available in calculation mode"}
-          className={`${isLogicTestMode ? "bg-green-50" : "bg-gray-100"} ${getActiveSectionStyle("then")}`}
-          badgePrefix={isLogicTestMode && thenIndex > -1 ? (
-            <Badge 
-              key="then-label"
-              variant="default"
-              className="px-3 py-1 bg-green-500"
-            >
-              THEN
-            </Badge>
-          ) : null}
-          onRemoveToken={(index) => {
-            // For then part, adjust the index
-            const adjustedIndex = index + thenIndex + 1;
-            onRemoveToken(adjustedIndex);
-          }}
-          disabled={!isLogicTestMode || thenIndex === -1}
-          onClick={() => onSectionClick("then")}
-        />
-        
-        {/* ELSE part */}
-        <FormulaTokensDisplay
-          tokens={elsePart}
-          label="ELSE (if condition is FALSE)"
-          emptyMessage={isLogicTestMode ? "Add what should happen when condition is false" : "Not available in calculation mode"}
-          className={`${isLogicTestMode ? "bg-red-50" : "bg-gray-100"} ${getActiveSectionStyle("else")}`}
-          badgePrefix={isLogicTestMode && elseIndex > -1 ? (
-            <Badge 
-              key="else-label"
-              variant="default"
-              className="px-3 py-1 bg-red-500"
-            >
-              ELSE
-            </Badge>
-          ) : null}
-          onRemoveToken={(index) => {
-            // For else part, adjust the index
-            const adjustedIndex = index + elseIndex + 1;
-            onRemoveToken(adjustedIndex);
-          }}
-          disabled={!isLogicTestMode || elseIndex === -1}
-          onClick={() => onSectionClick("else")}
-        />
-      </div>
+      {/* Right side - Only show THEN and ELSE in logic test mode */}
+      {isLogicTestMode && (
+        <div className="flex flex-col gap-3">
+          {/* THEN part */}
+          <FormulaTokensDisplay
+            tokens={thenPart}
+            label="THEN (if condition is TRUE)"
+            emptyMessage="Add what should happen when condition is true"
+            className={`bg-green-50 ${getActiveSectionStyle("then")}`}
+            badgePrefix={thenIndex > -1 ? (
+              <Badge 
+                key="then-label"
+                variant="default"
+                className="px-3 py-1 bg-green-500"
+              >
+                THEN
+              </Badge>
+            ) : null}
+            onRemoveToken={(index) => {
+              // For then part, adjust the index
+              const adjustedIndex = index + thenIndex + 1;
+              onRemoveToken(adjustedIndex);
+            }}
+            disabled={thenIndex === -1}
+            onClick={() => onSectionClick("then")}
+          />
+          
+          {/* ELSE part */}
+          <FormulaTokensDisplay
+            tokens={elsePart}
+            label="ELSE (if condition is FALSE)"
+            emptyMessage="Add what should happen when condition is false"
+            className={`bg-red-50 ${getActiveSectionStyle("else")}`}
+            badgePrefix={elseIndex > -1 ? (
+              <Badge 
+                key="else-label"
+                variant="default"
+                className="px-3 py-1 bg-red-500"
+              >
+                ELSE
+              </Badge>
+            ) : null}
+            onRemoveToken={(index) => {
+              // For else part, adjust the index
+              const adjustedIndex = index + elseIndex + 1;
+              onRemoveToken(adjustedIndex);
+            }}
+            disabled={elseIndex === -1}
+            onClick={() => onSectionClick("else")}
+          />
+        </div>
+      )}
     </div>
   );
 };

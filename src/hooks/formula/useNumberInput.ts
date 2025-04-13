@@ -47,8 +47,14 @@ export const useNumberInput = ({
         };
         console.log("[Number Input] Token created:", numberToken);
         
-        // Add the token directly to the formula
-        onAddToken(numberToken);
+        // For regular calculation mode, add directly, regardless of section
+        if (!isLogicTestMode) {
+          console.log("[Number Input] Adding in calculation mode");
+          onAddToken(numberToken);
+        } else {
+          // For logic test mode, respect the active section
+          handleLogicTestModeNumberInput(numberToken);
+        }
       } else if (numberPrompt !== null) {
         // Show error only if user didn't cancel
         console.log("[Number Input] Invalid number input");
@@ -60,6 +66,48 @@ export const useNumberInput = ({
       // Reset the global flag IMMEDIATELY when done
       console.log("[Number Input] Resetting global flag");
       setNumberInputInactive();
+    }
+  };
+
+  // Helper function to handle logic test mode
+  const handleLogicTestModeNumberInput = (numberToken: CalculationToken) => {
+    console.log(`[Number Input] Logic test mode, active section: ${activeSection}`);
+    
+    // Find section indicators in formula
+    const hasIf = formula.some(token => token.type === "logical" && token.value === "if");
+    const hasThen = formula.some(token => token.type === "logical" && token.value === "then");
+    const hasElse = formula.some(token => token.type === "logical" && token.value === "else");
+    
+    switch (activeSection) {
+      case "condition":
+        if (hasIf) {
+          console.log("[Number Input] Adding to condition section");
+          onAddToken(numberToken);
+        } else {
+          console.log("[Number Input] Error: No IF operator found");
+          toast.warning("Add an IF operator first");
+        }
+        break;
+        
+      case "then":
+        if (hasThen) {
+          console.log("[Number Input] Adding to THEN section");
+          onAddToken(numberToken);
+        } else {
+          console.log("[Number Input] Error: No THEN operator found");
+          toast.warning("Add a THEN operator first");
+        }
+        break;
+        
+      case "else":
+        if (hasElse) {
+          console.log("[Number Input] Adding to ELSE section");
+          onAddToken(numberToken);
+        } else {
+          console.log("[Number Input] Error: No ELSE operator found");
+          toast.warning("Add an ELSE operator first");
+        }
+        break;
     }
   };
 
