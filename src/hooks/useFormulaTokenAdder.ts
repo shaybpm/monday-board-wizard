@@ -95,6 +95,7 @@ export const useFormulaTokenAdder = (
   };
 
   const handleAddNumberWrapped = () => {
+    // Fix: Get number input directly and pass it through our token adder
     const number = prompt("Enter a number:");
     if (number && !isNaN(Number(number))) {
       addTokenToFormula(() => ({
