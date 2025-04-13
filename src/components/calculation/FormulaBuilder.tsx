@@ -48,14 +48,22 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     isLogicTestMode,
     activeSection,
     onAddToken: (token) => {
-      // This is a simple pass-through since we're using the external handlers
+      console.log("[FormulaBuilder] Received token:", token);
+      // This is a simple pass-through to the respective handlers
       if (token.type === "column") {
         const column = { id: token.value, title: token.display };
         onAddColumn(column);
       } else if (token.type === "operator") {
         onAddOperator(token.value);
       } else if (token.type === "number") {
-        onAddNumber();
+        console.log("[FormulaBuilder] Adding number token directly to formula");
+        // Bypass the original number input process and add directly
+        onAddColumn({
+          id: token.id,
+          title: token.display,
+          value: token.value,
+          type: "number"
+        });
       } else if (token.type === "condition") {
         onAddCondition(token.value);
       }

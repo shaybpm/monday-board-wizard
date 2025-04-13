@@ -29,7 +29,6 @@ export const useNumberInput = ({
     setNumberInputActive();
     console.log("[Number Input Debug] Starting number input process");
     
-    // Wrap in a try/finally to ensure flag gets reset
     try {
       // Show the prompt to get user input for the number
       const numberPrompt = prompt("Enter a number:");
@@ -48,50 +47,10 @@ export const useNumberInput = ({
         };
         console.log("[Number Input] Token created:", numberToken);
         
-        // For regular calculation mode, add directly
-        if (!isLogicTestMode) {
-          console.log("[Number Input] Adding in calculation mode");
-          onAddToken(numberToken);
-        } else {
-          // For logic test mode, check which section is active
-          console.log(`[Number Input] Logic test mode, active section: ${activeSection}`);
-          
-          const ifExists = formula.some(token => token.type === "logical" && token.value === "if");
-          const thenExists = formula.some(token => token.type === "logical" && token.value === "then");
-          const elseExists = formula.some(token => token.type === "logical" && token.value === "else");
-          
-          switch (activeSection) {
-            case "condition":
-              if (ifExists) {
-                console.log("[Number Input] Adding to condition section");
-                onAddToken(numberToken);
-              } else {
-                console.log("[Number Input] Error: No IF operator found");
-                toast.warning("Add an IF operator first");
-              }
-              break;
-              
-            case "then":
-              if (thenExists) {
-                console.log("[Number Input] Adding to THEN section");
-                onAddToken(numberToken);
-              } else {
-                console.log("[Number Input] Error: No THEN operator found");
-                toast.warning("Add a THEN operator first");
-              }
-              break;
-              
-            case "else":
-              if (elseExists) {
-                console.log("[Number Input] Adding to ELSE section");
-                onAddToken(numberToken);
-              } else {
-                console.log("[Number Input] Error: No ELSE operator found");
-                toast.warning("Add an ELSE operator first");
-              }
-              break;
-          }
-        }
+        // DIRECT ADDITION - Add the token directly to the formula
+        // This bypasses any section logic that might be causing issues
+        console.log("[Number Input] Adding token DIRECTLY to formula");
+        onAddToken(numberToken);
       } else if (numberPrompt !== null) {
         // Show error only if user didn't cancel
         console.log("[Number Input] Invalid number input");
@@ -100,8 +59,7 @@ export const useNumberInput = ({
         console.log("[Number Input] User cancelled input");
       }
     } finally {
-      // IMPORTANT: Reset the global flag IMMEDIATELY when done 
-      // This avoids race conditions that might be causing the first attempt to fail
+      // Reset the global flag IMMEDIATELY when done
       console.log("[Number Input] Resetting global flag");
       setNumberInputInactive();
     }

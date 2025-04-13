@@ -18,7 +18,8 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
     e.stopPropagation();
     
     console.log("[Number Button] Number button clicked - starting number input");
-    onAddNumber(); // Direct call without any debouncing
+    // Direct call with no side effects
+    onAddNumber();
   };
   
   return (
@@ -76,7 +77,7 @@ const FormulaOperators: React.FC<FormulaOperatorsProps> = ({
         size="sm" 
         onClick={handleNumberButtonClick}
         className="bg-purple-100 hover:bg-purple-200 transition-colors active:scale-95 font-medium relative"
-        // Add a pulsing animation to highlight this button
+        // Add a more visible pulsing animation
         style={{
           animation: "pulse 2s infinite",
         }}
