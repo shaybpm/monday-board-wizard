@@ -8,7 +8,7 @@ import FormulaBuilderHeader from "./FormulaBuilderHeader";
 import FormulaSections from "./FormulaSections";
 import FormulaInstructions from "./FormulaInstructions";
 import { useFormulaSections } from "@/hooks/useFormulaSections";
-import { useFormulaTokens } from "@/hooks/formula/useFormulaTokens";
+import { useFormulaTokens } from "@/hooks/useFormulaTokens";
 
 interface FormulaBuilderProps {
   formula: CalculationToken[];
@@ -29,13 +29,43 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   onAddCondition,
   onAddLogical,
 }) => {
-  // Use our custom hook for section management
+  // Use our custom hook for section management with formula update callback
   const {
     isLogicTestMode,
     activeSection,
     handleSectionClick,
     handleModeToggle
-  } = useFormulaSections(formula);
+  } = useFormulaSections(formula, (newFormula) => {
+    // This would be called when we need to update the formula after mode switch
+    // Clear the current formula and add all tokens from newFormula
+    if (newFormula.length > 0) {
+      // Remove all tokens from current formula
+      while (formula.length > 0) {
+        onRemoveToken(0);
+      }
+      
+      // Add all tokens from the saved formula for the selected mode
+      newFormula.forEach(token => {
+        if (token.type === "column") {
+          onAddColumn({ id: token.value, title: token.display });
+        } else if (token.type === "operator") {
+          onAddOperator(token.value);
+        } else if (token.type === "number") {
+          onAddColumn({
+            id: token.id,
+            title: token.display,
+            type: "number",
+            value: token.value,
+            isNumberToken: true
+          });
+        } else if (token.type === "condition") {
+          onAddCondition(token.value);
+        } else if (token.type === "logical") {
+          onAddLogical(token.value);
+        }
+      });
+    }
+  });
   
   // Use our refactored hooks system for token handling
   const {
