@@ -20,11 +20,12 @@ const FormulaInstructions: React.FC<FormulaInstructionsProps> = ({
           <li>Add columns, comparison operators (&lt;, =, etc.), and click the <span className="bg-purple-100 px-1 py-0.5 rounded">123</span> button to enter a number</li>
         </ol>
         <div className="mt-2 text-xs">
-          <strong>Tips:</strong> 
+          <strong>Number button tips:</strong> 
           <ul className="mt-1 list-disc list-inside">
-            <li>When adding a number, click the <span className="bg-purple-100 px-1 py-0.5 rounded">123</span> button, type your number in the popup, and click OK. <strong>If prompted twice, something went wrong - please report it.</strong></li>
-            <li>If you can't add operators or numbers, check which section is active.</li>
-            <li>Make sure you've added the IF, THEN, or ELSE operator for that section first.</li>
+            <li><strong>Click ONCE</strong> on the pulsing <span className="bg-purple-100 px-1 py-0.5 rounded">123</span> button</li>
+            <li>Wait for the prompt dialog to appear (it might take a moment)</li>
+            <li>Enter your number and click OK</li>
+            <li><strong>Important:</strong> Don't click the button repeatedly if nothing happens immediately</li>
           </ul>
         </div>
       </div>
