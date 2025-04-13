@@ -114,6 +114,7 @@ export const useCalculationBuilder = () => {
   };
 
   const testCalculation = () => {
+    // Make sure we pass the formula to the test function
     calculation.testCalculation();
   };
 
