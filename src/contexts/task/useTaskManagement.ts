@@ -37,7 +37,7 @@ export function useTaskManagement() {
     
     const newTasks = [
       ...tasks,
-      { id: formattedId, title: "", sourceBoard: "", destinationBoard: "", taskType: "calculation" }
+      { id: formattedId, title: "", sourceBoard: "", destinationBoard: "", taskType: "calculation" as const }
     ];
     
     setTasks(newTasks);
@@ -49,7 +49,7 @@ export function useTaskManagement() {
       if (task.id === id) {
         // For taskType field, ensure it's a valid value
         if (field === "taskType") {
-          const safeTaskType = value === "logicTest" ? "logicTest" : "calculation";
+          const safeTaskType = value === "logicTest" ? "logicTest" as const : "calculation" as const;
           return { ...task, [field]: safeTaskType };
         }
         // For other fields, update normally
