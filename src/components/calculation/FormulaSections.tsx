@@ -38,8 +38,14 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
   // Get appropriate style for active section
   const getActiveSectionStyle = (section: "condition" | "then" | "else") => {
     if (!isLogicTestMode) return "";
+    
     if (activeSection === section) {
-      return "ring-2 ring-offset-2 ";
+      switch (section) {
+        case "condition": return "ring-2 ring-blue-500 ring-offset-2";
+        case "then": return "ring-2 ring-green-500 ring-offset-2";
+        case "else": return "ring-2 ring-red-500 ring-offset-2";
+        default: return "";
+      }
     }
     return "";
   };
@@ -50,8 +56,8 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
       <FormulaTokensDisplay
         tokens={conditionPart}
         label={isLogicTestMode ? "IF condition" : "Formula"}
-        emptyMessage={isLogicTestMode ? "Build your condition here" : "Build your formula here"}
-        className={`${isLogicTestMode ? "bg-blue-50" : "bg-gray-50"} ${getActiveSectionStyle("condition")}`}
+        emptyMessage={isLogicTestMode ? "Click here to build your condition" : "Build your formula here"}
+        className={`${isLogicTestMode ? "bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer" : "bg-gray-50"} ${getActiveSectionStyle("condition")}`}
         badgePrefix={isLogicTestMode && ifIndex > -1 ? (
           <Badge 
             key="if-label"
@@ -81,8 +87,8 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           <FormulaTokensDisplay
             tokens={thenPart}
             label="THEN (if condition is TRUE)"
-            emptyMessage="Add what should happen when condition is true"
-            className={`bg-green-50 ${getActiveSectionStyle("then")}`}
+            emptyMessage="Click here to add what happens when condition is true"
+            className={`bg-green-50 hover:bg-green-100 transition-colors cursor-pointer ${getActiveSectionStyle("then")}`}
             badgePrefix={thenIndex > -1 ? (
               <Badge 
                 key="then-label"
@@ -105,8 +111,8 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           <FormulaTokensDisplay
             tokens={elsePart}
             label="ELSE (if condition is FALSE)"
-            emptyMessage="Add what should happen when condition is false"
-            className={`bg-red-50 ${getActiveSectionStyle("else")}`}
+            emptyMessage="Click here to add what happens when condition is false"
+            className={`bg-red-50 hover:bg-red-100 transition-colors cursor-pointer ${getActiveSectionStyle("else")}`}
             badgePrefix={elseIndex > -1 ? (
               <Badge 
                 key="else-label"

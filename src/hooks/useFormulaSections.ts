@@ -55,12 +55,26 @@ export const useFormulaSections = (
   const handleSectionClick = (section: "condition" | "then" | "else") => {
     if (!isLogicTestMode) return; // Only allow section switching in logic test mode
     
-    setActiveSection(section);
-    
-    // Visual feedback for which section is active
-    toast.info(`Now adding to ${section.toUpperCase()} section`, {
-      duration: 1500,
-    });
+    // Only update if the section is different
+    if (section !== activeSection) {
+      setActiveSection(section);
+      
+      // Show visual feedback with the appropriate color
+      const colorMap = {
+        condition: {text: "blue", title: "IF Condition"},
+        then: {text: "green", title: "THEN Section"},
+        else: {text: "red", title: "ELSE Section"}
+      };
+      
+      const { text, title } = colorMap[section];
+      
+      // Visual feedback for which section is active using appropriate colors
+      toast.success(`Now editing ${title}`, {
+        duration: 2000,
+        className: `bg-${text}-50 border-${text}-200 text-${text}-700`,
+        description: `Click elements to add them to the ${section.toUpperCase()} section`
+      });
+    }
   };
 
   return {

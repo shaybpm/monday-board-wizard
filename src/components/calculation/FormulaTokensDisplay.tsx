@@ -30,7 +30,11 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
     <div>
       <h4 className="text-sm font-medium mb-1 text-gray-600">{label}</h4>
       <div 
-        className={`p-4 border rounded-md ${className} min-h-16 flex flex-wrap gap-2 items-center ${disabled ? 'opacity-60' : ''} ${onClick && !disabled ? 'cursor-pointer hover:bg-opacity-90' : ''}`}
+        className={`p-4 border rounded-md ${className} min-h-16 flex flex-wrap gap-2 items-center 
+          ${disabled ? 'opacity-60' : ''} 
+          ${onClick && !disabled ? 'cursor-pointer hover:bg-opacity-90 transition-all' : ''}
+          ${onClick && !disabled && tokens.length === 0 ? 'animate-pulse' : ''}
+        `}
         aria-disabled={disabled}
         onClick={() => onClick && !disabled && onClick()} // Add click handler
         role={onClick && !disabled ? "button" : undefined}
