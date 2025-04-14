@@ -16,11 +16,13 @@ export function useTaskManagement() {
       try {
         const parsedTasks = JSON.parse(storedTasks);
         if (Array.isArray(parsedTasks) && parsedTasks.length > 0) {
-          // Ensure all tasks have a taskType field
+          // Ensure all tasks have a valid taskType field
           const updatedTasks = parsedTasks.map(task => ({
             ...task,
-            taskType: task.taskType || "calculation" // Default to calculation if not specified
-          }));
+            // Ensure taskType is one of the valid types, defaulting to "calculation"
+            taskType: task.taskType === "logicTest" ? "logicTest" : "calculation"
+          })) as Task[];
+          
           setTasks(updatedTasks);
         }
       } catch (e) {
@@ -43,9 +45,18 @@ export function useTaskManagement() {
   };
 
   const updateTask = (id: string, field: keyof Task, value: string) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === id ? { ...task, [field]: value } : task
-    );
+    const updatedTasks = tasks.map(task => {
+      if (task.id === id) {
+        // For taskType field, ensure it's a valid value
+        if (field === "taskType") {
+          const safeTaskType = value === "logicTest" ? "logicTest" : "calculation";
+          return { ...task, [field]: safeTaskType };
+        }
+        // For other fields, update normally
+        return { ...task, [field]: value };
+      }
+      return task;
+    });
     
     setTasks(updatedTasks);
     localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
