@@ -33,8 +33,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   const {
     isLogicTestMode,
     activeSection,
-    handleSectionClick,
-    handleModeToggle
+    handleSectionClick
   } = useFormulaSections(formula, (newFormula) => {
     // This would be called when we need to update the formula after mode switch
     // Clear the current formula and add all tokens from newFormula
@@ -105,23 +104,12 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     },
     onAddLogical
   });
-  
-  // Handle mode toggle with IF token check
-  const handleModeToggleWithIFCheck = (checked: boolean) => {
-    const needsIfToken = handleModeToggle(checked);
-    
-    // If switching to logic test mode and no IF token yet, add one
-    if (needsIfToken) {
-      onAddLogical("if");
-    }
-  };
 
   return (
     <div>
       <FormulaBuilderHeader 
         isLogicTestMode={isLogicTestMode}
         activeSection={activeSection}
-        onModeToggle={handleModeToggleWithIFCheck}
       />
       
       <FormulaSections 

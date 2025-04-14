@@ -20,6 +20,7 @@ interface CalculationFormProps {
   processedItems: number;
   totalItems: number;
   task: Task | null;
+  isLogicTestMode: boolean;
   onAddColumn: (column: BoardColumn) => void;
   onAddOperator: (operator: string) => void;
   onAddNumber: () => void;
@@ -44,6 +45,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   processedItems,
   totalItems,
   task,
+  isLogicTestMode,
   onAddColumn,
   onAddOperator,
   onAddNumber,

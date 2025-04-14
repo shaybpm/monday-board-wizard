@@ -75,8 +75,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({
               </TableCell>
               <TableCell>
                 <Select
-                  value={task.taskType || "calculation"}
-                  onValueChange={(value) => updateTask(task.id, "taskType", value)}
+                  value={task.taskType}
+                  onValueChange={(value) => updateTask(task.id, "taskType" as keyof Task, value)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select task type" />

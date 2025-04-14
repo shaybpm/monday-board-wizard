@@ -24,7 +24,7 @@ const CalculationBuilder = () => {
   return (
     <div className="container mx-auto p-4 min-h-screen">
       <h1 className="text-2xl font-bold mb-1">
-        {currentTask?.taskType === "logicTest" 
+        {isLogicTestMode 
           ? "Logic Test Operation" 
           : "Calculation Operation"}
       </h1>

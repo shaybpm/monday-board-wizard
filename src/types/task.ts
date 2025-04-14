@@ -4,6 +4,7 @@ export interface Task {
   title: string;
   sourceBoard: string;
   destinationBoard: string;
+  taskType: "calculation" | "logicTest";  // Added this field
   savedOperations?: {
     formula: Array<{
       id: string;
