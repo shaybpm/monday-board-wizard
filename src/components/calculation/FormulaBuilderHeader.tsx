@@ -38,7 +38,7 @@ const FormulaBuilderHeader: React.FC<FormulaBuilderHeaderProps> = ({
                 {activeSection.toUpperCase()}
               </span>
             </p>
-            <p className="mt-1">Click directly on any section below to make it active, then add elements to it.</p>
+            <p className="mt-1">Click directly on any section below to make it active, then add elements or type directly.</p>
           </div>
         </div>
       )}

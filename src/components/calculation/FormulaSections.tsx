@@ -10,6 +10,7 @@ interface FormulaSectionsProps {
   formula: CalculationToken[];
   onSectionClick: (section: "condition" | "then" | "else") => void;
   onRemoveToken: (index: number) => void;
+  onAddDirectInput: (text: string, section: "condition" | "then" | "else") => void;
 }
 
 const FormulaSections: React.FC<FormulaSectionsProps> = ({
@@ -17,7 +18,8 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
   activeSection,
   formula,
   onSectionClick,
-  onRemoveToken
+  onRemoveToken,
+  onAddDirectInput
 }) => {
   // Find positions of IF, THEN, and ELSE for dividing the formula
   const ifIndex = formula.findIndex(token => token.type === "logical" && token.value === "if");
@@ -77,6 +79,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
             onRemoveToken(index);
           }
         }}
+        onAddDirectInput={(text) => onAddDirectInput(text, "condition")}
         onClick={() => onSectionClick("condition")}
       />
       
@@ -103,6 +106,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
               const adjustedIndex = index + thenIndex + 1;
               onRemoveToken(adjustedIndex);
             }}
+            onAddDirectInput={(text) => onAddDirectInput(text, "then")}
             disabled={thenIndex === -1}
             onClick={() => onSectionClick("then")}
           />
@@ -127,6 +131,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
               const adjustedIndex = index + elseIndex + 1;
               onRemoveToken(adjustedIndex);
             }}
+            onAddDirectInput={(text) => onAddDirectInput(text, "else")}
             disabled={elseIndex === -1}
             onClick={() => onSectionClick("else")}
           />

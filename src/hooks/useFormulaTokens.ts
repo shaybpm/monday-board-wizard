@@ -94,10 +94,24 @@ export const useFormulaTokens = ({
     }));
   };
 
+  // Add a handler for direct text input
+  const handleAddDirectInput = (text: string, section: "condition" | "then" | "else") => {
+    // This function will be expanded in the FormulaBuilder
+    console.log(`Direct input: ${text} for section ${section}`);
+    
+    // Return the text and section, but the actual token creation
+    // will happen in FormulaBuilder
+    return {
+      text,
+      section
+    };
+  };
+
   return {
     handleAddColumnWrapped,
     handleAddOperatorWrapped,
     handleAddNumberWrapped,
-    handleAddConditionWrapped
+    handleAddConditionWrapped,
+    handleAddDirectInput
   };
 };
