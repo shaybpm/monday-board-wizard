@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useCalculationBuilder } from "@/hooks/useCalculationBuilder";
 import TaskSummary from "@/components/calculation/TaskSummary";
 import CalculationForm from "@/components/calculation/CalculationForm";
@@ -16,6 +16,12 @@ const CalculationBuilder = () => {
     handleProcessBoard,
     testCalculation
   } = useCalculationBuilder();
+
+  // Debugging
+  useEffect(() => {
+    console.log("Current task in CalculationBuilder:", currentTask);
+    console.log("Is logic test mode:", isLogicTestMode);
+  }, [currentTask, isLogicTestMode]);
 
   if (!boardData) {
     return <p>Loading...</p>;

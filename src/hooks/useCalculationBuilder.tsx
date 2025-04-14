@@ -21,8 +21,13 @@ export const useCalculationBuilder = () => {
     // Load task data
     const taskData = sessionStorage.getItem("mondayCurrentTask");
     if (taskData) {
-      const parsedTask = JSON.parse(taskData);
-      setCurrentTask(parsedTask);
+      try {
+        const parsedTask = JSON.parse(taskData);
+        console.log("Loaded task data:", parsedTask);
+        setCurrentTask(parsedTask);
+      } catch (error) {
+        console.error("Error parsing task data:", error);
+      }
     }
 
     // Load selected columns
@@ -118,6 +123,7 @@ export const useCalculationBuilder = () => {
     calculation.testCalculation();
   };
 
+  // Determine if we're in logic test mode based on the current task
   const isLogicTestMode = currentTask?.taskType === "logicTest";
 
   return {

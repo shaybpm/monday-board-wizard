@@ -26,6 +26,10 @@ export const useFormulaSections = (
         setCalculationFormula(formula);
       }
     }
+    
+    // Log for debugging
+    console.log("useFormulaSections - Is logic test mode:", isLogicTestMode);
+    console.log("useFormulaSections - Formula:", formula);
   }, [formula, isLogicTestMode]);
   
   // When component first loads, load any saved formulas based on mode

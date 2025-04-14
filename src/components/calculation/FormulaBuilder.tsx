@@ -18,6 +18,7 @@ interface FormulaBuilderProps {
   onRemoveToken: (index: number) => void;
   onAddCondition: (condition: string) => void;
   onAddLogical: (logical: string) => void;
+  isLogicTestMode: boolean;  // Added this prop
 }
 
 const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
@@ -28,10 +29,12 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   onRemoveToken,
   onAddCondition,
   onAddLogical,
+  isLogicTestMode,  // Use the passed prop
 }) => {
+  console.log("FormulaBuilder - Is Logic Test Mode:", isLogicTestMode);
+  
   // Use our custom hook for section management with formula update callback
   const {
-    isLogicTestMode,
     activeSection,
     handleSectionClick
   } = useFormulaSections(formula, (newFormula) => {
@@ -64,7 +67,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         }
       });
     }
-  });
+  }, isLogicTestMode);  // Pass the mode from props
   
   // Use our refactored hooks system for token handling
   const {
