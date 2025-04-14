@@ -10,6 +10,7 @@ const CalculationBuilder = () => {
     currentTask,
     selectedColumns,
     calculation,
+    isLogicTestMode,
     handleBackToBoard,
     handleApplyFormula,
     handleProcessBoard,
@@ -23,7 +24,9 @@ const CalculationBuilder = () => {
   return (
     <div className="container mx-auto p-4 min-h-screen">
       <h1 className="text-2xl font-bold mb-1">
-        {currentTask?.savedOperations ? "Update Calculation" : "Task Setup - Operation"}
+        {currentTask?.taskType === "logicTest" 
+          ? "Logic Test Operation" 
+          : "Calculation Operation"}
       </h1>
       
       <TaskSummary task={currentTask} boardName={boardData.boardName} />
@@ -37,6 +40,7 @@ const CalculationBuilder = () => {
         processedItems={calculation.processedItems}
         totalItems={calculation.totalItems}
         task={currentTask}
+        isLogicTestMode={isLogicTestMode}
         onAddColumn={calculation.handleAddColumn}
         onAddOperator={calculation.handleAddOperator}
         onAddNumber={calculation.handleAddNumber}

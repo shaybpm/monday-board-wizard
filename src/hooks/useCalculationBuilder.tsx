@@ -118,11 +118,14 @@ export const useCalculationBuilder = () => {
     calculation.testCalculation();
   };
 
+  const isLogicTestMode = currentTask?.taskType === "logicTest";
+
   return {
     boardData,
     currentTask,
     selectedColumns,
     calculation,
+    isLogicTestMode,
     handleBackToBoard,
     handleApplyFormula,
     handleProcessBoard,

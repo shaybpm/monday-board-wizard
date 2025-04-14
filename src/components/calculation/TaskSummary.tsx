@@ -16,6 +16,8 @@ const TaskSummary: React.FC<TaskSummaryProps> = ({ task, boardName }) => {
         <span className="font-semibold">Task {task.id}:</span>
         <span>{task.title}</span>
         <span>-</span>
+        <span className="font-medium">{task.taskType === "logicTest" ? "Logic Test" : "Calculation"}</span>
+        <span>-</span>
         <span>Source Board: {boardName || 'Loading...'} ({task.sourceBoard})</span>
       </div>
     </div>

@@ -1,34 +1,21 @@
 
 import React from "react";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
 
 interface FormulaBuilderHeaderProps {
   isLogicTestMode: boolean;
   activeSection: "condition" | "then" | "else";
-  onModeToggle: (checked: boolean) => void;
 }
 
 const FormulaBuilderHeader: React.FC<FormulaBuilderHeaderProps> = ({
   isLogicTestMode,
-  activeSection,
-  onModeToggle
+  activeSection
 }) => {
   return (
     <>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-md font-medium">Formula Builder</h3>
-        
-        {/* Mode toggle switch */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Calculation</span>
-          <Switch 
-            checked={isLogicTestMode} 
-            onCheckedChange={onModeToggle}
-            id="mode-toggle"
-          />
-          <span className="text-sm font-medium text-gray-700">Logic Test</span>
-        </div>
+        <h3 className="text-md font-medium">
+          {isLogicTestMode ? "Logic Test Builder" : "Formula Builder"}
+        </h3>
       </div>
       
       {isLogicTestMode && (
