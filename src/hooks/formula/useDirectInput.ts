@@ -13,10 +13,11 @@ export const useDirectInput = () => {
     // Enhanced logging with section information
     console.log(`[useDirectInput] Processing direct input: "${text}" for section "${section}"`);
     
-    // Return the text and section for processing in the calling component
+    // IMPORTANT: We must return both the text AND the specific section to ensure
+    // the text is added to the correct section
     return {
       text,
-      section
+      section: section // Explicitly use the passed section parameter
     };
   };
 

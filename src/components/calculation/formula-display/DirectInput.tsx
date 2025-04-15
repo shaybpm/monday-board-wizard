@@ -23,12 +23,12 @@ export const DirectInput: React.FC<DirectInputProps> = ({
   const getSectionStyles = () => {
     switch (sectionType) {
       case "then":
-        return "focus-visible:ring-green-500";
+        return "focus-visible:ring-green-500 border-green-300";
       case "else":
-        return "focus-visible:ring-red-500";
+        return "focus-visible:ring-red-500 border-red-300";
       case "condition":
       default:
-        return "focus-visible:ring-blue-500";
+        return "focus-visible:ring-blue-500 border-blue-300";
     }
   };
   

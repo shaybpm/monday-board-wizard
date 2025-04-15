@@ -2,7 +2,7 @@
 import { useState, useRef, KeyboardEvent, useEffect } from "react";
 
 interface UseFormulaDisplayProps {
-  onAddDirectInput?: (text: string) => void;
+  onAddDirectInput?: (text: string, section: "condition" | "then" | "else") => void;
   disabled?: boolean;
   sectionType?: "condition" | "then" | "else"; // Add section type
 }
@@ -49,7 +49,8 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false, sectionT
     try {
       // Add token with defensive code - this will be specific to this section
       console.log(`[useFormulaDisplay] 🔍 CALLING onAddDirectInput with text "${value.trim()}" for section "${sectionType}"`);
-      onAddDirectInput(value.trim());
+      // CRITICAL FIX: Pass the section type to ensure proper placement
+      onAddDirectInput(value.trim(), sectionType);
     } catch (err) {
       console.error(`[FormulaTokensDisplay] Error adding input: ${err}`);
     } finally {

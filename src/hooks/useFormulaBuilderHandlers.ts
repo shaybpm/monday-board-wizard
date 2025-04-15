@@ -1,4 +1,3 @@
-
 import { CalculationToken } from '@/types/calculation';
 import { useFormulaTokens } from './formula/useFormulaTokens';
 
@@ -79,8 +78,9 @@ export const useFormulaBuilderHandlers = ({
   const handleDirectInput = (text: string, section: "condition" | "then" | "else") => {
     console.log(`[FormulaBuilderHandlers] Direct input received: "${text}" for section "${section}"`);
     
-    // Make sure we're using the correct section - this is crucial for proper placement
-    const targetSection = section;
+    // CRITICAL FIX: We MUST use the section parameter passed in, not activeSection
+    // This ensures we're adding to the right section regardless of what's "active"
+    const targetSection = section; // Use the section where the input occurred
     console.log(`[FormulaBuilderHandlers] Using target section: ${targetSection} (active: ${activeSection})`);
     
     // First check if the text matches any of our logical operators
@@ -98,29 +98,19 @@ export const useFormulaBuilderHandlers = ({
       // Add as number token
       console.log(`[FormulaBuilderHandlers] Adding number token from text: ${text} to section ${targetSection}`);
       
-      // Use the section where the input occurred
-      const currentSection = targetSection;
-      
-      // When in logic test mode, respect the section
+      // When in logic test mode, respect the section where input was entered
       if (isLogicTestMode) {
-        // Set the active section first (this ensures the token is added to the right place)
-        console.log(`[FormulaBuilderHandlers] Setting active section to ${currentSection} before adding token`);
-        
-        // Temporarily switch to the target section (if needed)
-        if (currentSection !== activeSection) {
-          console.log(`[FormulaBuilderHandlers] ⚠️ Section mismatch detected. Input for ${currentSection} while active is ${activeSection}`);
-        }
+        console.log(`[FormulaBuilderHandlers] 🔍 FINAL TARGET SECTION: "${targetSection}", adding token with id: num-${Date.now()}`);
       }
       
-      console.log(`[FormulaBuilderHandlers] 🔍 FINAL TARGET SECTION: "${targetSection}", adding token with id: num-${Date.now()}`);
-      
+      // When adding the token, include the section info
       onAddColumn({
         id: `num-${Date.now()}`,
         title: text,
         type: "number",
         value: text,
         isNumberToken: true,
-        targetSection: targetSection // Add target section info
+        targetSection: targetSection // This is crucial for proper placement
       });
       return;
     }
