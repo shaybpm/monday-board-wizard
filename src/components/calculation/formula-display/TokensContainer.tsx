@@ -16,6 +16,7 @@ interface TokensContainerProps {
   onInputClick: (e: React.MouseEvent) => void;
   onAddDirectInput?: (text: string) => void;
   disabled?: boolean;
+  sectionType?: "condition" | "then" | "else"; // Add section type
 }
 
 export const TokensContainer: React.FC<TokensContainerProps> = ({
@@ -29,7 +30,8 @@ export const TokensContainer: React.FC<TokensContainerProps> = ({
   onKeyDown,
   onInputClick,
   onAddDirectInput,
-  disabled = false
+  disabled = false,
+  sectionType = "condition" // Default to condition
 }) => {
   if (tokens.length > 0) {
     return (
@@ -49,6 +51,7 @@ export const TokensContainer: React.FC<TokensContainerProps> = ({
             onKeyDown={onKeyDown}
             isProcessing={isProcessingEnter}
             onClick={onInputClick}
+            sectionType={sectionType} // Pass section type to DirectInput
           />
         )}
       </>
@@ -67,6 +70,7 @@ export const TokensContainer: React.FC<TokensContainerProps> = ({
           onKeyDown={onKeyDown}
           isProcessing={isProcessingEnter}
           onClick={onInputClick}
+          sectionType={sectionType} // Pass section type to DirectInput
         />
       )}
     </>

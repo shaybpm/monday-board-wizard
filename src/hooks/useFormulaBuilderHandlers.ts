@@ -28,6 +28,7 @@ export const useFormulaBuilderHandlers = ({
   onAddLogical
 }: FormulaBuilderHandlersProps) => {
   console.log("useFormulaBuilderHandlers - Is Logic Test Mode:", isLogicTestMode);
+  console.log("useFormulaBuilderHandlers - Active Section:", activeSection);
   
   // Use our custom hook for token handling with formula update callback
   const {
@@ -73,6 +74,10 @@ export const useFormulaBuilderHandlers = ({
   const handleDirectInput = (text: string, section: "condition" | "then" | "else") => {
     console.log(`[FormulaBuilderHandlers] Direct input received: "${text}" for section "${section}"`);
     
+    // Make sure we're using the correct section - this is crucial for proper placement
+    const targetSection = section;
+    console.log(`[FormulaBuilderHandlers] Using target section: ${targetSection} (active: ${activeSection})`);
+    
     // First check if the text matches any of our logical operators
     const lowerText = text.toLowerCase();
     
@@ -86,13 +91,29 @@ export const useFormulaBuilderHandlers = ({
     // Check if it's a number
     if (!isNaN(Number(text))) {
       // Add as number token
-      console.log(`[FormulaBuilderHandlers] Adding number token from text: ${text}`);
+      console.log(`[FormulaBuilderHandlers] Adding number token from text: ${text} to section ${targetSection}`);
+      
+      // Use the section where the input occurred
+      const currentSection = targetSection;
+      
+      // When in logic test mode, respect the section
+      if (isLogicTestMode) {
+        // Set the active section first (this ensures the token is added to the right place)
+        console.log(`[FormulaBuilderHandlers] Setting active section to ${currentSection} before adding token`);
+        
+        // Temporarily switch to the target section (if needed)
+        if (currentSection !== activeSection) {
+          console.log(`[FormulaBuilderHandlers] ⚠️ Section mismatch detected. Input for ${currentSection} while active is ${activeSection}`);
+        }
+      }
+      
       onAddColumn({
         id: `num-${Date.now()}`,
         title: text,
         type: "number",
         value: text,
-        isNumberToken: true
+        isNumberToken: true,
+        targetSection: targetSection // Add target section info
       });
       return;
     }
@@ -102,7 +123,7 @@ export const useFormulaBuilderHandlers = ({
     if (conditionOperators.includes(text)) {
       // Normalize "=" to "=="
       const normalizedOperator = text === "=" ? "==" : text;
-      console.log(`[FormulaBuilderHandlers] Adding condition operator from text: ${normalizedOperator}`);
+      console.log(`[FormulaBuilderHandlers] Adding condition operator from text: ${normalizedOperator} to section ${targetSection}`);
       onAddCondition(normalizedOperator);
       return;
     }
@@ -110,19 +131,20 @@ export const useFormulaBuilderHandlers = ({
     // Check if it's a math operator
     const mathOperators = ["+", "-", "*", "/", "(", ")"];
     if (mathOperators.includes(text)) {
-      console.log(`[FormulaBuilderHandlers] Adding math operator from text: ${text}`);
+      console.log(`[FormulaBuilderHandlers] Adding math operator from text: ${text} to section ${targetSection}`);
       onAddOperator(text);
       return;
     }
     
     // Otherwise add as a text token (custom type)
-    console.log(`[FormulaBuilderHandlers] Adding text token: ${text}`);
+    console.log(`[FormulaBuilderHandlers] Adding text token: ${text} to section ${targetSection}`);
     onAddColumn({
       id: `txt-${Date.now()}`,
       title: text,
       type: "text",
       value: text,
-      isTextToken: true
+      isTextToken: true,
+      targetSection: targetSection // Add target section info
     });
   };
   

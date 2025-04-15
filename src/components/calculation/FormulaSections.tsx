@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CalculationToken } from "@/types/calculation";
@@ -64,6 +65,22 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
     onSectionClick(section);
   };
 
+  // Wrapper functions to ensure each section's direct input is handled correctly
+  const handleConditionDirectInput = (text: string) => {
+    console.log(`[FormulaSections] Condition direct input: ${text}`);
+    onAddDirectInput(text, "condition");
+  };
+  
+  const handleThenDirectInput = (text: string) => {
+    console.log(`[FormulaSections] THEN direct input: ${text}`);
+    onAddDirectInput(text, "then");
+  };
+  
+  const handleElseDirectInput = (text: string) => {
+    console.log(`[FormulaSections] ELSE direct input: ${text}`);
+    onAddDirectInput(text, "else");
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Left side - Condition part */}
@@ -91,8 +108,9 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
             onRemoveToken(index);
           }
         }}
-        onAddDirectInput={(text) => onAddDirectInput(text, "condition")}
+        onAddDirectInput={handleConditionDirectInput}
         onClick={() => handleSectionClick("condition")}
+        sectionType="condition"
       />
       
       {/* Right side - Only show THEN and ELSE in logic test mode */}
@@ -118,8 +136,9 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
               const adjustedIndex = index + thenIndex + 1;
               onRemoveToken(adjustedIndex);
             }}
-            onAddDirectInput={(text) => onAddDirectInput(text, "then")}
+            onAddDirectInput={handleThenDirectInput}
             onClick={() => handleSectionClick("then")}
+            sectionType="then"
           />
           
           {/* ELSE part */}
@@ -142,8 +161,9 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
               const adjustedIndex = index + elseIndex + 1;
               onRemoveToken(adjustedIndex);
             }}
-            onAddDirectInput={(text) => onAddDirectInput(text, "else")}
+            onAddDirectInput={handleElseDirectInput}
             onClick={() => handleSectionClick("else")}
+            sectionType="else"
           />
         </div>
       )}

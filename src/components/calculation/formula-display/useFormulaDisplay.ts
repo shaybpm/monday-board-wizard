@@ -4,9 +4,10 @@ import { useState, useRef, KeyboardEvent } from "react";
 interface UseFormulaDisplayProps {
   onAddDirectInput?: (text: string) => void;
   disabled?: boolean;
+  sectionType?: "condition" | "then" | "else"; // Add section type
 }
 
-export const useFormulaDisplay = ({ onAddDirectInput, disabled = false }: UseFormulaDisplayProps) => {
+export const useFormulaDisplay = ({ onAddDirectInput, disabled = false, sectionType = "condition" }: UseFormulaDisplayProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isProcessingEnter, setIsProcessingEnter] = useState(false);
@@ -15,7 +16,7 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false }: UseFor
   // Start direct input editing
   const startEditing = () => {
     if (disabled || !onAddDirectInput) return;
-    console.log(`[FormulaTokensDisplay] Starting edit mode`);
+    console.log(`[FormulaTokensDisplay] Starting edit mode for section: ${sectionType}`);
     setIsEditing(true);
     setInputValue("");
     // Focus the input after it renders
@@ -33,14 +34,14 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false }: UseFor
   const safelyAddInput = (value: string) => {
     if (!value.trim() || !onAddDirectInput) return;
     
-    console.log(`[FormulaTokensDisplay] Adding direct input: ${value.trim()}`);
+    console.log(`[FormulaTokensDisplay] Adding direct input: ${value.trim()} for section: ${sectionType}`);
     
     // Disable the input and set processing flag BEFORE calling onAddDirectInput
     setIsProcessingEnter(true);
     setInputValue("");
     
     try {
-      // Add token with defensive code
+      // Add token with defensive code - this will be specific to this section
       onAddDirectInput(value.trim());
     } catch (err) {
       console.error(`[FormulaTokensDisplay] Error adding input: ${err}`);
@@ -57,7 +58,7 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false }: UseFor
 
   // Handle input keypresses with improved safety
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    console.log(`[FormulaTokensDisplay] Key pressed: ${e.key}, value: ${inputValue}`);
+    console.log(`[FormulaTokensDisplay] Key pressed: ${e.key}, value: ${inputValue}, section: ${sectionType}`);
     
     if (e.key === 'Enter') {
       // Prevent default behavior and stop event propagation
@@ -81,7 +82,7 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false }: UseFor
 
   // Handle clicks to prevent propagation
   const handleInputClick = (e: React.MouseEvent) => {
-    console.log(`[FormulaTokensDisplay] Input field clicked`);
+    console.log(`[FormulaTokensDisplay] Input field clicked for section: ${sectionType}`);
     e.stopPropagation(); // Prevent triggering container click
   };
 

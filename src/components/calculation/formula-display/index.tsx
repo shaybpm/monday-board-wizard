@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { TokensContainer } from "./TokensContainer";
 import { useFormulaDisplay } from "./useFormulaDisplay";
@@ -14,6 +15,7 @@ interface FormulaTokensDisplayProps {
   startIndex?: number;
   disabled?: boolean;
   onClick?: () => void; // Click handler for the container
+  sectionType?: "condition" | "then" | "else"; // Added section type prop
 }
 
 const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
@@ -27,29 +29,33 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   startIndex = 0,
   disabled = false,
   onClick,
+  sectionType = "condition" // Default to condition if not specified
 }) => {
   const {
     isEditing,
     inputValue,
     isProcessingEnter,
+    inputRef,
     startEditing,
+    setIsEditing,
     handleInputChange,
     handleKeyDown,
     handleInputClick
   } = useFormulaDisplay({
     onAddDirectInput,
-    disabled
+    disabled,
+    sectionType // Pass section type to useFormulaDisplay
   });
 
   // Log component re-renders with relevant props
   useEffect(() => {
-    console.log(`[FormulaTokensDisplay] Rendered: ${label} - isEditing: ${isEditing}`);
+    console.log(`[FormulaTokensDisplay] Rendered: ${label} - isEditing: ${isEditing}, sectionType: ${sectionType}`);
     console.log(`[FormulaTokensDisplay] ${label} - Token count: ${tokens.length}`);
-  }, [label, tokens.length, isEditing]);
+  }, [label, tokens.length, isEditing, sectionType]);
 
   // Handle clicks on container
   const handleContainerClick = () => {
-    console.log(`[FormulaTokensDisplay] ${label} - Container clicked, onClick handler exists: ${!!onClick}`);
+    console.log(`[FormulaTokensDisplay] ${label} - Container clicked, onClick handler exists: ${!!onClick}, sectionType: ${sectionType}`);
     if (onClick && !disabled) {
       onClick();
       if (!isEditing) {
@@ -78,9 +84,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
         aria-disabled={disabled}
         onClick={handleContainerClick}
         role={onClick && !disabled ? "button" : undefined}
-        data-section={label.toLowerCase().includes("if") ? "condition" : 
-                     label.toLowerCase().includes("then") ? "then" : 
-                     label.toLowerCase().includes("else") ? "else" : "unknown"}
+        data-section={sectionType}
       >
         {badgePrefix}
         <TokensContainer
@@ -95,6 +99,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
           onInputClick={handleInputClick}
           onAddDirectInput={onAddDirectInput}
           disabled={disabled}
+          sectionType={sectionType}
         />
       </div>
     </div>

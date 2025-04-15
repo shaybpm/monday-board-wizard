@@ -1,43 +1,49 @@
 
-import React, { useRef, useEffect, KeyboardEvent } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 
 interface DirectInputProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
-  isProcessing: boolean;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onClick: (e: React.MouseEvent) => void;
+  isProcessing: boolean;
+  sectionType?: "condition" | "then" | "else";
 }
 
-export const DirectInput: React.FC<DirectInputProps> = ({ 
-  value, 
-  onChange, 
-  onKeyDown, 
+export const DirectInput: React.FC<DirectInputProps> = ({
+  value,
+  onChange,
+  onKeyDown,
+  onClick,
   isProcessing,
-  onClick
+  sectionType = "condition"
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Focus the input when it's mounted
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
+  // Define section-specific appearance
+  const getSectionStyles = () => {
+    switch (sectionType) {
+      case "then":
+        return "focus-visible:ring-green-500";
+      case "else":
+        return "focus-visible:ring-red-500";
+      case "condition":
+      default:
+        return "focus-visible:ring-blue-500";
     }
-  }, []);
-
+  };
+  
   return (
     <Input
-      ref={inputRef}
       type="text"
       value={value}
       onChange={onChange}
       onKeyDown={onKeyDown}
       onClick={onClick}
-      className="max-w-[150px] h-8 inline-flex"
-      placeholder="Type here..."
+      className={`max-w-[150px] h-8 inline-flex ${getSectionStyles()}`}
+      placeholder={`Type here (${sectionType})...`}
       autoFocus
       disabled={isProcessing}
+      data-section={sectionType}
     />
   );
 };
