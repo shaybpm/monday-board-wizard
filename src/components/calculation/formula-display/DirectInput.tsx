@@ -1,6 +1,7 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface DirectInputProps {
   value: string;
@@ -9,6 +10,7 @@ interface DirectInputProps {
   onClick: (e: React.MouseEvent) => void;
   isProcessing: boolean;
   sectionType?: "condition" | "then" | "else";
+  inputRef?: React.RefObject<HTMLInputElement>;
 }
 
 export const DirectInput: React.FC<DirectInputProps> = ({
@@ -17,7 +19,8 @@ export const DirectInput: React.FC<DirectInputProps> = ({
   onKeyDown,
   onClick,
   isProcessing,
-  sectionType = "condition"
+  sectionType = "condition",
+  inputRef
 }) => {
   // Define section-specific appearance
   const getSectionStyles = () => {
@@ -33,7 +36,7 @@ export const DirectInput: React.FC<DirectInputProps> = ({
   };
   
   // Log when this component renders with section information
-  React.useEffect(() => {
+  useEffect(() => {
     console.log(`[DirectInput] Rendered for section "${sectionType}" with value: "${value}"`);
     return () => {
       console.log(`[DirectInput] Unmounting from section "${sectionType}"`);
@@ -53,11 +56,16 @@ export const DirectInput: React.FC<DirectInputProps> = ({
       onChange={onChange}
       onKeyDown={handleKeyDownWithLogging}
       onClick={onClick}
-      className={`max-w-[150px] h-8 inline-flex ${getSectionStyles()}`}
+      className={cn(
+        "max-w-[150px] h-8 inline-flex",
+        getSectionStyles()
+      )}
       placeholder={`Type here (${sectionType})...`}
       autoFocus
       disabled={isProcessing}
       data-section={sectionType}
+      ref={inputRef}
     />
   );
 };
+
