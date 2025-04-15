@@ -9,9 +9,11 @@ export function useTaskManagement() {
   ]);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // Load tasks from localStorage on mount
+  // Load tasks and selected task from localStorage on mount
   useEffect(() => {
     const storedTasks = localStorage.getItem("mondayTasks");
+    const storedSelectedTaskId = localStorage.getItem("mondaySelectedTaskId");
+    
     if (storedTasks) {
       try {
         const parsedTasks = JSON.parse(storedTasks);
@@ -24,6 +26,11 @@ export function useTaskManagement() {
           })) as Task[];
           
           setTasks(updatedTasks);
+          
+          // Load selected task ID if available
+          if (storedSelectedTaskId) {
+            setSelectedTaskId(storedSelectedTaskId);
+          }
         }
       } catch (e) {
         console.error("Error parsing stored tasks:", e);
@@ -70,6 +77,7 @@ export function useTaskManagement() {
       
       if (selectedTaskId === id) {
         setSelectedTaskId(null);
+        localStorage.removeItem("mondaySelectedTaskId");
       }
     } else {
       toast.error("You must have at least one task");
@@ -78,6 +86,7 @@ export function useTaskManagement() {
 
   const selectTask = (id: string) => {
     setSelectedTaskId(id);
+    localStorage.setItem("mondaySelectedTaskId", id);
   };
 
   return {

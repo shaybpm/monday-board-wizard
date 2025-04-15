@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { useCalculationBuilder } from "@/hooks/useCalculationBuilder";
 import TaskSummary from "@/components/calculation/TaskSummary";
@@ -27,18 +28,38 @@ const CalculationBuilder = () => {
     
     // Validate task and board data, redirect to home if missing
     if (!currentTask) {
-      console.warn("Missing task data in CalculationBuilder, redirecting to home");
+      console.error("Missing task data in CalculationBuilder, redirecting to home");
       toast.error("No active task found. Please select a task first.");
-      navigate("/");
+      
+      // Small delay to allow the toast to be displayed
+      setTimeout(() => {
+        navigate("/");
+      }, 500);
+      
       return;
     }
     
     if (!boardData) {
-      console.warn("Missing board data in CalculationBuilder, redirecting to home");
+      console.error("Missing board data in CalculationBuilder, redirecting to home");
       toast.error("Missing board data. Please reconnect to Monday.com.");
-      navigate("/");
+      
+      // Small delay to allow the toast to be displayed
+      setTimeout(() => {
+        navigate("/");
+      }, 500);
+      
       return;
     }
+    
+    // Log full task details for debugging
+    console.log("Full task details:", {
+      id: currentTask.id,
+      title: currentTask.title,
+      sourceBoard: currentTask.sourceBoard,
+      taskType: currentTask.taskType,
+      boardConfigured: currentTask.boardConfigured,
+      hasOperations: !!currentTask.savedOperations
+    });
   }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate]);
 
   // Auto-save formula every 5 seconds if there are changes
@@ -60,6 +81,7 @@ const CalculationBuilder = () => {
     };
   }, [currentTask, calculation.formula, handleBackToBoard]);
 
+  // Return a loading state while checking validation
   if (!boardData || !currentTask) {
     return (
       <div className="container mx-auto p-4">
