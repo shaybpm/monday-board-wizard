@@ -1,8 +1,9 @@
 
 import React from "react";
 import { CalculationToken } from "@/types/calculation";
-import { TokenBadge } from "./Badge";
 import { DirectInput } from "./DirectInput";
+import { BadgeList } from "./BadgeList";
+import { EmptyStateDisplay } from "./EmptyStateDisplay";
 
 interface TokenContainerProps {
   tokens: (CalculationToken & { uniqueId?: string })[];
@@ -37,45 +38,41 @@ export const TokenContainer: React.FC<TokenContainerProps> = ({
     onInputChange(e);
   };
 
-  if (tokens.length > 0) {
+  const renderInputField = () => {
+    if (!isEditing) return null;
+    
     return (
-      <>
-        {tokens.map((token, index) => (
-          <TokenBadge 
-            key={token.uniqueId || `${token.id}-${index}`}
-            token={token}
-            onRemove={() => onRemoveToken(index)}
-            disabled={disabled}
-          />
-        ))}
-        {isEditing && (
-          <DirectInput
-            value={inputValue}
-            onChange={handleInputChangeWithLogging}
-            onKeyDown={onKeyDown}
-            isProcessing={isProcessingEnter}
-            onClick={onInputClick}
-            sectionType={sectionType}
-          />
-        )}
-      </>
+      <DirectInput
+        value={inputValue}
+        onChange={handleInputChangeWithLogging}
+        onKeyDown={onKeyDown}
+        isProcessing={isProcessingEnter}
+        onClick={onInputClick}
+        sectionType={sectionType}
+      />
     );
-  }
-  
+  };
+
   return (
     <>
-      <span className={`text-gray-400 ${!disabled && !isEditing ? 'pointer-events-none' : ''}`}>
-        {isEditing ? "" : emptyMessage}
-      </span>
-      {isEditing && (
-        <DirectInput
-          value={inputValue}
-          onChange={handleInputChangeWithLogging}
-          onKeyDown={onKeyDown}
-          isProcessing={isProcessingEnter}
-          onClick={onInputClick}
-          sectionType={sectionType}
-        />
+      {tokens.length > 0 ? (
+        <>
+          <BadgeList 
+            tokens={tokens}
+            onRemoveToken={onRemoveToken}
+            disabled={disabled}
+          />
+          {renderInputField()}
+        </>
+      ) : (
+        <>
+          <EmptyStateDisplay 
+            message={emptyMessage}
+            isEditing={isEditing}
+            disabled={disabled}
+          />
+          {renderInputField()}
+        </>
       )}
     </>
   );
