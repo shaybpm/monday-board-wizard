@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CalculationToken } from "@/types/calculation";
 import FormulaTokensDisplay from "./FormulaTokensDisplay";
@@ -26,6 +26,13 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
   const thenIndex = formula.findIndex(token => token.type === "logical" && token.value === "then");
   const elseIndex = formula.findIndex(token => token.type === "logical" && token.value === "else");
   
+  // Log each render with active section and token indices
+  useEffect(() => {
+    console.log(`[FormulaSections] Rendered with activeSection: ${activeSection}`);
+    console.log(`[FormulaSections] Token positions - IF: ${ifIndex}, THEN: ${thenIndex}, ELSE: ${elseIndex}`);
+    console.log(`[FormulaSections] Formula:`, formula);
+  }, [activeSection, formula, ifIndex, thenIndex, elseIndex]);
+  
   // Divide formula into condition, then, and else parts
   const conditionPart = isLogicTestMode 
     ? (thenIndex > -1 ? formula.slice(ifIndex + 1, thenIndex) : (ifIndex > -1 ? formula.slice(ifIndex + 1) : []))
@@ -50,6 +57,12 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
       }
     }
     return "";
+  };
+
+  // Enhanced click handlers with logging
+  const handleSectionClick = (section: "condition" | "then" | "else") => {
+    console.log(`[FormulaSections] Section clicked: ${section}`);
+    onSectionClick(section);
   };
 
   return (
@@ -80,7 +93,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           }
         }}
         onAddDirectInput={(text) => onAddDirectInput(text, "condition")}
-        onClick={() => onSectionClick("condition")}
+        onClick={() => handleSectionClick("condition")}
       />
       
       {/* Right side - Only show THEN and ELSE in logic test mode */}
@@ -107,7 +120,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
               onRemoveToken(adjustedIndex);
             }}
             onAddDirectInput={(text) => onAddDirectInput(text, "then")}
-            onClick={() => onSectionClick("then")}
+            onClick={() => handleSectionClick("then")}
           />
           
           {/* ELSE part */}
@@ -131,7 +144,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
               onRemoveToken(adjustedIndex);
             }}
             onAddDirectInput={(text) => onAddDirectInput(text, "else")}
-            onClick={() => onSectionClick("else")}
+            onClick={() => handleSectionClick("else")}
           />
         </div>
       )}

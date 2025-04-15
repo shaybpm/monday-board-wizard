@@ -35,6 +35,8 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     handleSectionClick
   } = useFormulaSections(formula, (newFormula) => {
     // This would be called when we need to update the formula after mode switch
+    console.log("[FormulaBuilder] Formula update callback triggered with new formula:", newFormula);
+    
     // Clear the current formula and add all tokens from newFormula
     if (newFormula.length > 0) {
       // Remove all tokens from current formula
@@ -59,6 +61,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         } else if (token.type === "condition") {
           onAddCondition(token.value);
         } else if (token.type === "logical") {
+          console.log(`[FormulaBuilder] Adding logical token: ${token.value}`);
           onAddLogical(token.value);
         }
       });
@@ -107,11 +110,14 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
 
   // Handler for direct text input from formula sections
   const handleDirectInput = (text: string, section: "condition" | "then" | "else") => {
+    console.log(`[FormulaBuilder] Direct input received: "${text}" for section "${section}"`);
+    
     // First check if the text matches any of our logical operators
     const lowerText = text.toLowerCase();
     
     // Insert text as logical token if it matches if/then/else
     if (["if", "then", "else"].includes(lowerText)) {
+      console.log(`[FormulaBuilder] Adding logical token from text: ${lowerText}`);
       onAddLogical(lowerText);
       return;
     }
@@ -119,6 +125,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     // Check if it's a number
     if (!isNaN(Number(text))) {
       // Add as number token
+      console.log(`[FormulaBuilder] Adding number token from text: ${text}`);
       onAddColumn({
         id: `num-${Date.now()}`,
         title: text,
@@ -134,6 +141,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     if (conditionOperators.includes(text)) {
       // Normalize "=" to "=="
       const normalizedOperator = text === "=" ? "==" : text;
+      console.log(`[FormulaBuilder] Adding condition operator from text: ${normalizedOperator}`);
       onAddCondition(normalizedOperator);
       return;
     }
@@ -141,11 +149,13 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
     // Check if it's a math operator
     const mathOperators = ["+", "-", "*", "/", "(", ")"];
     if (mathOperators.includes(text)) {
+      console.log(`[FormulaBuilder] Adding math operator from text: ${text}`);
       onAddOperator(text);
       return;
     }
     
     // Otherwise add as a text token (custom type)
+    console.log(`[FormulaBuilder] Adding text token: ${text}`);
     onAddColumn({
       id: `txt-${Date.now()}`,
       title: text,
@@ -153,6 +163,12 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
       value: text,
       isTextToken: true
     });
+  };
+
+  // When a section is clicked, we need to call our section handler
+  const handleSectionClickWrapper = (section: "condition" | "then" | "else") => {
+    console.log(`[FormulaBuilder] Section click wrapper: ${section}`);
+    handleSectionClick(section);
   };
 
   return (
@@ -166,7 +182,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         isLogicTestMode={isLogicTestMode}
         activeSection={activeSection}
         formula={formula}
-        onSectionClick={handleSectionClick}
+        onSectionClick={handleSectionClickWrapper}
         onRemoveToken={onRemoveToken}
         onAddDirectInput={handleDirectInput}
       />

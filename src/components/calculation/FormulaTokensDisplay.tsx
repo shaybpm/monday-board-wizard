@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, KeyboardEvent, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CalculationToken } from "@/types/calculation";
@@ -32,9 +33,16 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Log component re-renders with relevant props
+  useEffect(() => {
+    console.log(`[FormulaTokensDisplay] Rendered: ${label} - isEditing: ${isEditing}`);
+    console.log(`[FormulaTokensDisplay] ${label} - Token count: ${tokens.length}`);
+  }, [label, tokens.length, isEditing]);
+
   // Start direct input editing
   const startEditing = () => {
     if (disabled || !onAddDirectInput) return;
+    console.log(`[FormulaTokensDisplay] ${label} - Starting edit mode`);
     setIsEditing(true);
     setInputValue("");
     // Focus the input after it renders
@@ -50,13 +58,16 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
 
   // Handle input keypresses
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    console.log(`[FormulaTokensDisplay] ${label} - Key pressed: ${e.key}, value: ${inputValue}`);
     if (e.key === 'Enter' && inputValue.trim()) {
-      onAddDirectInput(inputValue.trim());
+      console.log(`[FormulaTokensDisplay] ${label} - Adding direct input: ${inputValue.trim()}`);
+      onAddDirectInput && onAddDirectInput(inputValue.trim());
       setInputValue("");
       e.preventDefault();
       // Keep the input field active after submitting
       setTimeout(() => inputRef.current?.focus(), 10);
     } else if (e.key === 'Escape') {
+      console.log(`[FormulaTokensDisplay] ${label} - Cancelling edit mode`);
       setIsEditing(false);
       setInputValue("");
     }
@@ -64,6 +75,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
 
   // Handle clicks on container and prevent propagation for input
   const handleContainerClick = () => {
+    console.log(`[FormulaTokensDisplay] ${label} - Container clicked, onClick handler exists: ${!!onClick}`);
     if (onClick && !disabled) {
       onClick();
       if (!isEditing) {
@@ -73,15 +85,17 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   };
 
   const handleInputClick = (e: React.MouseEvent) => {
+    console.log(`[FormulaTokensDisplay] ${label} - Input field clicked`);
     e.stopPropagation(); // Prevent triggering container click
   };
 
   // Effect to keep editing state active when section is clicked
   useEffect(() => {
     if (onClick) {
+      console.log(`[FormulaTokensDisplay] ${label} - Auto-starting edit mode from click handler`);
       startEditing();
     }
-  }, [onClick]);
+  }, [onClick, label]);
 
   return (
     <div>
@@ -95,6 +109,9 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
         aria-disabled={disabled}
         onClick={handleContainerClick}
         role={onClick && !disabled ? "button" : undefined}
+        data-section={label.toLowerCase().includes("if") ? "condition" : 
+                     label.toLowerCase().includes("then") ? "then" : 
+                     label.toLowerCase().includes("else") ? "else" : "unknown"}
       >
         {badgePrefix}
         {tokens.length > 0 ? (
@@ -106,6 +123,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
                 className={`px-3 py-1 ${!disabled ? 'cursor-pointer hover:bg-opacity-80' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent triggering container click
+                  console.log(`[FormulaTokensDisplay] ${label} - Token clicked to remove: ${token.display}`);
                   if (!disabled) onRemoveToken(index);
                 }}
               >

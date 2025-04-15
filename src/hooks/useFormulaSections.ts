@@ -55,9 +55,13 @@ export const useFormulaSections = (
   const handleSectionClick = (section: "condition" | "then" | "else") => {
     if (!isLogicTestMode) return; // Only allow section switching in logic test mode
     
+    console.log(`[useFormulaSections] Section clicked: ${section}, current active section: ${activeSection}`);
+    
     // Only update if the section is different
     if (section !== activeSection) {
       setActiveSection(section);
+      
+      console.log(`[useFormulaSections] Setting active section to: ${section}`);
       
       // Show visual feedback with the appropriate color
       const colorMap = {
@@ -77,11 +81,9 @@ export const useFormulaSections = (
           value: "then",
           display: "THEN"
         };
-        const ifIndex = formula.findIndex(token => token.type === "logical" && token.value === "if");
-        if (ifIndex > -1) {
-          // Add after the last condition token
-          onFormulaUpdate([...formula, thenToken]);
-        }
+        
+        console.log(`[useFormulaSections] Adding THEN token because it's missing`);
+        onFormulaUpdate([...formula, thenToken]);
       } else if (section === "else" && !formula.some(token => token.type === "logical" && token.value === "else")) {
         // Add ELSE token if missing
         const elseToken = {
@@ -90,12 +92,15 @@ export const useFormulaSections = (
           value: "else",
           display: "ELSE"
         };
+        
         const thenIndex = formula.findIndex(token => token.type === "logical" && token.value === "then");
         if (thenIndex > -1) {
           // Add after the last THEN token
+          console.log(`[useFormulaSections] Adding ELSE token because it's missing`);
           onFormulaUpdate([...formula, elseToken]);
         } else {
           // If no THEN token, warn user
+          console.log(`[useFormulaSections] Cannot add ELSE without THEN section`);
           toast.info("You need to add a THEN section first");
           setActiveSection("then");
           return;
@@ -108,6 +113,7 @@ export const useFormulaSections = (
           value: "if",
           display: "IF"
         };
+        console.log(`[useFormulaSections] Adding IF token because it's missing`);
         onFormulaUpdate([ifToken]);
       }
     }

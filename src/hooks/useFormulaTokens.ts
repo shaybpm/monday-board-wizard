@@ -18,6 +18,9 @@ export const useFormulaTokens = ({
   onAddToken,
   onAddLogical
 }: FormulaTokensProps) => {
+  // Log the active section and mode for debugging
+  console.log(`[useFormulaTokens] Active section: ${activeSection}, Logic test mode: ${isLogicTestMode}`);
+  
   // Use our section token adder hook
   const { addTokenToFormula } = useSectionTokenAdder({
     formula,
@@ -28,6 +31,8 @@ export const useFormulaTokens = ({
 
   // Override handlers to use our section-aware logic
   const handleAddColumnWrapped = (column: any) => {
+    console.log(`[useFormulaTokens] Adding column ${column.id} to ${isLogicTestMode ? activeSection : "formula"}`);
+    
     // In calculation mode, add directly to formula regardless of section
     if (!isLogicTestMode) {
       console.log("[TokenHandler] Adding column directly in calculation mode:", column);
@@ -51,8 +56,8 @@ export const useFormulaTokens = ({
 
   // Add a handler for direct text input
   const handleAddDirectInput = (text: string, section: "condition" | "then" | "else") => {
-    // This function will be expanded in the FormulaBuilder
-    console.log(`Direct input: ${text} for section ${section}`);
+    // Log the input for debugging
+    console.log(`[useFormulaTokens] Direct input: ${text} for section ${section}`);
     
     // Return the text and section, but the actual token creation
     // will happen in FormulaBuilder
