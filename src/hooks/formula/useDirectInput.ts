@@ -10,8 +10,8 @@ import { toast } from 'sonner';
 export const useDirectInput = () => {
   // Handler for direct text input that ensures it's added to the correct section
   const handleAddDirectInput = (text: string, section: "condition" | "then" | "else") => {
-    // Log the input for debugging
-    console.log(`[useDirectInput] Direct input: ${text} for section ${section}`);
+    // Enhanced logging with section information
+    console.log(`[useDirectInput] Processing direct input: "${text}" for section "${section}"`);
     
     // Return the text and section for processing in the calling component
     return {

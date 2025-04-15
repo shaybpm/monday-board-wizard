@@ -32,12 +32,26 @@ export const DirectInput: React.FC<DirectInputProps> = ({
     }
   };
   
+  // Log when this component renders with section information
+  React.useEffect(() => {
+    console.log(`[DirectInput] Rendered for section "${sectionType}" with value: "${value}"`);
+    return () => {
+      console.log(`[DirectInput] Unmounting from section "${sectionType}"`);
+    };
+  }, [value, sectionType]);
+
+  // Enhanced logging for key events
+  const handleKeyDownWithLogging = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    console.log(`[DirectInput] Key "${e.key}" pressed in section "${sectionType}" with value: "${value}"`);
+    onKeyDown(e);
+  };
+  
   return (
     <Input
       type="text"
       value={value}
       onChange={onChange}
-      onKeyDown={onKeyDown}
+      onKeyDown={handleKeyDownWithLogging}
       onClick={onClick}
       className={`max-w-[150px] h-8 inline-flex ${getSectionStyles()}`}
       placeholder={`Type here (${sectionType})...`}

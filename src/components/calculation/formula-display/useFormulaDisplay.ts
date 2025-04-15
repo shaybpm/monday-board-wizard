@@ -1,5 +1,5 @@
 
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useRef, KeyboardEvent, useEffect } from "react";
 
 interface UseFormulaDisplayProps {
   onAddDirectInput?: (text: string) => void;
@@ -12,6 +12,11 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false, sectionT
   const [inputValue, setInputValue] = useState("");
   const [isProcessingEnter, setIsProcessingEnter] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Log section and state on mount and updates
+  useEffect(() => {
+    console.log(`[useFormulaDisplay] Hook initialized for section "${sectionType}" - isEditing: ${isEditing}, inputValue: "${inputValue}"`);
+  }, [sectionType, isEditing, inputValue]);
 
   // Start direct input editing
   const startEditing = () => {
@@ -27,6 +32,7 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false, sectionT
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(`[useFormulaDisplay] Input changed in section "${sectionType}" to: "${e.target.value}"`);
     setInputValue(e.target.value);
   };
 
@@ -34,7 +40,7 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false, sectionT
   const safelyAddInput = (value: string) => {
     if (!value.trim() || !onAddDirectInput) return;
     
-    console.log(`[FormulaTokensDisplay] Adding direct input: ${value.trim()} for section: ${sectionType}`);
+    console.log(`[FormulaTokensDisplay] Adding direct input: "${value.trim()}" for section: "${sectionType}"`);
     
     // Disable the input and set processing flag BEFORE calling onAddDirectInput
     setIsProcessingEnter(true);
@@ -42,6 +48,7 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false, sectionT
     
     try {
       // Add token with defensive code - this will be specific to this section
+      console.log(`[useFormulaDisplay] 🔍 CALLING onAddDirectInput with text "${value.trim()}" for section "${sectionType}"`);
       onAddDirectInput(value.trim());
     } catch (err) {
       console.error(`[FormulaTokensDisplay] Error adding input: ${err}`);
@@ -58,7 +65,7 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false, sectionT
 
   // Handle input keypresses with improved safety
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    console.log(`[FormulaTokensDisplay] Key pressed: ${e.key}, value: ${inputValue}, section: ${sectionType}`);
+    console.log(`[FormulaTokensDisplay] Key pressed: ${e.key}, value: "${inputValue}", section: "${sectionType}"`);
     
     if (e.key === 'Enter') {
       // Prevent default behavior and stop event propagation
@@ -82,7 +89,7 @@ export const useFormulaDisplay = ({ onAddDirectInput, disabled = false, sectionT
 
   // Handle clicks to prevent propagation
   const handleInputClick = (e: React.MouseEvent) => {
-    console.log(`[FormulaTokensDisplay] Input field clicked for section: ${sectionType}`);
+    console.log(`[FormulaTokensDisplay] Input field clicked for section: "${sectionType}"`);
     e.stopPropagation(); // Prevent triggering container click
   };
 

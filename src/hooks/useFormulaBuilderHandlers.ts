@@ -1,3 +1,4 @@
+
 import { CalculationToken } from '@/types/calculation';
 import { useFormulaTokens } from './formula/useFormulaTokens';
 
@@ -45,13 +46,15 @@ export const useFormulaBuilderHandlers = ({
       if (token.type === "column") {
         // For column tokens, pass through to onAddColumn
         const column = { id: token.value, title: token.display };
+        console.log(`[FormulaBuilderHandlers] Adding column to section "${activeSection}":`, column);
         onAddColumn(column);
       } else if (token.type === "operator") {
         // For operator tokens, pass through to onAddOperator
+        console.log(`[FormulaBuilderHandlers] Adding operator "${token.value}" to section "${activeSection}"`);
         onAddOperator(token.value);
       } else if (token.type === "number") {
         // For number tokens, add directly to parent formula
-        console.log("[FormulaBuilderHandlers] Adding number token to formula");
+        console.log(`[FormulaBuilderHandlers] Adding number token "${token.value}" to section "${activeSection}"`);
         onAddColumn({
           id: token.id,
           title: token.display,
@@ -61,9 +64,11 @@ export const useFormulaBuilderHandlers = ({
         });
       } else if (token.type === "condition") {
         // For condition tokens, pass through to onAddCondition
+        console.log(`[FormulaBuilderHandlers] Adding condition "${token.value}" to section "${activeSection}"`);
         onAddCondition(token.value);
       } else if (token.type === "logical") {
         // For logical tokens, pass through to onAddLogical
+        console.log(`[FormulaBuilderHandlers] Adding logical "${token.value}" to section "${activeSection}"`);
         onAddLogical(token.value);
       }
     },
@@ -106,6 +111,8 @@ export const useFormulaBuilderHandlers = ({
           console.log(`[FormulaBuilderHandlers] ⚠️ Section mismatch detected. Input for ${currentSection} while active is ${activeSection}`);
         }
       }
+      
+      console.log(`[FormulaBuilderHandlers] 🔍 FINAL TARGET SECTION: "${targetSection}", adding token with id: num-${Date.now()}`);
       
       onAddColumn({
         id: `num-${Date.now()}`,

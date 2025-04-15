@@ -44,6 +44,14 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
     
   const elsePart = elseIndex > -1 ? formula.slice(elseIndex + 1) : [];
 
+  // Log the split formula sections
+  useEffect(() => {
+    console.log(`[FormulaSections] SPLIT FORMULA - Condition tokens: ${conditionPart.length}, Then tokens: ${thenPart.length}, Else tokens: ${elsePart.length}`);
+    console.log('[FormulaSections] Condition tokens:', conditionPart);
+    console.log('[FormulaSections] Then tokens:', thenPart);
+    console.log('[FormulaSections] Else tokens:', elsePart);
+  }, [conditionPart, thenPart, elsePart]);
+
   // Get appropriate style for active section
   const getActiveSectionStyle = (section: "condition" | "then" | "else") => {
     if (!isLogicTestMode) return "";
@@ -67,18 +75,23 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
 
   // Wrapper functions to ensure each section's direct input is handled correctly
   const handleConditionDirectInput = (text: string) => {
-    console.log(`[FormulaSections] Condition direct input: ${text}`);
+    console.log(`[FormulaSections] Condition direct input: "${text}"`);
     onAddDirectInput(text, "condition");
   };
   
   const handleThenDirectInput = (text: string) => {
-    console.log(`[FormulaSections] THEN direct input: ${text}`);
+    console.log(`[FormulaSections] THEN direct input: "${text}"`);
     onAddDirectInput(text, "then");
   };
   
   const handleElseDirectInput = (text: string) => {
-    console.log(`[FormulaSections] ELSE direct input: ${text}`);
+    console.log(`[FormulaSections] ELSE direct input: "${text}"`);
     onAddDirectInput(text, "else");
+  };
+
+  // Log token removal with section context
+  const logTokenRemoval = (section: string, index: number, adjustedIndex: number) => {
+    console.log(`[FormulaSections] Removing token from ${section} section - index: ${index}, adjusted index: ${adjustedIndex}`);
   };
 
   return (
@@ -102,9 +115,11 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           // For condition part, adjust the index based on mode
           if (isLogicTestMode && ifIndex > -1) {
             const adjustedIndex = index + ifIndex + 1;
+            logTokenRemoval("condition", index, adjustedIndex);
             onRemoveToken(adjustedIndex);
           } else {
             // In calculation mode, use the direct index
+            logTokenRemoval("condition", index, index);
             onRemoveToken(index);
           }
         }}
@@ -134,6 +149,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
             onRemoveToken={(index) => {
               // For then part, adjust the index
               const adjustedIndex = index + thenIndex + 1;
+              logTokenRemoval("then", index, adjustedIndex);
               onRemoveToken(adjustedIndex);
             }}
             onAddDirectInput={handleThenDirectInput}
@@ -159,6 +175,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
             onRemoveToken={(index) => {
               // For else part, adjust the index
               const adjustedIndex = index + elseIndex + 1;
+              logTokenRemoval("else", index, adjustedIndex);
               onRemoveToken(adjustedIndex);
             }}
             onAddDirectInput={handleElseDirectInput}
