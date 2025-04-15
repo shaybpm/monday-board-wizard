@@ -31,6 +31,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [isProcessingEnter, setIsProcessingEnter] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Log component re-renders with relevant props
@@ -56,35 +57,44 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
     setInputValue(e.target.value);
   };
 
-  // Handle input keypresses - FIXED to handle Enter key properly
+  // Handle input keypresses - FIXED to prevent infinite loops/recursion
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     console.log(`[FormulaTokensDisplay] ${label} - Key pressed: ${e.key}, value: ${inputValue}`);
     
     if (e.key === 'Enter' && inputValue.trim()) {
-      e.preventDefault(); // Prevent form submission which could cause page reload
-      e.stopPropagation(); // Stop event bubbling
+      // Prevent default behavior and stop event propagation
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Early return if we're already processing an Enter key
+      if (isProcessingEnter) {
+        console.log(`[FormulaTokensDisplay] ${label} - Already processing an Enter key, ignoring`);
+        return;
+      }
+
+      // Set flag to prevent multiple simultaneous Enter key processing
+      setIsProcessingEnter(true);
       
       console.log(`[FormulaTokensDisplay] ${label} - Adding direct input: ${inputValue.trim()}`);
       
-      // Store the current value before resetting
+      // Store the current value and clear input field
       const currentValue = inputValue.trim();
-      
-      // Clear input first
       setInputValue("");
       
-      // Then add the token (using setTimeout to prevent any race conditions)
+      // Add token with a slight delay to prevent race conditions
+      if (onAddDirectInput) {
+        console.log(`[FormulaTokensDisplay] ${label} - Calling onAddDirectInput with: ${currentValue}`);
+        onAddDirectInput(currentValue);
+      }
+      
+      // Reset the processing flag and refocus input
       setTimeout(() => {
-        if (onAddDirectInput) {
-          onAddDirectInput(currentValue);
-          
-          // Ensure input remains focused after adding
-          setTimeout(() => {
-            if (inputRef.current) {
-              inputRef.current.focus();
-            }
-          }, 10);
+        if (inputRef.current) {
+          inputRef.current.focus();
         }
-      }, 10);
+        setIsProcessingEnter(false);
+        console.log(`[FormulaTokensDisplay] ${label} - Enter key processing complete`);
+      }, 50);
     } else if (e.key === 'Escape') {
       console.log(`[FormulaTokensDisplay] ${label} - Cancelling edit mode`);
       setIsEditing(false);
@@ -160,6 +170,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
                 className="max-w-[150px] h-8 inline-flex"
                 placeholder="Type here..."
                 autoFocus
+                disabled={isProcessingEnter}
               />
             )}
           </>
@@ -179,6 +190,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
                 className="max-w-[150px] h-8 inline-flex"
                 placeholder="Type here..."
                 autoFocus
+                disabled={isProcessingEnter}
               />
             )}
           </>

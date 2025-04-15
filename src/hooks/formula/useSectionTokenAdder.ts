@@ -39,10 +39,8 @@ export const useSectionTokenAdder = ({
     switch (activeSection) {
       case "condition":
         if (ifIndex === -1) {
-          // If there's no IF yet, add it first
-          toast.warning("Add an IF operator first", {
-            description: "Click the IF button before adding other elements to your condition"
-          });
+          // If there's no IF yet, show a warning
+          toast.warning("Add an IF operator first");
           return;
         }
         
@@ -52,18 +50,8 @@ export const useSectionTokenAdder = ({
       
       case "then":
         if (thenIndex === -1) {
-          // If there's no THEN yet, add it first
-          console.log(`[useSectionTokenAdder] Adding THEN token first`);
-          const thenLogicalToken = {
-            id: `log-${Date.now()}`,
-            type: "logical" as const,
-            value: "then",
-            display: "THEN"
-          };
-          onAddToken(thenLogicalToken);
-          
-          // Then add the actual token
-          setTimeout(() => onAddToken(newToken), 10);
+          // If there's no THEN yet, show a warning
+          toast.warning("Add a THEN operator first");
           return;
         }
         
@@ -73,18 +61,8 @@ export const useSectionTokenAdder = ({
       
       case "else":
         if (elseIndex === -1) {
-          // If there's no ELSE yet, add it first
-          console.log(`[useSectionTokenAdder] Adding ELSE token first`);
-          const elseLogicalToken = {
-            id: `log-${Date.now()}`,
-            type: "logical" as const,
-            value: "else",
-            display: "ELSE"
-          };
-          onAddToken(elseLogicalToken);
-          
-          // Then add the actual token
-          setTimeout(() => onAddToken(newToken), 10);
+          // If there's no ELSE yet, show a warning
+          toast.warning("Add an ELSE operator first");
           return;
         }
         
