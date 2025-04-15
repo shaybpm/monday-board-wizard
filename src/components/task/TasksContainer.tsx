@@ -26,9 +26,37 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
   const navigate = useNavigate();
   
   React.useEffect(() => {
-    // Clear any previous task data when returning to the main page
-    // but preserve tasks array in localStorage
+    // When returning to main page, preserve task data in localStorage
+    // but clear current task data in sessionStorage
+    const currentTask = sessionStorage.getItem("mondayCurrentTask");
+    if (currentTask) {
+      try {
+        // Save current task to localStorage before clearing
+        const parsedTask = JSON.parse(currentTask);
+        const tasksData = localStorage.getItem("mondayTasks");
+        if (tasksData) {
+          const tasks = JSON.parse(tasksData);
+          const updatedTasks = tasks.map((task: any) => {
+            if (task.id === parsedTask.id) {
+              return {
+                ...task,
+                boardConfigured: parsedTask.boardConfigured,
+                selectedColumns: parsedTask.selectedColumns,
+                savedOperations: parsedTask.savedOperations
+              };
+            }
+            return task;
+          });
+          localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
+        }
+      } catch (error) {
+        console.error("Error saving task data:", error);
+      }
+    }
+    
+    // Now clear the session storage for a fresh task selection
     sessionStorage.removeItem("mondayCurrentTask");
+    sessionStorage.removeItem("selectedColumns");
   }, []);
   
   const handleProcessTasks = async () => {

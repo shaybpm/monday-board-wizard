@@ -53,6 +53,12 @@ export const useCalculationBuilder = () => {
             const allColumnIds = boardData.columns.map(col => col.id);
             sessionStorage.setItem("selectedColumns", JSON.stringify(allColumnIds));
           }
+
+          // If the task has saved operations, apply them to the formula builder
+          if (parsedTask.savedOperations && parsedTask.savedOperations.formula) {
+            // The formula will be applied in the useCalculation hook's useEffect
+            console.log("Found saved operations in task:", parsedTask.savedOperations);
+          }
         }
       } catch (error) {
         console.error("Error parsing task data:", error);
@@ -61,69 +67,89 @@ export const useCalculationBuilder = () => {
   }, [boardData]);
 
   const handleBackToBoard = () => {
+    // Before navigating back, save the current formula state
+    if (currentTask && (calculation.formula.length > 0 || calculation.targetColumn)) {
+      saveCurrentOperations(false);
+    }
     navigate("/board");
   };
 
   const handleApplyFormula = () => {
     // Save the operation to the task
-    if (currentTask) {
+    if (saveCurrentOperations(true)) {
+      toast.success("Formula saved and applied successfully!");
+      navigate("/");
+    } else {
+      toast.error("Failed to save operation");
+    }
+  };
+
+  // Helper function to save current operations to the task
+  const saveCurrentOperations = (showToast: boolean = false) => {
+    if (!currentTask) {
+      if (showToast) toast.error("No active task");
+      return false;
+    }
+
+    try {
       // Load all tasks
       const tasksData = localStorage.getItem("mondayTasks");
-      if (tasksData) {
-        try {
-          const tasks = JSON.parse(tasksData);
-          // Find the current task
-          const updatedTasks = tasks.map((task: Task) => {
-            if (task.id === currentTask.id) {
-              // Keep existing selectedColumns if they exist
-              const selectedColumnIds = currentTask.selectedColumns || 
-                (sessionStorage.getItem("selectedColumns") ? 
-                  JSON.parse(sessionStorage.getItem("selectedColumns")!) : []);
-              
-              // Save the formula and target column
-              return {
-                ...task,
-                boardConfigured: true,
-                selectedColumns: selectedColumnIds,
-                savedOperations: {
-                  formula: calculation.formula,
-                  targetColumn: calculation.targetColumn
-                }
-              };
-            }
-            return task;
-          });
+      if (!tasksData) {
+        if (showToast) toast.error("Tasks data not found");
+        return false;
+      }
+
+      const tasks = JSON.parse(tasksData);
+      
+      // Find the current task
+      const updatedTasks = tasks.map((task: Task) => {
+        if (task.id === currentTask.id) {
+          // Keep existing selectedColumns if they exist
+          const selectedColumnIds = currentTask.selectedColumns || 
+            (sessionStorage.getItem("selectedColumns") ? 
+              JSON.parse(sessionStorage.getItem("selectedColumns")!) : []);
           
-          // Save updated tasks to localStorage
-          localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
-          
-          // Also update current task in session storage
-          const updatedCurrentTask = {
-            ...currentTask,
+          // Save the formula and target column
+          return {
+            ...task,
             boardConfigured: true,
+            selectedColumns: selectedColumnIds,
             savedOperations: {
               formula: calculation.formula,
               targetColumn: calculation.targetColumn
             }
           };
-          sessionStorage.setItem("mondayCurrentTask", JSON.stringify(updatedCurrentTask));
-          
-          toast.success("Formula saved and applied successfully!");
-          
-          // Navigate to the landing page
-          navigate("/");
-        } catch (error) {
-          console.error("Error saving operation:", error);
-          toast.error("Failed to save operation");
         }
-      }
-    } else {
-      toast.success("Formula applied successfully!");
-      navigate("/");
+        return task;
+      });
+      
+      // Save updated tasks to localStorage
+      localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
+      
+      // Also update current task in session storage
+      const updatedCurrentTask = {
+        ...currentTask,
+        boardConfigured: true,
+        savedOperations: {
+          formula: calculation.formula,
+          targetColumn: calculation.targetColumn
+        }
+      };
+      
+      sessionStorage.setItem("mondayCurrentTask", JSON.stringify(updatedCurrentTask));
+      console.log("Saved operations for task:", updatedCurrentTask);
+      
+      return true;
+    } catch (error) {
+      console.error("Error saving operation:", error);
+      return false;
     }
   };
 
   const handleProcessBoard = () => {
+    // Before processing, save current operations
+    saveCurrentOperations(false);
+    
     if (!boardData) {
       toast.error("No board data available");
       return;
@@ -133,6 +159,9 @@ export const useCalculationBuilder = () => {
   };
 
   const testCalculation = () => {
+    // Save current operations before testing
+    saveCurrentOperations(false);
+    
     // Make sure we pass the formula to the test function
     calculation.testCalculation();
   };

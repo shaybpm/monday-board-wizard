@@ -1,5 +1,5 @@
 
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { CalculationToken } from "@/types/calculation";
 import FormulaBuilderHeader from "./FormulaBuilderHeader";
 import FormulaSections from "./FormulaSections";
@@ -29,6 +29,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   isLogicTestMode,
 }) => {
   console.log("FormulaBuilder - Is Logic Test Mode:", isLogicTestMode);
+  console.log("FormulaBuilder - Current formula:", formula);
   
   // Callback for formula updates in section mode switches
   const handleFormulaUpdate = useCallback((newFormula: CalculationToken[]) => {

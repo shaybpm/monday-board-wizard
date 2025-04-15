@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Task } from '@/types/task';
 import { useFormulaBuilder } from './useFormulaBuilder';
 import { useTargetColumn } from './useTargetColumn';
@@ -9,6 +9,9 @@ import { useCalculationProcess } from './useCalculationProcess';
  * Main hook for calculation functionality
  */
 export const useCalculation = (currentTask: Task | null) => {
+  // Track if the saved formula has been loaded
+  const [savedFormulaLoaded, setSavedFormulaLoaded] = useState(false);
+
   // Use our custom hooks
   const formulaBuilder = useFormulaBuilder();
   const targetColumnState = useTargetColumn();
@@ -16,19 +19,24 @@ export const useCalculation = (currentTask: Task | null) => {
   
   // Load saved formula if it exists
   useEffect(() => {
-    if (currentTask?.savedOperations?.formula) {
+    if (currentTask?.savedOperations?.formula && !savedFormulaLoaded) {
+      console.log("Loading saved formula:", currentTask.savedOperations.formula);
+      
       // Ensure the type is correctly cast to the expected type
       const typedFormula = currentTask.savedOperations.formula.map(token => ({
         ...token,
         type: token.type as "column" | "operator" | "number" | "condition" | "logical"
       }));
       formulaBuilder.setFormula(typedFormula);
+      
+      if (currentTask.savedOperations.targetColumn) {
+        targetColumnState.setTargetColumn(currentTask.savedOperations.targetColumn);
+      }
+
+      // Mark as loaded to prevent re-loading
+      setSavedFormulaLoaded(true);
     }
-    
-    if (currentTask?.savedOperations?.targetColumn) {
-      targetColumnState.setTargetColumn(currentTask.savedOperations.targetColumn);
-    }
-  }, [currentTask]);
+  }, [currentTask, savedFormulaLoaded]);
 
   // Combined isFormulaValid function
   const isFormulaValid = () => {
@@ -69,6 +77,7 @@ export const useCalculation = (currentTask: Task | null) => {
   return {
     // Formula state
     formula: formulaBuilder.formula,
+    setFormula: formulaBuilder.setFormula,
     handleAddOperator: formulaBuilder.handleAddOperator,
     handleAddNumber, // Use our wrapped function
     handleAddColumn: formulaBuilder.handleAddColumn,
