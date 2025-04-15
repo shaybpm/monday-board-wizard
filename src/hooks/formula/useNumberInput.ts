@@ -47,7 +47,7 @@ export const useNumberInput = ({
         };
         console.log("[Number Input] Token created:", numberToken);
         
-        // For regular calculation mode, add directly, regardless of section
+        // For regular calculation mode, add directly
         if (!isLogicTestMode) {
           console.log("[Number Input] Adding in calculation mode");
           onAddToken(numberToken);
@@ -62,8 +62,11 @@ export const useNumberInput = ({
       } else {
         console.log("[Number Input] User cancelled input");
       }
+    } catch (err) {
+      console.error("[Number Input] Error handling number input:", err);
+      toast.error("Failed to process number input");
     } finally {
-      // Reset the global flag IMMEDIATELY when done
+      // Always reset the global flag when done
       console.log("[Number Input] Resetting global flag");
       setNumberInputInactive();
     }
@@ -73,41 +76,45 @@ export const useNumberInput = ({
   const handleLogicTestModeNumberInput = (numberToken: CalculationToken) => {
     console.log(`[Number Input] Logic test mode, active section: ${activeSection}`);
     
-    // Find section indicators in formula
-    const hasIf = formula.some(token => token.type === "logical" && token.value === "if");
-    const hasThen = formula.some(token => token.type === "logical" && token.value === "then");
-    const hasElse = formula.some(token => token.type === "logical" && token.value === "else");
-    
-    switch (activeSection) {
-      case "condition":
-        if (hasIf) {
-          console.log("[Number Input] Adding to condition section");
-          onAddToken(numberToken);
-        } else {
-          console.log("[Number Input] Error: No IF operator found");
-          toast.warning("Add an IF operator first");
-        }
-        break;
-        
-      case "then":
-        if (hasThen) {
-          console.log("[Number Input] Adding to THEN section");
-          onAddToken(numberToken);
-        } else {
-          console.log("[Number Input] Error: No THEN operator found");
-          toast.warning("Add a THEN operator first");
-        }
-        break;
-        
-      case "else":
-        if (hasElse) {
-          console.log("[Number Input] Adding to ELSE section");
-          onAddToken(numberToken);
-        } else {
-          console.log("[Number Input] Error: No ELSE operator found");
-          toast.warning("Add an ELSE operator first");
-        }
-        break;
+    try {
+      // Find section indicators in formula
+      const hasIf = formula.some(token => token.type === "logical" && token.value === "if");
+      const hasThen = formula.some(token => token.type === "logical" && token.value === "then");
+      const hasElse = formula.some(token => token.type === "logical" && token.value === "else");
+      
+      switch (activeSection) {
+        case "condition":
+          if (hasIf) {
+            console.log("[Number Input] Adding to condition section");
+            onAddToken(numberToken);
+          } else {
+            console.log("[Number Input] Error: No IF operator found");
+            toast.warning("Add an IF operator first");
+          }
+          break;
+          
+        case "then":
+          if (hasThen) {
+            console.log("[Number Input] Adding to THEN section");
+            onAddToken(numberToken);
+          } else {
+            console.log("[Number Input] Error: No THEN operator found");
+            toast.warning("Add a THEN operator first");
+          }
+          break;
+          
+        case "else":
+          if (hasElse) {
+            console.log("[Number Input] Adding to ELSE section");
+            onAddToken(numberToken);
+          } else {
+            console.log("[Number Input] Error: No ELSE operator found");
+            toast.warning("Add an ELSE operator first");
+          }
+          break;
+      }
+    } catch (err) {
+      console.error("[Number Input] Error in logic test mode:", err);
     }
   };
 

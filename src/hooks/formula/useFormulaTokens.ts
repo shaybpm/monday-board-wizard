@@ -30,36 +30,39 @@ export const useFormulaTokens = ({
 
   // Override handlers to use our section-aware logic
   const handleAddColumnWrapped = (column: any) => {
-    console.log(`[useFormulaTokens] Adding column ${column.id} to ${activeSection} section`);
+    console.log(`[useFormulaTokens] Adding column ${column.id} to ${isLogicTestMode ? activeSection : "formula"} section`);
     
-    // Always use the section-aware handler in logic test mode
-    if (isLogicTestMode) {
+    try {
+      // In calculation mode, add directly to formula regardless of section
+      if (!isLogicTestMode) {
+        console.log("[TokenHandler] Adding column directly in calculation mode:", column);
+        onAddToken({
+          id: column.id,
+          type: "column" as const,
+          value: column.id,
+          display: column.title
+        });
+        return;
+      }
+      
+      // In logic test mode, use the section-aware handler
       addTokenToFormula(() => ({
         id: column.id,
         type: "column" as const,
         value: column.id,
         display: column.title
       }));
-      return;
+    } catch (err) {
+      console.error("[useFormulaTokens] Error adding column:", err);
     }
-    
-    // In calculation mode, add directly to formula regardless of section
-    console.log("[TokenHandler] Adding column directly in calculation mode:", column);
-    onAddToken({
-      id: column.id,
-      type: "column" as const,
-      value: column.id,
-      display: column.title
-    });
   };
 
   // Add a handler for direct text input
   const handleAddDirectInput = (text: string, section: "condition" | "then" | "else") => {
     // Log the input for debugging
-    console.log(`[useFormulaTokens] Direct input: ${text} for section ${section} (active section: ${activeSection})`);
+    console.log(`[useFormulaTokens] Direct input: ${text} for section ${section}`);
     
-    // Return the text and section, but the actual token creation
-    // will happen in FormulaBuilder
+    // Return the text and section for processing in the calling component
     return {
       text,
       section
