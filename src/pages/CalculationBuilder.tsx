@@ -1,9 +1,9 @@
-
 import React, { useEffect } from "react";
 import { useCalculationBuilder } from "@/hooks/useCalculationBuilder";
 import TaskSummary from "@/components/calculation/TaskSummary";
 import CalculationForm from "@/components/calculation/CalculationForm";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const CalculationBuilder = () => {
   const {
@@ -28,27 +28,37 @@ const CalculationBuilder = () => {
     // Validate task and board data, redirect to home if missing
     if (!currentTask) {
       console.warn("Missing task data in CalculationBuilder, redirecting to home");
+      toast.error("No active task found. Please select a task first.");
       navigate("/");
+      return;
     }
     
     if (!boardData) {
       console.warn("Missing board data in CalculationBuilder, redirecting to home");
+      toast.error("Missing board data. Please reconnect to Monday.com.");
       navigate("/");
+      return;
     }
   }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate]);
 
   // Auto-save formula every 5 seconds if there are changes
   useEffect(() => {
-    const autoSaveInterval = setInterval(() => {
-      if (currentTask && calculation.formula.length > 0) {
-        // This will trigger the auto-save in handleBackToBoard without navigation
-        handleBackToBoard();
-        console.log("Auto-saved operation formula");
-      }
-    }, 5000);
+    let autoSaveInterval: number | undefined;
     
-    return () => clearInterval(autoSaveInterval);
-  }, [currentTask, calculation.formula]);
+    if (currentTask && calculation.formula.length > 0) {
+      autoSaveInterval = window.setInterval(() => {
+        // This will trigger the auto-save in handleBackToBoard without navigation
+        handleBackToBoard(false); // Add parameter to prevent navigation
+        console.log("Auto-saved operation formula");
+      }, 5000);
+    }
+    
+    return () => {
+      if (autoSaveInterval) {
+        clearInterval(autoSaveInterval);
+      }
+    };
+  }, [currentTask, calculation.formula, handleBackToBoard]);
 
   if (!boardData || !currentTask) {
     return (

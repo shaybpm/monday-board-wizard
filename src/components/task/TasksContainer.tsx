@@ -57,6 +57,7 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
     // Now clear the session storage for a fresh task selection
     sessionStorage.removeItem("mondayCurrentTask");
     sessionStorage.removeItem("selectedColumns");
+    sessionStorage.removeItem("calculationDebugInfo");
   }, []);
   
   const handleProcessTasks = async () => {
@@ -73,9 +74,14 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       return;
     }
     
-    // Validate task
-    if (!currentTask.title || !currentTask.sourceBoard) {
-      toast.error("Please fill in all required fields for the selected task");
+    // Validate task has minimum required fields
+    if (!currentTask.title) {
+      toast.error("Please enter a title for the task");
+      return;
+    }
+    
+    if (!currentTask.sourceBoard) {
+      toast.error("Please enter a source board ID");
       return;
     }
     
@@ -96,6 +102,7 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
     setIsLoading(true);
     
     try {
+      // First validate credentials
       const isValid = await validateCredentials(credentials);
       
       if (!isValid) {
@@ -106,6 +113,7 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       
       toast.info("Credentials validated! Fetching board structure...");
       
+      // Then fetch board data
       const boardData = await fetchBoardStructureWithExamples(credentials);
       
       if (!boardData) {
@@ -118,7 +126,7 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       localStorage.setItem("mondayTasks", JSON.stringify(tasks));
       localStorage.setItem("mondayCurrentTaskIndex", tasks.findIndex(task => task.id === selectedTaskId).toString());
       
-      // Store current task data in session storage
+      // Store current task and board data in session storage
       sessionStorage.setItem("mondayCredentials", JSON.stringify(credentials));
       sessionStorage.setItem("mondayBoardData", JSON.stringify(boardData));
       sessionStorage.setItem("mondayCurrentTask", JSON.stringify(currentTask));
@@ -126,12 +134,9 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       toast.success(`Board structure loaded: ${boardData.boardName}`);
       
       // Determine where to navigate based on task configuration
-      if (currentTask.savedOperations) {
-        // If operations have been defined, navigate directly to operation builder
+      if (currentTask.boardConfigured && currentTask.savedOperations) {
+        // If operations have been defined, navigate to operation builder
         navigate("/operation");
-      } else if (currentTask.selectedColumns && currentTask.boardConfigured) {
-        // If board columns have been selected but no operations defined yet
-        navigate("/board");
       } else {
         // Default: go to board page for initial setup
         navigate("/board");

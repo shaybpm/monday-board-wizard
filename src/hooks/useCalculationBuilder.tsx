@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBoardData } from "@/hooks/useBoardData";
 import { Task } from "@/types/task";
@@ -53,26 +54,32 @@ export const useCalculationBuilder = () => {
             const allColumnIds = boardData.columns.map(col => col.id);
             sessionStorage.setItem("selectedColumns", JSON.stringify(allColumnIds));
           }
-
-          // If the task has saved operations, apply them to the formula builder
-          if (parsedTask.savedOperations && parsedTask.savedOperations.formula) {
-            // The formula will be applied in the useCalculation hook's useEffect
-            console.log("Found saved operations in task:", parsedTask.savedOperations);
-          }
         }
       } catch (error) {
         console.error("Error parsing task data:", error);
+        toast.error("Failed to load task data");
+        // Navigate back to the main screen if we can't parse the task
+        navigate("/");
       }
+    } else {
+      console.error("No task data found in session storage");
+      toast.error("No task selected");
+      // Navigate back to the main screen if no task data
+      navigate("/");
     }
-  }, [boardData]);
+  }, [boardData, navigate]);
 
-  const handleBackToBoard = () => {
-    // Before navigating back, save the current formula state
+  const handleBackToBoard = useCallback((shouldNavigate = true) => {
+    // Save the current formula state regardless of navigation
     if (currentTask && (calculation.formula.length > 0 || calculation.targetColumn)) {
       saveCurrentOperations(false);
     }
-    navigate("/board");
-  };
+    
+    // Only navigate if requested
+    if (shouldNavigate) {
+      navigate("/board");
+    }
+  }, [currentTask, calculation.formula, calculation.targetColumn, navigate]);
 
   const handleApplyFormula = () => {
     // Save the operation to the task

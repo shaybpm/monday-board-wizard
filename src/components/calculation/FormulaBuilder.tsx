@@ -6,6 +6,7 @@ import FormulaSections from "./FormulaSections";
 import FormulaInstructions from "./FormulaInstructions";
 import SectionManager from "./formula-builder/SectionManager";
 import { useFormulaBuilderHandlers } from "@/hooks/useFormulaBuilderHandlers";
+import { toast } from "sonner";
 
 interface FormulaBuilderProps {
   formula: CalculationToken[];
@@ -35,36 +36,53 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   const handleFormulaUpdate = useCallback((newFormula: CalculationToken[]) => {
     console.log("[FormulaBuilder] Formula update callback triggered with new formula:", newFormula);
     
-    // Clear the current formula and add all tokens from newFormula
-    if (newFormula.length > 0) {
-      // Remove all tokens from current formula
+    if (newFormula.length === 0) {
+      // If the new formula is empty, just clear the current formula
       while (formula.length > 0) {
         onRemoveToken(0);
       }
-      
-      // Add all tokens from the saved formula for the selected mode
-      newFormula.forEach(token => {
-        if (token.type === "column") {
-          onAddColumn({ id: token.value, title: token.display });
-        } else if (token.type === "operator") {
-          onAddOperator(token.value);
-        } else if (token.type === "number") {
-          onAddColumn({
-            id: token.id,
-            title: token.display,
-            type: "number",
-            value: token.value,
-            isNumberToken: true
-          });
-        } else if (token.type === "condition") {
-          onAddCondition(token.value);
-        } else if (token.type === "logical") {
-          console.log(`[FormulaBuilder] Adding logical token: ${token.value}`);
-          onAddLogical(token.value);
-        }
-      });
+      return;
     }
-  }, [formula, onAddColumn, onAddOperator, onRemoveToken, onAddCondition, onAddLogical]);
+    
+    // Clear the current formula and add all tokens from newFormula
+    if (newFormula.length > 0) {
+      try {
+        // Remove all tokens from current formula
+        while (formula.length > 0) {
+          onRemoveToken(0);
+        }
+        
+        // Add all tokens from the saved formula for the selected mode
+        newFormula.forEach(token => {
+          console.log(`Adding token: ${token.type} - ${token.value} - ${token.display}`);
+          
+          if (token.type === "column") {
+            onAddColumn({ id: token.value, title: token.display });
+          } else if (token.type === "operator") {
+            onAddOperator(token.value);
+          } else if (token.type === "number") {
+            onAddColumn({
+              id: token.id || `num-${Date.now()}`,
+              title: token.display,
+              type: "number",
+              value: token.value,
+              isNumberToken: true
+            });
+          } else if (token.type === "condition") {
+            onAddCondition(token.value);
+          } else if (token.type === "logical") {
+            console.log(`[FormulaBuilder] Adding logical token: ${token.value}`);
+            onAddLogical(token.value);
+          } else {
+            console.warn(`Unknown token type: ${token.type}`);
+          }
+        });
+      } catch (error) {
+        console.error("Error updating formula:", error);
+        toast.error("Error updating formula");
+      }
+    }
+  }, [formula, onAddColumn, onAddOperator, onAddNumber, onRemoveToken, onAddCondition, onAddLogical]);
 
   return (
     <div>
