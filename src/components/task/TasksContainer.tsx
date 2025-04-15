@@ -95,6 +95,9 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       if (currentTask.savedOperations) {
         // Go directly to operation page if operations are already defined
         navigate("/operation");
+      } else if (currentTask.boardConfigured) {
+        // If board was already configured but no operations defined yet
+        navigate("/board");
       } else {
         // Go to board page for initial setup
         navigate("/board");

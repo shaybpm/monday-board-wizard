@@ -4,7 +4,8 @@ export interface Task {
   title: string;
   sourceBoard: string;
   destinationBoard: string;
-  taskType: "calculation" | "logicTest";  // Added this field
+  taskType: "calculation" | "logicTest";
+  boardConfigured?: boolean;  // Track if board setup is complete
   savedOperations?: {
     formula: Array<{
       id: string;
