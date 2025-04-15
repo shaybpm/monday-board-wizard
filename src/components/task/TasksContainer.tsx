@@ -84,6 +84,9 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       localStorage.setItem("mondayTasks", JSON.stringify(tasks));
       localStorage.setItem("mondayCurrentTaskIndex", tasks.findIndex(task => task.id === selectedTaskId).toString());
       
+      // Clear any previously selected columns to avoid using columns from other tasks
+      sessionStorage.removeItem("selectedColumns");
+      
       // Store current task data in session storage
       sessionStorage.setItem("mondayCredentials", JSON.stringify(credentials));
       sessionStorage.setItem("mondayBoardData", JSON.stringify(boardData));

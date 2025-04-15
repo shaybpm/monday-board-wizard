@@ -1,3 +1,4 @@
+
 import { useBoardData } from "@/hooks/useBoardData";
 import BoardStructure from "@/components/BoardStructure";
 import LoadingState from "@/components/board-page/LoadingState";
@@ -8,18 +9,29 @@ import BackToConnectButton from "@/components/board-page/BackToConnectButton";
 import OperationButton from "@/components/board-page/OperationButton";
 import { useEffect, useState } from "react";
 import { Task } from "@/types/task";
+import { useNavigate } from "react-router-dom";
 
 const BoardPage = () => {
   const { boardData, setBoardData, isLoading, loadBoardData } = useBoardData();
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const taskData = sessionStorage.getItem("mondayCurrentTask");
     if (taskData) {
-      setCurrentTask(JSON.parse(taskData));
+      try {
+        setCurrentTask(JSON.parse(taskData));
+      } catch (e) {
+        console.error("Error parsing task data:", e);
+        // If there's an error, redirect to the home page
+        navigate("/");
+      }
+    } else {
+      // No active task, redirect to home page
+      navigate("/");
     }
-  }, []);
+  }, [navigate]);
 
   const handleColumnSelection = (columnIds: string[]) => {
     setSelectedColumns(columnIds);

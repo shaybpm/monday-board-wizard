@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -11,11 +11,29 @@ import {
   BreadcrumbLink,
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
+import { Task } from "@/types/task";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  
+  // Load current task on component mount and when location changes
+  useEffect(() => {
+    const taskData = sessionStorage.getItem("mondayCurrentTask");
+    if (taskData) {
+      try {
+        const task = JSON.parse(taskData);
+        setCurrentTask(task);
+      } catch (e) {
+        console.error("Error parsing task data:", e);
+        setCurrentTask(null);
+      }
+    } else {
+      setCurrentTask(null);
+    }
+  }, [location.pathname]);
   
   // Check if we have a current task with saved operations
   const hasTaskWithSavedOperations = () => {
@@ -133,8 +151,14 @@ const Header = () => {
           </Breadcrumb>
         </div>
         
-        {location.pathname === '/board' || location.pathname === '/operation' ? (
-          <div>
+        <div className="flex items-center gap-4">
+          {currentTask && (
+            <div className="text-sm font-medium text-blue-700 hidden sm:block">
+              Task {currentTask.id}: {currentTask.title}
+            </div>
+          )}
+          
+          {location.pathname === '/board' || location.pathname === '/operation' ? (
             <Button 
               variant="ghost" 
               onClick={handleDisconnect}
@@ -143,8 +167,8 @@ const Header = () => {
             >
               <LogOut className="h-4 w-4" /> Disconnect
             </Button>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
     </header>
   );
