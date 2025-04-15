@@ -13,11 +13,15 @@ export const useDirectInput = () => {
     // Enhanced logging with section information
     console.log(`[useDirectInput] Processing direct input: "${text}" for section "${section}"`);
     
-    // IMPORTANT: We must return both the text AND the specific section to ensure
-    // the text is added to the correct section
+    if (!text.trim()) {
+      console.log('[useDirectInput] Empty input, ignoring');
+      return { text: '', section };
+    }
+    
+    // CRITICAL FIX: Return an object with the specific section to ensure proper placement
     return {
       text,
-      section: section // Explicitly use the passed section parameter
+      section // This must be passed through the entire chain
     };
   };
 

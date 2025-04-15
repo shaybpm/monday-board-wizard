@@ -98,11 +98,6 @@ export const useFormulaBuilderHandlers = ({
       // Add as number token
       console.log(`[FormulaBuilderHandlers] Adding number token from text: ${text} to section ${targetSection}`);
       
-      // When in logic test mode, respect the section where input was entered
-      if (isLogicTestMode) {
-        console.log(`[FormulaBuilderHandlers] 🔍 FINAL TARGET SECTION: "${targetSection}", adding token with id: num-${Date.now()}`);
-      }
-      
       // When adding the token, include the section info
       onAddColumn({
         id: `num-${Date.now()}`,
@@ -110,7 +105,8 @@ export const useFormulaBuilderHandlers = ({
         type: "number",
         value: text,
         isNumberToken: true,
-        targetSection: targetSection // This is crucial for proper placement
+        targetSection: targetSection, // This is crucial for proper placement
+        sectionType: targetSection // Add explicit section type for clarity
       });
       return;
     }
@@ -141,7 +137,8 @@ export const useFormulaBuilderHandlers = ({
       type: "text",
       value: text,
       isTextToken: true,
-      targetSection: targetSection // Add target section info
+      targetSection: targetSection, // Add target section info
+      sectionType: targetSection // Add explicit section type for clarity
     });
   };
   
