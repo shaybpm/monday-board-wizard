@@ -56,16 +56,35 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
     setInputValue(e.target.value);
   };
 
-  // Handle input keypresses
+  // Handle input keypresses - FIXED to handle Enter key properly
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     console.log(`[FormulaTokensDisplay] ${label} - Key pressed: ${e.key}, value: ${inputValue}`);
+    
     if (e.key === 'Enter' && inputValue.trim()) {
+      e.preventDefault(); // Prevent form submission which could cause page reload
+      e.stopPropagation(); // Stop event bubbling
+      
       console.log(`[FormulaTokensDisplay] ${label} - Adding direct input: ${inputValue.trim()}`);
-      onAddDirectInput && onAddDirectInput(inputValue.trim());
+      
+      // Store the current value before resetting
+      const currentValue = inputValue.trim();
+      
+      // Clear input first
       setInputValue("");
-      e.preventDefault();
-      // Keep the input field active after submitting
-      setTimeout(() => inputRef.current?.focus(), 10);
+      
+      // Then add the token (using setTimeout to prevent any race conditions)
+      setTimeout(() => {
+        if (onAddDirectInput) {
+          onAddDirectInput(currentValue);
+          
+          // Ensure input remains focused after adding
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.focus();
+            }
+          }, 10);
+        }
+      }, 10);
     } else if (e.key === 'Escape') {
       console.log(`[FormulaTokensDisplay] ${label} - Cancelling edit mode`);
       setIsEditing(false);
