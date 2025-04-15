@@ -1,8 +1,10 @@
+
 import React, { useEffect } from "react";
 import { CalculationToken } from "@/types/calculation";
 import { useFormulaDisplay } from "./useFormulaDisplay";
 import { SectionHeader } from "./SectionHeader";
 import { TokenContainer } from "./TokenContainer";
+import { SectionWrapper } from "./SectionWrapper";
 
 interface FormulaTokensDisplayProps {
   tokens: (CalculationToken & { uniqueId?: string })[];
@@ -75,16 +77,14 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   return (
     <div>
       <SectionHeader label={label} />
-      <div 
-        className={`p-4 border rounded-md ${className} min-h-16 flex flex-wrap gap-2 items-center 
-          ${disabled ? 'opacity-60' : ''} 
-          ${onClick && !disabled ? 'cursor-pointer hover:bg-opacity-90 transition-all' : ''}
-          ${onClick && !disabled && tokens.length === 0 && !isEditing ? 'animate-pulse' : ''}
-        `}
-        aria-disabled={disabled}
+      <SectionWrapper 
+        className={className}
+        disabled={disabled}
         onClick={handleContainerClick}
-        role={onClick && !disabled ? "button" : undefined}
-        data-section={sectionType}
+        hasClickHandler={!!onClick}
+        isEmpty={tokens.length === 0}
+        isEditing={isEditing}
+        sectionType={sectionType}
       >
         {badgePrefix}
         <TokenContainer
@@ -100,7 +100,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
           disabled={disabled}
           sectionType={sectionType}
         />
-      </div>
+      </SectionWrapper>
     </div>
   );
 };
