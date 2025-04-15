@@ -68,12 +68,48 @@ export const useFormulaSections = (
       
       const { text, title } = colorMap[section];
       
-      // Visual feedback for which section is active using appropriate colors
-      toast.success(`Now editing ${title}`, {
-        duration: 2000,
-        className: `bg-${text}-50 border-${text}-200 text-${text}-700`,
-        description: `Click elements to add them to the ${section.toUpperCase()} section`
-      });
+      // Add the logical token if not present
+      if (section === "then" && !formula.some(token => token.type === "logical" && token.value === "then")) {
+        // Add THEN token if missing
+        const thenToken = {
+          id: `log-${Date.now()}`,
+          type: "logical" as const,
+          value: "then",
+          display: "THEN"
+        };
+        const ifIndex = formula.findIndex(token => token.type === "logical" && token.value === "if");
+        if (ifIndex > -1) {
+          // Add after the last condition token
+          onFormulaUpdate([...formula, thenToken]);
+        }
+      } else if (section === "else" && !formula.some(token => token.type === "logical" && token.value === "else")) {
+        // Add ELSE token if missing
+        const elseToken = {
+          id: `log-${Date.now()}`,
+          type: "logical" as const,
+          value: "else",
+          display: "ELSE"
+        };
+        const thenIndex = formula.findIndex(token => token.type === "logical" && token.value === "then");
+        if (thenIndex > -1) {
+          // Add after the last THEN token
+          onFormulaUpdate([...formula, elseToken]);
+        } else {
+          // If no THEN token, warn user
+          toast.info("You need to add a THEN section first");
+          setActiveSection("then");
+          return;
+        }
+      } else if (section === "condition" && !formula.some(token => token.type === "logical" && token.value === "if")) {
+        // Add IF token if missing
+        const ifToken = {
+          id: `log-${Date.now()}`,
+          type: "logical" as const,
+          value: "if",
+          display: "IF"
+        };
+        onFormulaUpdate([ifToken]);
+      }
     }
   };
 

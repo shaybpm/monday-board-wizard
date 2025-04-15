@@ -18,14 +18,6 @@ export const useFormulaTokens = ({
   onAddToken,
   onAddLogical
 }: FormulaTokensProps) => {
-  // Use our number input hook
-  const { handleAddNumberWrapped } = useNumberInput({
-    isLogicTestMode,
-    activeSection,
-    formula,
-    onAddToken
-  });
-  
   // Use our section token adder hook
   const { addTokenToFormula } = useSectionTokenAdder({
     formula,
@@ -57,43 +49,6 @@ export const useFormulaTokens = ({
     }));
   };
 
-  const handleAddOperatorWrapped = (operator: string) => {
-    // In calculation mode, add directly to formula regardless of section
-    if (!isLogicTestMode) {
-      console.log("[TokenHandler] Adding operator directly in calculation mode:", operator);
-      onAddToken({
-        id: `op-${Date.now()}`,
-        type: "operator" as const,
-        value: operator,
-        display: operator
-      });
-      return;
-    }
-    
-    // In logic test mode, use the section-aware handler
-    addTokenToFormula(() => ({
-      id: `op-${Date.now()}`,
-      type: "operator" as const,
-      value: operator,
-      display: operator
-    }));
-  };
-
-  const handleAddConditionWrapped = (condition: string) => {
-    // Condition operators only make sense in logic test mode
-    if (!isLogicTestMode) {
-      console.log("[TokenHandler] Not adding condition in calculation mode");
-      return;
-    }
-    
-    addTokenToFormula(() => ({
-      id: `cond-${Date.now()}`,
-      type: "condition" as const,
-      value: condition,
-      display: condition
-    }));
-  };
-
   // Add a handler for direct text input
   const handleAddDirectInput = (text: string, section: "condition" | "then" | "else") => {
     // This function will be expanded in the FormulaBuilder
@@ -109,9 +64,6 @@ export const useFormulaTokens = ({
 
   return {
     handleAddColumnWrapped,
-    handleAddOperatorWrapped,
-    handleAddNumberWrapped,
-    handleAddConditionWrapped,
     handleAddDirectInput
   };
 };

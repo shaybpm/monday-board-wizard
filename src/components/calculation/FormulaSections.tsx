@@ -58,7 +58,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
       <FormulaTokensDisplay
         tokens={conditionPart}
         label={isLogicTestMode ? "IF condition" : "Formula"}
-        emptyMessage={isLogicTestMode ? "Click here to build your condition" : "Build your formula here"}
+        emptyMessage={isLogicTestMode ? "Click here to type your condition" : "Build your formula here"}
         className={`${isLogicTestMode ? "bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer" : "bg-gray-50"} ${getActiveSectionStyle("condition")}`}
         badgePrefix={isLogicTestMode && ifIndex > -1 ? (
           <Badge 
@@ -90,7 +90,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           <FormulaTokensDisplay
             tokens={thenPart}
             label="THEN (if condition is TRUE)"
-            emptyMessage="Click here to add what happens when condition is true"
+            emptyMessage="Click here to type what happens when condition is true"
             className={`bg-green-50 hover:bg-green-100 transition-colors cursor-pointer ${getActiveSectionStyle("then")}`}
             badgePrefix={thenIndex > -1 ? (
               <Badge 
@@ -107,7 +107,6 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
               onRemoveToken(adjustedIndex);
             }}
             onAddDirectInput={(text) => onAddDirectInput(text, "then")}
-            disabled={thenIndex === -1}
             onClick={() => onSectionClick("then")}
           />
           
@@ -115,7 +114,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           <FormulaTokensDisplay
             tokens={elsePart}
             label="ELSE (if condition is FALSE)"
-            emptyMessage="Click here to add what happens when condition is false"
+            emptyMessage="Click here to type what happens when condition is false"
             className={`bg-red-50 hover:bg-red-100 transition-colors cursor-pointer ${getActiveSectionStyle("else")}`}
             badgePrefix={elseIndex > -1 ? (
               <Badge 
@@ -132,7 +131,6 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
               onRemoveToken(adjustedIndex);
             }}
             onAddDirectInput={(text) => onAddDirectInput(text, "else")}
-            disabled={elseIndex === -1}
             onClick={() => onSectionClick("else")}
           />
         </div>

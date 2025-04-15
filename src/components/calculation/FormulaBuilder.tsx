@@ -1,8 +1,5 @@
 import React from "react";
 import { CalculationToken } from "@/types/calculation";
-import LogicalOperators from "./LogicalOperators";
-import FormulaOperators from "./FormulaOperators";
-import FormulaExample from "./FormulaExample";
 import FormulaBuilderHeader from "./FormulaBuilderHeader";
 import FormulaSections from "./FormulaSections";
 import FormulaInstructions from "./FormulaInstructions";
@@ -17,7 +14,7 @@ interface FormulaBuilderProps {
   onRemoveToken: (index: number) => void;
   onAddCondition: (condition: string) => void;
   onAddLogical: (logical: string) => void;
-  isLogicTestMode: boolean;  // Added this prop
+  isLogicTestMode: boolean;
 }
 
 const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
@@ -28,7 +25,7 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   onRemoveToken,
   onAddCondition,
   onAddLogical,
-  isLogicTestMode,  // Use the passed prop
+  isLogicTestMode,
 }) => {
   console.log("FormulaBuilder - Is Logic Test Mode:", isLogicTestMode);
   
@@ -66,14 +63,11 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
         }
       });
     }
-  }, isLogicTestMode);  // Pass the mode from props
+  }, isLogicTestMode);
   
   // Use our refactored hooks system for token handling
   const {
     handleAddColumnWrapped,
-    handleAddOperatorWrapped,
-    handleAddNumberWrapped,
-    handleAddConditionWrapped,
     handleAddDirectInput
   } = useFormulaTokens({
     formula,
@@ -178,23 +172,6 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
       />
       
       <FormulaInstructions isLogicTestMode={isLogicTestMode} />
-      
-      {/* Math Operators - always visible */}
-      <FormulaOperators
-        onAddOperator={handleAddOperatorWrapped}
-        onAddNumber={handleAddNumberWrapped}
-      />
-      
-      {/* Logic Operators without IF/THEN/ELSE - only visible in logic test mode */}
-      {isLogicTestMode && (
-        <LogicalOperators
-          onAddCondition={handleAddConditionWrapped}
-          onAddLogical={onAddLogical}
-        />
-      )}
-      
-      {/* Info panel with example */}
-      <FormulaExample isLogicTestMode={isLogicTestMode} />
     </div>
   );
 };

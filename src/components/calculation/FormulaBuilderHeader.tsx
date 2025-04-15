@@ -32,13 +32,12 @@ const FormulaBuilderHeader: React.FC<FormulaBuilderHeaderProps> = ({
       
       {isLogicTestMode && (
         <div className="mb-3 p-3 bg-blue-50 border border-blue-100 rounded-md">
-          <div className="text-sm text-blue-600 font-medium">
-            <p>
-              Active section: <span className={`font-bold ${getActiveSectionColor()}`}>
+          <div className="text-sm font-medium">
+            <p className={getActiveSectionColor()}>
+              Active section: <span className="font-bold">
                 {activeSection.toUpperCase()}
-              </span>
+              </span> - Click any box below to select it and type directly
             </p>
-            <p className="mt-1">Click directly on any section below to make it active, then add elements or type directly.</p>
           </div>
         </div>
       )}

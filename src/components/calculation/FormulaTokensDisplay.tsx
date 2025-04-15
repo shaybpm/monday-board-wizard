@@ -1,5 +1,4 @@
-
-import React, { useState, useRef, KeyboardEvent } from "react";
+import React, { useState, useRef, KeyboardEvent, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CalculationToken } from "@/types/calculation";
 import { Input } from "@/components/ui/input";
@@ -55,6 +54,8 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
       onAddDirectInput(inputValue.trim());
       setInputValue("");
       e.preventDefault();
+      // Keep the input field active after submitting
+      setTimeout(() => inputRef.current?.focus(), 10);
     } else if (e.key === 'Escape') {
       setIsEditing(false);
       setInputValue("");
@@ -65,13 +66,22 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   const handleContainerClick = () => {
     if (onClick && !disabled) {
       onClick();
-      startEditing(); // Start editing when container is clicked
+      if (!isEditing) {
+        startEditing(); // Start editing when container is clicked
+      }
     }
   };
 
   const handleInputClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering container click
   };
+
+  // Effect to keep editing state active when section is clicked
+  useEffect(() => {
+    if (onClick) {
+      startEditing();
+    }
+  }, [onClick]);
 
   return (
     <div>
@@ -80,7 +90,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
         className={`p-4 border rounded-md ${className} min-h-16 flex flex-wrap gap-2 items-center 
           ${disabled ? 'opacity-60' : ''} 
           ${onClick && !disabled ? 'cursor-pointer hover:bg-opacity-90 transition-all' : ''}
-          ${onClick && !disabled && tokens.length === 0 ? 'animate-pulse' : ''}
+          ${onClick && !disabled && tokens.length === 0 && !isEditing ? 'animate-pulse' : ''}
         `}
         aria-disabled={disabled}
         onClick={handleContainerClick}
