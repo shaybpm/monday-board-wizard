@@ -52,6 +52,15 @@ const Header = () => {
   
   const { operationEnabled, boardEnabled } = getBreadcrumbState();
 
+  // Determine active state and styling for breadcrumb items
+  const getItemStyle = (path: string) => {
+    const isActive = location.pathname === path;
+    
+    return isActive ? 
+      "font-bold text-primary" :
+      "text-muted-foreground hover:text-primary transition-colors";
+  };
+
   const handleDisconnect = () => {
     setIsDisconnecting(true);
     
@@ -76,7 +85,10 @@ const Header = () => {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/" className="text-lg font-semibold text-monday-blue hover:text-monday-darkBlue">
+                  <Link 
+                    to="/" 
+                    className={`text-lg font-semibold ${getItemStyle('/')} transition-colors`}
+                  >
                     Working Monday
                   </Link>
                 </BreadcrumbLink>
@@ -90,7 +102,7 @@ const Header = () => {
                   <BreadcrumbItem>
                     <BreadcrumbLink 
                       asChild
-                      className={boardEnabled ? "" : "pointer-events-none opacity-50"}
+                      className={boardEnabled ? getItemStyle('/board') : "pointer-events-none opacity-50"}
                     >
                       <Link to="/board" className="text-sm">
                         Board Setup
@@ -108,7 +120,7 @@ const Header = () => {
                   <BreadcrumbItem>
                     <BreadcrumbLink 
                       asChild
-                      className={operationEnabled ? "" : "pointer-events-none opacity-50"}
+                      className={operationEnabled ? getItemStyle('/operation') : "pointer-events-none opacity-50"}
                     >
                       <Link to="/operation" className="text-sm">
                         Operation Builder
