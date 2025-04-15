@@ -25,6 +25,12 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
   const [isLoading, setIsLoading] = React.useState(false);
   const navigate = useNavigate();
   
+  React.useEffect(() => {
+    // Clear any previous task data when returning to the main page
+    // but preserve tasks array in localStorage
+    sessionStorage.removeItem("mondayCurrentTask");
+  }, []);
+  
   const handleProcessTasks = async () => {
     if (!selectedTaskId) {
       toast.error("Please select a task to process");
@@ -84,9 +90,6 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       localStorage.setItem("mondayTasks", JSON.stringify(tasks));
       localStorage.setItem("mondayCurrentTaskIndex", tasks.findIndex(task => task.id === selectedTaskId).toString());
       
-      // Clear any previously selected columns to avoid using columns from other tasks
-      sessionStorage.removeItem("selectedColumns");
-      
       // Store current task data in session storage
       sessionStorage.setItem("mondayCredentials", JSON.stringify(credentials));
       sessionStorage.setItem("mondayBoardData", JSON.stringify(boardData));
@@ -94,15 +97,15 @@ const TasksContainer: React.FC<TasksContainerProps> = ({ setIsApiDialogOpen }) =
       
       toast.success(`Board structure loaded: ${boardData.boardName}`);
       
-      // Check if the task already has defined operations
+      // Determine where to navigate based on task configuration
       if (currentTask.savedOperations) {
-        // Go directly to operation page if operations are already defined
+        // If operations have been defined, navigate directly to operation builder
         navigate("/operation");
-      } else if (currentTask.boardConfigured) {
-        // If board was already configured but no operations defined yet
+      } else if (currentTask.selectedColumns && currentTask.boardConfigured) {
+        // If board columns have been selected but no operations defined yet
         navigate("/board");
       } else {
-        // Go to board page for initial setup
+        // Default: go to board page for initial setup
         navigate("/board");
       }
       

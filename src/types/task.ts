@@ -6,6 +6,7 @@ export interface Task {
   destinationBoard: string;
   taskType: "calculation" | "logicTest";
   boardConfigured?: boolean;  // Track if board setup is complete
+  selectedColumns?: string[];  // Store selected columns for persistence
   savedOperations?: {
     formula: Array<{
       id: string;

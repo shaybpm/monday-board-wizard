@@ -18,10 +18,33 @@ const BoardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Load task data
     const taskData = sessionStorage.getItem("mondayCurrentTask");
     if (taskData) {
       try {
-        setCurrentTask(JSON.parse(taskData));
+        const parsedTask = JSON.parse(taskData);
+        setCurrentTask(parsedTask);
+        
+        // If task has previously selected columns, load them
+        if (parsedTask.selectedColumns && Array.isArray(parsedTask.selectedColumns)) {
+          setSelectedColumns(parsedTask.selectedColumns);
+          // Also set in session storage for consistency
+          sessionStorage.setItem("selectedColumns", JSON.stringify(parsedTask.selectedColumns));
+        } else {
+          // Check if there are selected columns in session storage
+          const columnsData = sessionStorage.getItem("selectedColumns");
+          if (columnsData) {
+            try {
+              const columnIds = JSON.parse(columnsData);
+              if (Array.isArray(columnIds)) {
+                setSelectedColumns(columnIds);
+              }
+            } catch (e) {
+              console.error("Error parsing selected columns:", e);
+              setSelectedColumns([]);
+            }
+          }
+        }
       } catch (e) {
         console.error("Error parsing task data:", e);
         // If there's an error, redirect to the home page
@@ -74,6 +97,7 @@ const BoardPage = () => {
       <BoardStructure 
         boardData={boardData} 
         onColumnSelection={handleColumnSelection}
+        initialSelectedColumns={selectedColumns}
       />
       
       <OperationButton 

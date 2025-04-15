@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBoardData } from "@/hooks/useBoardData";
@@ -25,42 +24,38 @@ export const useCalculationBuilder = () => {
         const parsedTask = JSON.parse(taskData);
         console.log("Loaded task data:", parsedTask);
         setCurrentTask(parsedTask);
+        
+        // If we have boardData, try to set columns based on stored column IDs
+        if (boardData && boardData.columns) {
+          // First check if we have columns from the current session
+          const columnsData = sessionStorage.getItem("selectedColumns");
+          if (columnsData) {
+            const columnIds = JSON.parse(columnsData);
+            if (Array.isArray(columnIds) && columnIds.length > 0) {
+              const columns = boardData.columns.filter(col => columnIds.includes(col.id));
+              setSelectedColumns(columns);
+            }
+          } 
+          // If no session columns, try to get from the task itself
+          else if (parsedTask.selectedColumns && Array.isArray(parsedTask.selectedColumns)) {
+            const columns = boardData.columns.filter(col => 
+              parsedTask.selectedColumns?.includes(col.id));
+            setSelectedColumns(columns);
+            
+            // Also save these to session storage for consistency
+            sessionStorage.setItem("selectedColumns", JSON.stringify(parsedTask.selectedColumns));
+          }
+          // Finally, if has saved operations but no selected columns, make all columns available
+          else if (parsedTask.savedOperations) {
+            setSelectedColumns(boardData.columns);
+            
+            // Store all column IDs for consistency
+            const allColumnIds = boardData.columns.map(col => col.id);
+            sessionStorage.setItem("selectedColumns", JSON.stringify(allColumnIds));
+          }
+        }
       } catch (error) {
         console.error("Error parsing task data:", error);
-      }
-    }
-
-    // Load selected columns
-    const columnsData = sessionStorage.getItem("selectedColumns");
-    if (columnsData && boardData) {
-      try {
-        const columnIds = JSON.parse(columnsData);
-        // If we have column IDs, use them, otherwise if a task has saved operations, use all columns
-        if (Array.isArray(columnIds) && columnIds.length > 0) {
-          const columns = boardData.columns.filter(col => columnIds.includes(col.id));
-          setSelectedColumns(columns);
-        } else if (boardData.columns && taskData) {
-          // If no columns are selected but we're editing an existing operation, make all columns available
-          const parsedTask = JSON.parse(taskData);
-          if (parsedTask.savedOperations) {
-            setSelectedColumns(boardData.columns);
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing columns data:", error);
-      }
-    } else if (boardData && boardData.columns) {
-      // If no columns are stored and we have a task with saved operations, make all columns available
-      const taskData = sessionStorage.getItem("mondayCurrentTask");
-      if (taskData) {
-        try {
-          const parsedTask = JSON.parse(taskData);
-          if (parsedTask.savedOperations) {
-            setSelectedColumns(boardData.columns);
-          }
-        } catch (error) {
-          console.error("Error parsing task data:", error);
-        }
       }
     }
   }, [boardData]);
@@ -80,9 +75,16 @@ export const useCalculationBuilder = () => {
           // Find the current task
           const updatedTasks = tasks.map((task: Task) => {
             if (task.id === currentTask.id) {
+              // Keep existing selectedColumns if they exist
+              const selectedColumnIds = currentTask.selectedColumns || 
+                (sessionStorage.getItem("selectedColumns") ? 
+                  JSON.parse(sessionStorage.getItem("selectedColumns")!) : []);
+              
               // Save the formula and target column
               return {
                 ...task,
+                boardConfigured: true,
+                selectedColumns: selectedColumnIds,
                 savedOperations: {
                   formula: calculation.formula,
                   targetColumn: calculation.targetColumn
@@ -94,6 +96,18 @@ export const useCalculationBuilder = () => {
           
           // Save updated tasks to localStorage
           localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
+          
+          // Also update current task in session storage
+          const updatedCurrentTask = {
+            ...currentTask,
+            boardConfigured: true,
+            savedOperations: {
+              formula: calculation.formula,
+              targetColumn: calculation.targetColumn
+            }
+          };
+          sessionStorage.setItem("mondayCurrentTask", JSON.stringify(updatedCurrentTask));
+          
           toast.success("Formula saved and applied successfully!");
           
           // Navigate to the landing page

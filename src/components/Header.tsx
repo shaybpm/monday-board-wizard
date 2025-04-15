@@ -35,37 +35,40 @@ const Header = () => {
     }
   }, [location.pathname]);
   
-  // Check if we have a current task with saved operations
-  const hasTaskWithSavedOperations = () => {
-    const currentTaskData = sessionStorage.getItem("mondayCurrentTask");
-    if (currentTaskData) {
-      try {
-        const currentTask = JSON.parse(currentTaskData);
-        return !!currentTask.savedOperations;
-      } catch (e) {
-        return false;
-      }
-    }
-    return false;
-  };
-  
   // Determine which paths should be enabled based on task configuration
   const getBreadcrumbState = () => {
-    // Operation page should only be enabled if columns were selected or operations are saved
-    const operationEnabled = location.pathname === '/operation' || 
-                            sessionStorage.getItem("selectedColumns") ||
-                            hasTaskWithSavedOperations();
-                            
-    // Board page should be enabled if we're on board or operation page,
-    // or if we have a current task
-    const boardEnabled = location.pathname === '/board' || 
-                         location.pathname === '/operation' ||
-                         sessionStorage.getItem("mondayCurrentTask");
-                         
-    return {
-      operationEnabled,
-      boardEnabled
-    };
+    // Always check if we have task data first
+    const taskData = sessionStorage.getItem("mondayCurrentTask");
+    if (!taskData) {
+      return {
+        operationEnabled: false,
+        boardEnabled: false
+      };
+    }
+    
+    try {
+      const currentTask = JSON.parse(taskData) as Task;
+      
+      // Board page is enabled if we have a current task
+      const boardEnabled = true;
+      
+      // Operation page is enabled if board was configured or has selected columns
+      const operationEnabled = 
+        currentTask.boardConfigured === true || 
+        (currentTask.selectedColumns && currentTask.selectedColumns.length > 0) ||
+        !!currentTask.savedOperations;
+      
+      return {
+        operationEnabled,
+        boardEnabled
+      };
+    } catch (e) {
+      console.error("Error parsing task data for navigation:", e);
+      return {
+        operationEnabled: false,
+        boardEnabled: false
+      };
+    }
   };
   
   const { operationEnabled, boardEnabled } = getBreadcrumbState();

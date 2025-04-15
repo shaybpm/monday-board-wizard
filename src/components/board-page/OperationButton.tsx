@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calculator } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Task } from "@/types/task";
 
 interface OperationButtonProps {
   disabled: boolean;
@@ -28,26 +29,31 @@ const OperationButton: React.FC<OperationButtonProps> = ({ disabled, selectedCol
       try {
         const currentTask = JSON.parse(currentTaskData);
         
-        // Only set boardConfigured flag if it's not already set
-        if (!currentTask.boardConfigured) {
-          currentTask.boardConfigured = true;
-          sessionStorage.setItem("mondayCurrentTask", JSON.stringify(currentTask));
-          
-          // Also update in localStorage if needed
-          const tasksData = localStorage.getItem("mondayTasks");
-          if (tasksData) {
-            const tasks = JSON.parse(tasksData);
-            const updatedTasks = tasks.map((task: any) => {
-              if (task.id === currentTask.id) {
-                return {
-                  ...task,
-                  boardConfigured: true
-                };
-              }
-              return task;
-            });
-            localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
-          }
+        // Update with board configuration and selected columns
+        const updatedTask: Task = {
+          ...currentTask,
+          boardConfigured: true,
+          selectedColumns: selectedColumns
+        };
+        
+        // Save back to session storage
+        sessionStorage.setItem("mondayCurrentTask", JSON.stringify(updatedTask));
+        
+        // Also update in localStorage tasks array
+        const tasksData = localStorage.getItem("mondayTasks");
+        if (tasksData) {
+          const tasks = JSON.parse(tasksData);
+          const updatedTasks = tasks.map((task: any) => {
+            if (task.id === currentTask.id) {
+              return {
+                ...task,
+                boardConfigured: true,
+                selectedColumns: selectedColumns
+              };
+            }
+            return task;
+          });
+          localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
         }
         
         // Navigate programmatically
