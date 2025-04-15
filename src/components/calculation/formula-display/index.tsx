@@ -1,10 +1,4 @@
 
-import FormulaTokensDisplay from './FormulaTokensDisplay';
-import { TokensContainer } from './TokensContainer';
-import { useFormulaDisplay } from './useFormulaDisplay';
-
-export {
-  FormulaTokensDisplay,
-  TokensContainer,
-  useFormulaDisplay
-};
+export { default as FormulaTokensDisplay } from './FormulaTokensDisplay';
+export { TokensContainer } from './TokensContainer';
+export { useFormulaDisplay } from './useFormulaDisplay';

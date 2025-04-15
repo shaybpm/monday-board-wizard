@@ -1,8 +1,7 @@
-
 import React, { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CalculationToken } from "@/types/calculation";
-import FormulaTokensDisplay from "./formula-display";
+import { FormulaTokensDisplay } from "./formula-display";
 
 interface FormulaSectionsProps {
   isLogicTestMode: boolean;
