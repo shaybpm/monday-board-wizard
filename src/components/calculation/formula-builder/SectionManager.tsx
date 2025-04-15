@@ -22,7 +22,7 @@ const SectionManager: React.FC<SectionManagerProps> = ({
   onFormulaUpdate,
   children
 }) => {
-  // Use our custom hook for section management with formula update callback
+  // Use our refactored hook for section management
   const {
     activeSection,
     handleSectionClick

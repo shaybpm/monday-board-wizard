@@ -1,15 +1,17 @@
 
 import { CalculationToken } from '@/types/calculation';
 import { useSectionTokenAdder } from './useSectionTokenAdder';
+import { useTokenHandling, TokenHandlingProps } from './useTokenHandling';
+import { useDirectInput } from './useDirectInput';
 
-export interface FormulaTokensProps {
+export interface FormulaTokensProps extends TokenHandlingProps {
   formula: CalculationToken[];
-  isLogicTestMode: boolean;
-  activeSection: "condition" | "then" | "else";
-  onAddToken: (token: CalculationToken) => void;
   onAddLogical: (logical: string) => void;
 }
 
+/**
+ * Hook for managing formula token operations
+ */
 export const useFormulaTokens = ({
   formula,
   isLogicTestMode,
@@ -28,46 +30,22 @@ export const useFormulaTokens = ({
     onAddToken
   });
 
-  // Override handlers to use our section-aware logic
-  const handleAddColumnWrapped = (column: any) => {
-    console.log(`[useFormulaTokens] Adding column ${column.id} to ${isLogicTestMode ? activeSection : "formula"} section`);
-    
-    try {
-      // In calculation mode, add directly to formula regardless of section
-      if (!isLogicTestMode) {
-        console.log("[TokenHandler] Adding column directly in calculation mode:", column);
-        onAddToken({
-          id: column.id,
-          type: "column" as const,
-          value: column.id,
-          display: column.title
-        });
-        return;
+  // Use our token handling hook
+  const { handleAddColumnWrapped } = useTokenHandling({
+    isLogicTestMode,
+    activeSection,
+    onAddToken: (token) => {
+      // Check if we're in logic test mode and use section-aware token handler
+      if (isLogicTestMode) {
+        addTokenToFormula(() => token);
+      } else {
+        onAddToken(token);
       }
-      
-      // In logic test mode, use the section-aware handler
-      addTokenToFormula(() => ({
-        id: column.id,
-        type: "column" as const,
-        value: column.id,
-        display: column.title
-      }));
-    } catch (err) {
-      console.error("[useFormulaTokens] Error adding column:", err);
     }
-  };
+  });
 
-  // Add a handler for direct text input
-  const handleAddDirectInput = (text: string, section: "condition" | "then" | "else") => {
-    // Log the input for debugging
-    console.log(`[useFormulaTokens] Direct input: ${text} for section ${section}`);
-    
-    // Return the text and section for processing in the calling component
-    return {
-      text,
-      section
-    };
-  };
+  // Use our direct input hook
+  const { handleAddDirectInput } = useDirectInput();
 
   return {
     handleAddColumnWrapped,
