@@ -22,12 +22,18 @@ export const useSectionTokenAdder = ({
     const thenIndex = formula.findIndex(token => token.type === "logical" && token.value === "then");
     const elseIndex = formula.findIndex(token => token.type === "logical" && token.value === "else");
     
+    console.log(`[useSectionTokenAdder] Adding token to section: ${activeSection}`);
+    console.log(`[useSectionTokenAdder] Token indices - IF: ${ifIndex}, THEN: ${thenIndex}, ELSE: ${elseIndex}`);
+    
     // For calculation mode, just add to the end
     if (!isLogicTestMode) {
       const newToken = tokenGenerator();
       onAddToken(newToken);
       return;
     }
+    
+    // Generate the token first (we'll use it regardless of section)
+    const newToken = tokenGenerator();
     
     // For logic test mode, add to the active section
     switch (activeSection) {
@@ -40,37 +46,50 @@ export const useSectionTokenAdder = ({
           return;
         }
         
-        // Generate the token
-        const conditionToken = tokenGenerator();
-        onAddToken(conditionToken);
+        // Add token directly after IF or last condition token but before THEN/ELSE
+        onAddToken(newToken);
         break;
       
       case "then":
         if (thenIndex === -1) {
           // If there's no THEN yet, add it first
-          toast.warning("Add a THEN operator first", {
-            description: "Click the THEN button before adding elements to your THEN section"
-          });
+          console.log(`[useSectionTokenAdder] Adding THEN token first`);
+          const thenLogicalToken = {
+            id: `log-${Date.now()}`,
+            type: "logical" as const,
+            value: "then",
+            display: "THEN"
+          };
+          onAddToken(thenLogicalToken);
+          
+          // Then add the actual token
+          setTimeout(() => onAddToken(newToken), 10);
           return;
         }
         
-        // Generate the token
-        const thenToken = tokenGenerator();
-        onAddToken(thenToken);
+        // Add token at end of formula or before ELSE if it exists
+        onAddToken(newToken);
         break;
       
       case "else":
         if (elseIndex === -1) {
           // If there's no ELSE yet, add it first
-          toast.warning("Add an ELSE operator first", {
-            description: "Click the ELSE button before adding elements to your ELSE section"
-          });
+          console.log(`[useSectionTokenAdder] Adding ELSE token first`);
+          const elseLogicalToken = {
+            id: `log-${Date.now()}`,
+            type: "logical" as const,
+            value: "else",
+            display: "ELSE"
+          };
+          onAddToken(elseLogicalToken);
+          
+          // Then add the actual token
+          setTimeout(() => onAddToken(newToken), 10);
           return;
         }
         
-        // Generate the token
-        const elseToken = tokenGenerator();
-        onAddToken(elseToken);
+        // Add token at end of formula
+        onAddToken(newToken);
         break;
     }
   };

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { CalculationToken } from "@/types/calculation";
 import FormulaBuilderHeader from "./FormulaBuilderHeader";
@@ -110,7 +111,13 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
 
   // Handler for direct text input from formula sections
   const handleDirectInput = (text: string, section: "condition" | "then" | "else") => {
-    console.log(`[FormulaBuilder] Direct input received: "${text}" for section "${section}"`);
+    console.log(`[FormulaBuilder] Direct input received: "${text}" for section "${section}", active section: ${activeSection}`);
+    
+    // Important: temporarily set the active section to ensure token goes to the right place
+    if (section !== activeSection) {
+      console.log(`[FormulaBuilder] Temporarily changing active section from ${activeSection} to ${section}`);
+      handleSectionClick(section);
+    }
     
     // First check if the text matches any of our logical operators
     const lowerText = text.toLowerCase();

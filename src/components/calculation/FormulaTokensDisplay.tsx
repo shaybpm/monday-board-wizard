@@ -5,7 +5,7 @@ import { CalculationToken } from "@/types/calculation";
 import { Input } from "@/components/ui/input";
 
 interface FormulaTokensDisplayProps {
-  tokens: CalculationToken[];
+  tokens: (CalculationToken & { uniqueId?: string })[];
   label: string;
   emptyMessage: string;
   badgePrefix?: React.ReactNode;
@@ -118,7 +118,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
           <>
             {tokens.map((token, index) => (
               <Badge 
-                key={token.id || index}
+                key={token.uniqueId || `${token.id}-${index}`}
                 variant={getBadgeVariant(token.type)}
                 className={`px-3 py-1 ${!disabled ? 'cursor-pointer hover:bg-opacity-80' : ''}`}
                 onClick={(e) => {

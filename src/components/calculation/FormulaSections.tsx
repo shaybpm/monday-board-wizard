@@ -69,7 +69,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Left side - Condition part */}
       <FormulaTokensDisplay
-        tokens={conditionPart}
+        tokens={conditionPart.map((token, idx) => ({ ...token, uniqueId: `condition-${token.id}-${idx}` }))}
         label={isLogicTestMode ? "IF condition" : "Formula"}
         emptyMessage={isLogicTestMode ? "Click here to type your condition" : "Build your formula here"}
         className={`${isLogicTestMode ? "bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer" : "bg-gray-50"} ${getActiveSectionStyle("condition")}`}
@@ -101,7 +101,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
         <div className="flex flex-col gap-3">
           {/* THEN part */}
           <FormulaTokensDisplay
-            tokens={thenPart}
+            tokens={thenPart.map((token, idx) => ({ ...token, uniqueId: `then-${token.id}-${idx}` }))}
             label="THEN (if condition is TRUE)"
             emptyMessage="Click here to type what happens when condition is true"
             className={`bg-green-50 hover:bg-green-100 transition-colors cursor-pointer ${getActiveSectionStyle("then")}`}
@@ -125,7 +125,7 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           
           {/* ELSE part */}
           <FormulaTokensDisplay
-            tokens={elsePart}
+            tokens={elsePart.map((token, idx) => ({ ...token, uniqueId: `else-${token.id}-${idx}` }))}
             label="ELSE (if condition is FALSE)"
             emptyMessage="Click here to type what happens when condition is false"
             className={`bg-red-50 hover:bg-red-100 transition-colors cursor-pointer ${getActiveSectionStyle("else")}`}
