@@ -1,8 +1,11 @@
 
 import { useState } from 'react';
 
+/**
+ * Hook for handling direct text input in formula sections
+ */
 export const useDirectInput = () => {
-  // Add a handler for direct text input
+  // Handler for direct text input
   const handleAddDirectInput = (text: string, section: "condition" | "then" | "else") => {
     // Log the input for debugging
     console.log(`[useDirectInput] Direct input: ${text} for section ${section}`);
