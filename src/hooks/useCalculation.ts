@@ -1,9 +1,9 @@
-
 import { useEffect, useState } from 'react';
 import { Task } from '@/types/task';
 import { useFormulaBuilder } from './useFormulaBuilder';
 import { useTargetColumn } from './useTargetColumn';
 import { useCalculationProcess } from './useCalculationProcess';
+import { CalculationToken } from '@/types/calculation';
 
 /**
  * Main hook for calculation functionality
@@ -40,10 +40,7 @@ export const useCalculation = (currentTask: Task | null) => {
         console.log("Loading saved formula:", currentTask.savedOperations.formula);
         
         // Ensure the type is correctly cast to the expected type
-        const typedFormula = currentTask.savedOperations.formula.map(token => ({
-          ...token,
-          type: token.type as "column" | "operator" | "number" | "condition" | "logical"
-        }));
+        const typedFormula = currentTask.savedOperations.formula as CalculationToken[];
         formulaBuilder.setFormula(typedFormula);
         
         if (currentTask.savedOperations.targetColumn) {

@@ -6,6 +6,7 @@ import { Task } from "@/types/task";
 import { BoardColumn } from "@/lib/types";
 import { toast } from "sonner";
 import { useCalculation } from "@/hooks/useCalculation";
+import { CalculationToken } from "@/types/calculation";
 
 export const useCalculationBuilder = () => {
   const { boardData } = useBoardData();
@@ -174,7 +175,7 @@ export const useCalculationBuilder = () => {
       localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
       
       // Also update current task in session storage
-      const updatedCurrentTask = {
+      const updatedCurrentTask: Task = {
         ...currentTask,
         boardConfigured: true,
         savedOperations: {
