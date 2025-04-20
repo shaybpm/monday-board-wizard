@@ -40,10 +40,13 @@ const TaskSessionManager: React.FC = () => {
         }
         
         // Now clear the session storage for a fresh task selection
-        sessionStorage.removeItem("mondayCurrentTask");
-        sessionStorage.removeItem("selectedColumns");
-        sessionStorage.removeItem("calculationDebugInfo");
-        console.log("Session storage cleaned for new task selection");
+        // DON'T clear session storage when there's an active task navigation
+        if (path === "/" || path === "") {
+          sessionStorage.removeItem("mondayCurrentTask");
+          sessionStorage.removeItem("selectedColumns");
+          sessionStorage.removeItem("calculationDebugInfo");
+          console.log("Session storage cleaned for new task selection");
+        }
       }
     }
   }, []);

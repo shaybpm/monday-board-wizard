@@ -38,6 +38,7 @@ const OperationButton: React.FC<OperationButtonProps> = ({ disabled, selectedCol
         
         // Save back to session storage
         sessionStorage.setItem("mondayCurrentTask", JSON.stringify(updatedTask));
+        console.log("Updated task with board config:", updatedTask);
         
         // Also update in localStorage tasks array
         const tasksData = localStorage.getItem("mondayTasks");
@@ -54,6 +55,7 @@ const OperationButton: React.FC<OperationButtonProps> = ({ disabled, selectedCol
             return task;
           });
           localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
+          console.log("Updated tasks in localStorage with selected columns");
         }
         
         // Navigate programmatically
@@ -62,6 +64,9 @@ const OperationButton: React.FC<OperationButtonProps> = ({ disabled, selectedCol
         console.error("Error updating task data:", error);
         toast.error("Error updating task data");
       }
+    } else {
+      toast.error("No task selected. Please go back and select a task.");
+      console.error("No currentTask in sessionStorage");
     }
   };
 

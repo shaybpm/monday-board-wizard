@@ -89,13 +89,16 @@ const TaskActionButtons: React.FC<TaskActionButtonsProps> = ({
       // Store tasks for later use
       localStorage.setItem("mondayTasks", JSON.stringify(tasks));
       
-      // Store current task ID in localStorage instead of just the index
+      // Store current task ID in localStorage 
       localStorage.setItem("mondaySelectedTaskId", selectedTaskId);
       
-      // Store current task and board data in session storage
+      // Store current task and board data in session storage - ensure it's properly persisted
       sessionStorage.setItem("mondayCredentials", JSON.stringify(credentials));
       sessionStorage.setItem("mondayBoardData", JSON.stringify(boardData));
       sessionStorage.setItem("mondayCurrentTask", JSON.stringify(currentTask));
+      
+      // Log to confirm task is stored
+      console.log("Task stored in session:", currentTask);
       
       toast.success(`Board structure loaded: ${boardData.boardName}`);
       

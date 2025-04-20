@@ -13,6 +13,7 @@ const CalculationBuilder = () => {
     selectedColumns,
     calculation,
     isLogicTestMode,
+    loadingTask,
     handleBackToBoard,
     handleApplyFormula,
     handleProcessBoard,
@@ -25,42 +26,66 @@ const CalculationBuilder = () => {
     console.log("Current task in CalculationBuilder:", currentTask);
     console.log("Is logic test mode:", isLogicTestMode);
     console.log("Formula in state:", calculation.formula);
+    console.log("Is loading task:", loadingTask);
     
     // Validate task and board data, redirect to home if missing
-    if (!currentTask) {
+    if (!currentTask && !loadingTask) {
       console.error("Missing task data in CalculationBuilder, redirecting to home");
       toast.error("No active task found. Please select a task first.");
+      
+      // Try to recover task from localStorage if possible
+      const selectedTaskId = localStorage.getItem("mondaySelectedTaskId");
+      const tasksData = localStorage.getItem("mondayTasks");
+      
+      if (selectedTaskId && tasksData) {
+        try {
+          const tasks = JSON.parse(tasksData);
+          const task = tasks.find((t: any) => t.id === selectedTaskId);
+          
+          if (task) {
+            console.log("Recovered task from localStorage:", task);
+            sessionStorage.setItem("mondayCurrentTask", JSON.stringify(task));
+            // Now reload the page to use the recovered task
+            window.location.reload();
+            return;
+          }
+        } catch (error) {
+          console.error("Error recovering task:", error);
+        }
+      }
       
       // Small delay to allow the toast to be displayed
       setTimeout(() => {
         navigate("/");
-      }, 500);
+      }, 1000);
       
       return;
     }
     
-    if (!boardData) {
+    if (!boardData && !loadingTask) {
       console.error("Missing board data in CalculationBuilder, redirecting to home");
       toast.error("Missing board data. Please reconnect to Monday.com.");
       
       // Small delay to allow the toast to be displayed
       setTimeout(() => {
         navigate("/");
-      }, 500);
+      }, 1000);
       
       return;
     }
     
     // Log full task details for debugging
-    console.log("Full task details:", {
-      id: currentTask.id,
-      title: currentTask.title,
-      sourceBoard: currentTask.sourceBoard,
-      taskType: currentTask.taskType,
-      boardConfigured: currentTask.boardConfigured,
-      hasOperations: !!currentTask.savedOperations
-    });
-  }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate]);
+    if (currentTask) {
+      console.log("Full task details:", {
+        id: currentTask.id,
+        title: currentTask.title,
+        sourceBoard: currentTask.sourceBoard,
+        taskType: currentTask.taskType,
+        boardConfigured: currentTask.boardConfigured,
+        hasOperations: !!currentTask.savedOperations
+      });
+    }
+  }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate, loadingTask]);
 
   // Auto-save formula every 5 seconds if there are changes
   useEffect(() => {
@@ -82,7 +107,7 @@ const CalculationBuilder = () => {
   }, [currentTask, calculation.formula, handleBackToBoard]);
 
   // Return a loading state while checking validation
-  if (!boardData || !currentTask) {
+  if (loadingTask || !boardData || !currentTask) {
     return (
       <div className="container mx-auto p-4">
         <div className="flex items-center justify-center h-64">

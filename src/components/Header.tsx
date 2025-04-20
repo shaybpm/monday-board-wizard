@@ -26,6 +26,8 @@ const Header = () => {
       try {
         const task = JSON.parse(taskData);
         setCurrentTask(task);
+        // Log to verify task is loaded
+        console.log("Current task loaded in Header:", task);
       } catch (e) {
         console.error("Error parsing task data:", e);
         setCurrentTask(null);
