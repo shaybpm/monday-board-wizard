@@ -87,25 +87,8 @@ const CalculationBuilder = () => {
     }
   }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate, loadingTask]);
 
-  // Auto-save formula every 5 seconds if there are changes
-  useEffect(() => {
-    let autoSaveInterval: number | undefined;
-    
-    if (currentTask && calculation.formula.length > 0) {
-      autoSaveInterval = window.setInterval(() => {
-        // This will trigger the auto-save in handleBackToBoard without navigation
-        handleBackToBoard(false); // Add parameter to prevent navigation
-        console.log("Auto-saved operation formula");
-      }, 5000);
-    }
-    
-    return () => {
-      if (autoSaveInterval) {
-        clearInterval(autoSaveInterval);
-      }
-    };
-  }, [currentTask, calculation.formula, handleBackToBoard]);
-
+  // Remove the auto-save effect since it's now handled in the useAutoSave hook
+  
   // Return a loading state while checking validation
   if (loadingTask || !boardData || !currentTask) {
     return (

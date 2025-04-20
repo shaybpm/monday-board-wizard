@@ -35,14 +35,24 @@ export const useCalculationBuilder = () => {
     }
   };
 
+  // Get selected columns from currentTask or sessionStorage
+  const selectedColumns = currentTask?.selectedColumns || 
+    (sessionStorage.getItem("selectedColumns") ? 
+      JSON.parse(sessionStorage.getItem("selectedColumns")!) : []);
+  
+  // Determine if we're in logic test mode based on task type
+  const isLogicTestMode = currentTask?.taskType === "logicTest";
+
   return {
     boardData,
     currentTask,
+    selectedColumns,
+    isLogicTestMode,
     calculation,
     loadingTask,
     handleBackToBoard,
     handleApplyFormula,
-    handleProcessBoard: calculation.processBoard,
+    handleProcessBoard: calculation.processBoardData,
     testCalculation: calculation.testCalculation
   };
 };
