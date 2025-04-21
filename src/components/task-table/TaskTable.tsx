@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Task } from "@/types/task";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -33,6 +34,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
             <TableHead>Task Title</TableHead>
             <TableHead>Source Board</TableHead>
             <TableHead>Destination Board</TableHead>
+            <TableHead>Task Type</TableHead>
             <TableHead className="w-16"></TableHead>
           </TableRow>
         </TableHeader>
@@ -70,6 +72,20 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                   placeholder="Optional - same as source if empty"
                   className="w-full"
                 />
+              </TableCell>
+              <TableCell>
+                <Select
+                  value={task.taskType}
+                  onValueChange={(value) => updateTask(task.id, "taskType" as keyof Task, value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select task type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="calculation">Calculation</SelectItem>
+                    <SelectItem value="logicTest">Logic Test</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell>
                 <Button

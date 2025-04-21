@@ -1,41 +1,33 @@
 
-import { useState, useEffect } from 'react';
 import { CalculationToken } from '@/types/calculation';
-import { toast } from 'sonner';
+import { useSectionState } from './formula/useSectionState';
+import { useSectionTransition } from './formula/useSectionTransition';
+import { useFormulaStorage } from './formula/useFormulaStorage';
 
-export const useFormulaSections = (formula: CalculationToken[]) => {
-  // Add state for formula mode (calculation or logic test)
-  const [isLogicTestMode, setIsLogicTestMode] = useState(() => {
-    // Initialize based on formula content - if it has if/then/else tokens, use logic test mode
-    return formula.some(token => token.type === "logical" && ["if", "then", "else"].includes(token.value));
-  });
-  
-  // Add state for active section in logic test mode
-  const [activeSection, setActiveSection] = useState<"condition" | "then" | "else">("condition");
+/**
+ * Hook to manage formula sections and formula state for different modes
+ */
+export const useFormulaSections = (
+  formula: CalculationToken[], 
+  onFormulaUpdate: (newFormula: CalculationToken[]) => void,
+  isLogicTestMode: boolean = false
+) => {
+  // Use our smaller, focused hooks
+  const { activeSection, setActiveSection } = useSectionState();
+  const { handleSectionClick: handleSectionTransition } = useSectionTransition(formula, onFormulaUpdate);
+  const { calculationFormula, logicTestFormula } = useFormulaStorage(formula, onFormulaUpdate, isLogicTestMode);
 
-  // When a formula section is clicked, set it as active
+  // Wrapper for section click that integrates with section state
   const handleSectionClick = (section: "condition" | "then" | "else") => {
-    setActiveSection(section);
-    
-    // Visual feedback for which section is active
-    toast.info(`Now adding to ${section.toUpperCase()} section`, {
-      duration: 1500,
-    });
-  };
-
-  // Handle mode toggle
-  const handleModeToggle = (checked: boolean) => {
-    setIsLogicTestMode(checked);
-    setActiveSection("condition");
-    
-    // If switching to logic test mode and no IF token yet, return true to indicate IF needs to be added
-    return checked && !formula.some(token => token.type === "logical" && token.value === "if");
+    if (!isLogicTestMode) return; // Only allow section switching in logic test mode
+    handleSectionTransition(section, activeSection, setActiveSection);
   };
 
   return {
     isLogicTestMode,
     activeSection,
     handleSectionClick,
-    handleModeToggle
+    calculationFormula,
+    logicTestFormula
   };
 };

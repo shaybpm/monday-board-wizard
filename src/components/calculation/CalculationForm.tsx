@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator } from "lucide-react";
@@ -20,6 +21,7 @@ interface CalculationFormProps {
   processedItems: number;
   totalItems: number;
   task: Task | null;
+  isLogicTestMode: boolean;
   onAddColumn: (column: BoardColumn) => void;
   onAddOperator: (operator: string) => void;
   onAddNumber: () => void;
@@ -44,6 +46,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   processedItems,
   totalItems,
   task,
+  isLogicTestMode,
   onAddColumn,
   onAddOperator,
   onAddNumber,
@@ -58,6 +61,10 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
   onProcessBoard,
   onCancelProcessing
 }) => {
+  // Log for debugging
+  console.log("CalculationForm - Is logic test mode:", isLogicTestMode);
+  console.log("CalculationForm - Task:", task);
+  
   // Get debug info from sessionStorage
   const debugInfo = sessionStorage.getItem("calculationDebugInfo");
   
@@ -86,6 +93,7 @@ const CalculationForm: React.FC<CalculationFormProps> = ({
             onRemoveToken={onRemoveToken}
             onAddCondition={onAddCondition}
             onAddLogical={onAddLogical}
+            isLogicTestMode={isLogicTestMode}
           />
 
           {/* Target Column */}

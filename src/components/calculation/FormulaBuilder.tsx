@@ -1,14 +1,9 @@
 
 import React from "react";
 import { CalculationToken } from "@/types/calculation";
-import LogicalOperators from "./LogicalOperators";
-import FormulaOperators from "./FormulaOperators";
-import FormulaExample from "./FormulaExample";
-import FormulaBuilderHeader from "./FormulaBuilderHeader";
-import FormulaSections from "./FormulaSections";
-import FormulaInstructions from "./FormulaInstructions";
-import { useFormulaSections } from "@/hooks/useFormulaSections";
-import { useFormulaTokens } from "@/hooks/formula/useFormulaTokens";
+import SectionManager from "./formula-builder/SectionManager";
+import FormulaUpdater from "./formula-builder/FormulaUpdater";
+import FormulaBuilderContent from "./formula-builder/FormulaBuilderContent";
 
 interface FormulaBuilderProps {
   formula: CalculationToken[];
@@ -18,6 +13,7 @@ interface FormulaBuilderProps {
   onRemoveToken: (index: number) => void;
   onAddCondition: (condition: string) => void;
   onAddLogical: (logical: string) => void;
+  isLogicTestMode: boolean;
 }
 
 const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
@@ -28,98 +24,44 @@ const FormulaBuilder: React.FC<FormulaBuilderProps> = ({
   onRemoveToken,
   onAddCondition,
   onAddLogical,
+  isLogicTestMode,
 }) => {
-  // Use our custom hook for section management
-  const {
-    isLogicTestMode,
-    activeSection,
-    handleSectionClick,
-    handleModeToggle
-  } = useFormulaSections(formula);
+  console.log("FormulaBuilder - Is Logic Test Mode:", isLogicTestMode);
+  console.log("FormulaBuilder - Current formula:", formula);
   
-  // Use our refactored hooks system for token handling
-  const {
-    handleAddColumnWrapped,
-    handleAddOperatorWrapped,
-    handleAddNumberWrapped,
-    handleAddConditionWrapped
-  } = useFormulaTokens({
-    formula,
-    isLogicTestMode,
-    activeSection,
-    onAddToken: (token) => {
-      console.log("[FormulaBuilder] Received token:", token);
-      
-      // Handle different token types
-      if (token.type === "column") {
-        // For column tokens, pass through to onAddColumn
-        const column = { id: token.value, title: token.display };
-        onAddColumn(column);
-      } else if (token.type === "operator") {
-        // For operator tokens, pass through to onAddOperator
-        onAddOperator(token.value);
-      } else if (token.type === "number") {
-        // For number tokens, add directly to parent formula
-        console.log("[FormulaBuilder] Adding number token to formula");
-        onAddColumn({
-          id: token.id,
-          title: token.display,
-          type: "number",
-          value: token.value,
-          isNumberToken: true // Add flag to identify number tokens
-        });
-      } else if (token.type === "condition") {
-        // For condition tokens, pass through to onAddCondition
-        onAddCondition(token.value);
-      }
-    },
-    onAddLogical
-  });
-  
-  // Handle mode toggle with IF token check
-  const handleModeToggleWithIFCheck = (checked: boolean) => {
-    const needsIfToken = handleModeToggle(checked);
-    
-    // If switching to logic test mode and no IF token yet, add one
-    if (needsIfToken) {
-      onAddLogical("if");
-    }
-  };
-
   return (
     <div>
-      <FormulaBuilderHeader 
-        isLogicTestMode={isLogicTestMode}
-        activeSection={activeSection}
-        onModeToggle={handleModeToggleWithIFCheck}
-      />
-      
-      <FormulaSections 
-        isLogicTestMode={isLogicTestMode}
-        activeSection={activeSection}
+      <FormulaUpdater
         formula={formula}
-        onSectionClick={handleSectionClick}
+        onAddColumn={onAddColumn}
+        onAddOperator={onAddOperator}
+        onAddCondition={onAddCondition}
+        onAddLogical={onAddLogical}
         onRemoveToken={onRemoveToken}
-      />
-      
-      <FormulaInstructions isLogicTestMode={isLogicTestMode} />
-      
-      {/* Logic Operators - only visible in logic test mode */}
-      {isLogicTestMode && (
-        <LogicalOperators
-          onAddCondition={handleAddConditionWrapped}
-          onAddLogical={onAddLogical}
-        />
-      )}
-      
-      {/* Math Operators - always visible */}
-      <FormulaOperators
-        onAddOperator={handleAddOperatorWrapped}
-        onAddNumber={handleAddNumberWrapped}
-      />
-      
-      {/* Info panel with example */}
-      <FormulaExample isLogicTestMode={isLogicTestMode} />
+      >
+        {(handleFormulaUpdate) => (
+          <SectionManager
+            formula={formula}
+            isLogicTestMode={isLogicTestMode}
+            onFormulaUpdate={handleFormulaUpdate}
+          >
+            {({ activeSection, handleSectionClick }) => (
+              <FormulaBuilderContent
+                formula={formula}
+                activeSection={activeSection}
+                isLogicTestMode={isLogicTestMode}
+                handleSectionClick={handleSectionClick}
+                onAddColumn={onAddColumn}
+                onAddOperator={onAddOperator}
+                onAddNumber={onAddNumber}
+                onRemoveToken={onRemoveToken}
+                onAddCondition={onAddCondition}
+                onAddLogical={onAddLogical}
+              />
+            )}
+          </SectionManager>
+        )}
+      </FormulaUpdater>
     </div>
   );
 };
