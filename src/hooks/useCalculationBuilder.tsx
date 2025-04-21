@@ -5,12 +5,25 @@ import { useBoardData } from "@/hooks/useBoardData";
 import { useCalculation } from "@/hooks/useCalculation";
 import { useTaskLoader } from "./calculation/useTaskLoader";
 import { useAutoSave } from "./calculation/useAutoSave";
+import { useState, useEffect } from "react";
 
 export const useCalculationBuilder = () => {
-  const { boardData } = useBoardData();
+  const { boardData, loadBoardData } = useBoardData();
   const navigate = useNavigate();
   const { currentTask, setCurrentTask, loadingTask } = useTaskLoader();
+  const [isLoadingBoard, setIsLoadingBoard] = useState(false);
   const calculation = useCalculation(currentTask);
+  
+  // Ensure board data is loaded
+  useEffect(() => {
+    if (!boardData && !isLoadingBoard && currentTask) {
+      setIsLoadingBoard(true);
+      console.log("Board data missing, attempting to load it...");
+      loadBoardData().finally(() => {
+        setIsLoadingBoard(false);
+      });
+    }
+  }, [boardData, currentTask, loadBoardData]);
   
   // Get auto-save functionality
   const { handleAutoSave } = useAutoSave({
@@ -54,7 +67,7 @@ export const useCalculationBuilder = () => {
     selectedColumns,
     isLogicTestMode,
     calculation,
-    loadingTask,
+    loadingTask: loadingTask || isLoadingBoard,
     handleBackToBoard,
     handleApplyFormula,
     handleProcessBoard,

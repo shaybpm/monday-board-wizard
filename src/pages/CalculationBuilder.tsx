@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { useCalculationBuilder } from "@/hooks/useCalculationBuilder";
 import TaskSummary from "@/components/calculation/TaskSummary";
@@ -25,6 +26,7 @@ const CalculationBuilder = () => {
     console.log("Is logic test mode:", isLogicTestMode);
     console.log("Formula in state:", calculation.formula);
     console.log("Is loading task:", loadingTask);
+    console.log("Board data available:", !!boardData);
     
     if (!currentTask && !loadingTask) {
       console.error("Missing task data in CalculationBuilder, redirecting to home");
@@ -55,37 +57,50 @@ const CalculationBuilder = () => {
       
       return;
     }
-    
-    if (!boardData && !loadingTask) {
-      console.error("Missing board data in CalculationBuilder, redirecting to home");
-      toast.error("Missing board data. Please reconnect to Monday.com.");
-      
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
-      
-      return;
-    }
-    
-    if (currentTask) {
-      console.log("Full task details:", {
-        id: currentTask.id,
-        title: currentTask.title,
-        sourceBoard: currentTask.sourceBoard,
-        taskType: currentTask.taskType,
-        boardConfigured: currentTask.boardConfigured,
-        hasOperations: !!currentTask.savedOperations
-      });
-    }
   }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate, loadingTask]);
 
-  if (loadingTask || !boardData || !currentTask) {
+  if (loadingTask || !currentTask) {
     return (
       <div className="container mx-auto p-4">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
             <p>Loading task data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!boardData) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="rounded-md bg-red-50 p-4 border border-red-200 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Missing board data</h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>Unable to load board data. Please reconnect to Monday.com.</p>
+                  </div>
+                  <div className="mt-4">
+                    <button 
+                      type="button" 
+                      onClick={() => navigate("/")} 
+                      className="inline-flex items-center px-3 py-2 border border-red-300 text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                      Return to Home
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
