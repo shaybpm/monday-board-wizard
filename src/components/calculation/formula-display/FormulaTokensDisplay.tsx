@@ -17,7 +17,7 @@ interface FormulaTokensDisplayProps {
   startIndex?: number;
   disabled?: boolean;
   onClick?: () => void; // Click handler for the container
-  sectionType?: "condition" | "then" | "else"; // Added section type prop
+  sectionType?: "condition" | "then" | "else"; // Section type prop
 }
 
 const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
@@ -31,7 +31,7 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   startIndex = 0,
   disabled = false,
   onClick,
-  sectionType = "condition" // Default to condition if not specified
+  sectionType = "condition"
 }) => {
   const {
     isEditing,
@@ -46,10 +46,9 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
   } = useFormulaDisplay({
     onAddDirectInput,
     disabled,
-    sectionType // Pass section type to useFormulaDisplay
+    sectionType
   });
 
-  // Log component re-renders with relevant props
   useEffect(() => {
     console.log(`[FormulaTokensDisplay] Rendered: ${label} - isEditing: ${isEditing}, sectionType: ${sectionType}`);
     console.log(`[FormulaTokensDisplay] ${label} - Token count: ${tokens.length}`);
@@ -61,12 +60,11 @@ const FormulaTokensDisplay: React.FC<FormulaTokensDisplayProps> = ({
     if (onClick && !disabled) {
       onClick();
       if (!isEditing) {
-        startEditing(); // Start editing when container is clicked
+        startEditing();
       }
     }
   };
 
-  // Effect to keep editing state active when section is clicked
   useEffect(() => {
     if (onClick) {
       console.log(`[FormulaTokensDisplay] ${label} - Auto-starting edit mode from click handler`);

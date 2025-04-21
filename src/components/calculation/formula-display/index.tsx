@@ -1,6 +1,6 @@
 
 export { default as FormulaTokensDisplay } from './FormulaTokensDisplay';
-export { TokensContainer } from './TokensContainer';
+export { TokenContainer } from './TokenContainer';
 export { useFormulaDisplay } from './useFormulaDisplay';
 export { SectionWrapper } from './SectionWrapper';
 export { BadgeList } from './BadgeList';
