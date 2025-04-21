@@ -12,6 +12,26 @@ export const useBoardData = () => {
 
   const loadBoardData = useCallback(async () => {
     setIsLoading(true);
+    console.log("Attempting to load board data...");
+    
+    // First check if we already have cached board data
+    const cachedDataStr = sessionStorage.getItem("mondayBoardData");
+    if (cachedDataStr) {
+      try {
+        const cachedData = JSON.parse(cachedDataStr);
+        if (cachedData && cachedData.boardName) {
+          console.log("Found cached board data:", cachedData.boardName);
+          setBoardData(cachedData);
+          setIsLoading(false);
+          return cachedData;
+        }
+      } catch (e) {
+        console.error("Error parsing cached board data:", e);
+        // Continue to fetch fresh data if cache parsing fails
+      }
+    }
+    
+    // No valid cached data, fetch from API
     const storedCredentialsStr = sessionStorage.getItem("mondayCredentials");
     
     if (!storedCredentialsStr) {
@@ -59,6 +79,7 @@ export const useBoardData = () => {
         }
         
         setBoardData(fetchedBoardData);
+        // Make sure we persist the data to session storage
         sessionStorage.setItem("mondayBoardData", JSON.stringify(fetchedBoardData));
         console.log("Board data loaded successfully:", fetchedBoardData.boardName);
         return fetchedBoardData;
@@ -78,10 +99,11 @@ export const useBoardData = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (!boardData) {
+    if (!boardData && !isLoading) {
+      console.log("No board data available, triggering load...");
       loadBoardData();
     }
-  }, [boardData, loadBoardData]);
+  }, [boardData, loadBoardData, isLoading]);
 
   return {
     boardData,

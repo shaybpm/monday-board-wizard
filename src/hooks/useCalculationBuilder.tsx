@@ -8,22 +8,37 @@ import { useAutoSave } from "./calculation/useAutoSave";
 import { useState, useEffect } from "react";
 
 export const useCalculationBuilder = () => {
-  const { boardData, loadBoardData } = useBoardData();
+  const { boardData, loadBoardData, isLoading: isBoardLoading } = useBoardData();
   const navigate = useNavigate();
   const { currentTask, setCurrentTask, loadingTask } = useTaskLoader();
   const [isLoadingBoard, setIsLoadingBoard] = useState(false);
   const calculation = useCalculation(currentTask);
   
-  // Ensure board data is loaded
+  // Ensure board data is loaded - with improved error handling
   useEffect(() => {
     if (!boardData && !isLoadingBoard && currentTask) {
       setIsLoadingBoard(true);
       console.log("Board data missing, attempting to load it...");
-      loadBoardData().finally(() => {
-        setIsLoadingBoard(false);
-      });
+      loadBoardData()
+        .then(loadedData => {
+          if (!loadedData) {
+            console.error("Failed to load board data after attempt");
+            toast.error("Missing board data. Please reconnect to Monday.com.");
+            setTimeout(() => navigate("/"), 3000); // Redirect after showing error
+          } else {
+            console.log("Successfully loaded board data:", loadedData.boardName);
+          }
+        })
+        .catch(error => {
+          console.error("Error loading board data:", error);
+          toast.error("Error loading board data. Please reconnect to Monday.com.");
+          setTimeout(() => navigate("/"), 3000); // Redirect after showing error
+        })
+        .finally(() => {
+          setIsLoadingBoard(false);
+        });
     }
-  }, [boardData, currentTask, loadBoardData]);
+  }, [boardData, currentTask, loadBoardData, navigate]);
   
   // Get auto-save functionality
   const { handleAutoSave } = useAutoSave({
@@ -67,7 +82,7 @@ export const useCalculationBuilder = () => {
     selectedColumns,
     isLogicTestMode,
     calculation,
-    loadingTask: loadingTask || isLoadingBoard,
+    loadingTask: loadingTask || isLoadingBoard || isBoardLoading,
     handleBackToBoard,
     handleApplyFormula,
     handleProcessBoard,
