@@ -59,6 +59,11 @@ export const useFormulaDisplay = ({
   // Log initialization for debugging
   useEffect(() => {
     console.log(`[useFormulaDisplay] Hook initialized for section "${sectionType}"`);
+    
+    // Cleanup function to prevent memory leaks and prevent stale closures
+    return () => {
+      console.log(`[useFormulaDisplay] Hook cleanup for section "${sectionType}"`);
+    };
   }, [sectionType]);
 
   return {

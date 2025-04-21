@@ -6,8 +6,8 @@ const TaskSessionManager: React.FC = () => {
   const { selectedTaskId, tasks } = useTaskContext();
   
   useEffect(() => {
-    // When returning to main page, preserve task data in localStorage
-    
+    // MODIFIED: Only save task data to localStorage when needed, don't trigger page refresh
+
     // Only clear current task data in sessionStorage if we're on the main page
     // and not navigating between task-specific pages
     const path = window.location.pathname;
@@ -38,17 +38,11 @@ const TaskSessionManager: React.FC = () => {
         } catch (error) {
           console.error("Error saving task data:", error);
         }
-        
-        // Now clear the session storage for a fresh task selection
-        // DON'T clear session storage when there's an active task navigation
-        if (path === "/" || path === "") {
-          sessionStorage.removeItem("mondayCurrentTask");
-          sessionStorage.removeItem("selectedColumns");
-          sessionStorage.removeItem("calculationDebugInfo");
-          console.log("Session storage cleaned for new task selection");
-        }
       }
     }
+    
+    // REMOVED: Don't clear session storage here - this was causing reloads
+    // The session storage should only be cleared when navigating back to the home page
   }, []);
   
   // Log current selected task for debugging
