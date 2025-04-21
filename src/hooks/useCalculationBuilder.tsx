@@ -1,91 +1,131 @@
 
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { useBoardData } from "@/hooks/useBoardData";
-import { useCalculation } from "@/hooks/useCalculation";
-import { useTaskLoader } from "./calculation/useTaskLoader";
-import { useAutoSave } from "./calculation/useAutoSave";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useBoardData } from "@/hooks/useBoardData";
+import { Task } from "@/types/task";
+import { BoardColumn } from "@/lib/types";
+import { toast } from "sonner";
+import { useCalculation } from "@/hooks/useCalculation";
 
 export const useCalculationBuilder = () => {
-  const { boardData, loadBoardData, isLoading: isBoardLoading } = useBoardData();
+  const { boardData } = useBoardData();
   const navigate = useNavigate();
-  const { currentTask, setCurrentTask, loadingTask } = useTaskLoader();
-  const [isLoadingBoard, setIsLoadingBoard] = useState(false);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [selectedColumns, setSelectedColumns] = useState<BoardColumn[]>([]);
+  
+  // Use our custom hook for calculation logic
   const calculation = useCalculation(currentTask);
-  
-  // Ensure board data is loaded - with improved error handling
+
+  // Load current task info, selected columns, and any saved operations
   useEffect(() => {
-    if (!boardData && !isLoadingBoard && currentTask) {
-      setIsLoadingBoard(true);
-      console.log("Board data missing, attempting to load it...");
-      loadBoardData()
-        .then(loadedData => {
-          if (!loadedData) {
-            console.error("Failed to load board data after attempt");
-            toast.error("Missing board data. Please reconnect to Monday.com.");
-            setTimeout(() => navigate("/"), 3000); // Redirect after showing error
-          } else {
-            console.log("Successfully loaded board data:", loadedData.boardName);
-          }
-        })
-        .catch(error => {
-          console.error("Error loading board data:", error);
-          toast.error("Error loading board data. Please reconnect to Monday.com.");
-          setTimeout(() => navigate("/"), 3000); // Redirect after showing error
-        })
-        .finally(() => {
-          setIsLoadingBoard(false);
-        });
+    // Load task data
+    const taskData = sessionStorage.getItem("mondayCurrentTask");
+    if (taskData) {
+      const parsedTask = JSON.parse(taskData);
+      setCurrentTask(parsedTask);
     }
-  }, [boardData, currentTask, loadBoardData, navigate]);
-  
-  // Get auto-save functionality
-  const { handleAutoSave } = useAutoSave({
-    currentTask,
-    formula: calculation.formula,
-    targetColumn: calculation.targetColumn
-  });
+
+    // Load selected columns
+    const columnsData = sessionStorage.getItem("selectedColumns");
+    if (columnsData && boardData) {
+      try {
+        const columnIds = JSON.parse(columnsData);
+        // If we have column IDs, use them, otherwise if a task has saved operations, use all columns
+        if (Array.isArray(columnIds) && columnIds.length > 0) {
+          const columns = boardData.columns.filter(col => columnIds.includes(col.id));
+          setSelectedColumns(columns);
+        } else if (boardData.columns && taskData) {
+          // If no columns are selected but we're editing an existing operation, make all columns available
+          const parsedTask = JSON.parse(taskData);
+          if (parsedTask.savedOperations) {
+            setSelectedColumns(boardData.columns);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing columns data:", error);
+      }
+    } else if (boardData && boardData.columns) {
+      // If no columns are stored and we have a task with saved operations, make all columns available
+      const taskData = sessionStorage.getItem("mondayCurrentTask");
+      if (taskData) {
+        try {
+          const parsedTask = JSON.parse(taskData);
+          if (parsedTask.savedOperations) {
+            setSelectedColumns(boardData.columns);
+          }
+        } catch (error) {
+          console.error("Error parsing task data:", error);
+        }
+      }
+    }
+  }, [boardData]);
 
   const handleBackToBoard = () => {
-    // Save the current formula state
-    handleAutoSave(true);
     navigate("/board");
   };
 
   const handleApplyFormula = () => {
     // Save the operation to the task
-    if (handleAutoSave(true)) {
-      toast.success("Formula saved and applied successfully!");
-      navigate("/");
+    if (currentTask) {
+      // Load all tasks
+      const tasksData = localStorage.getItem("mondayTasks");
+      if (tasksData) {
+        try {
+          const tasks = JSON.parse(tasksData);
+          // Find the current task
+          const updatedTasks = tasks.map((task: Task) => {
+            if (task.id === currentTask.id) {
+              // Save the formula and target column
+              return {
+                ...task,
+                savedOperations: {
+                  formula: calculation.formula,
+                  targetColumn: calculation.targetColumn
+                }
+              };
+            }
+            return task;
+          });
+          
+          // Save updated tasks to localStorage
+          localStorage.setItem("mondayTasks", JSON.stringify(updatedTasks));
+          toast.success("Formula saved and applied successfully!");
+          
+          // Navigate to the landing page
+          navigate("/");
+        } catch (error) {
+          console.error("Error saving operation:", error);
+          toast.error("Failed to save operation");
+        }
+      }
     } else {
-      toast.error("Failed to save operation");
+      toast.success("Formula applied successfully!");
+      navigate("/");
     }
   };
 
-  // Process board data wrapper function that accepts board data
-  const handleProcessBoard = (boardData: any) => {
+  const handleProcessBoard = () => {
+    if (!boardData) {
+      toast.error("No board data available");
+      return;
+    }
+    
     calculation.processBoardData(boardData);
   };
 
-  // Get selected columns from currentTask or sessionStorage
-  const selectedColumns = currentTask?.selectedColumns || 
-    (sessionStorage.getItem("selectedColumns") ? 
-      JSON.parse(sessionStorage.getItem("selectedColumns")!) : []);
-  
-  // Determine if we're in logic test mode based on task type
-  const isLogicTestMode = currentTask?.taskType === "logicTest";
+  const testCalculation = () => {
+    // Make sure we pass the formula to the test function
+    calculation.testCalculation();
+  };
 
   return {
     boardData,
     currentTask,
     selectedColumns,
-    isLogicTestMode,
     calculation,
-    loadingTask: loadingTask || isLoadingBoard || isBoardLoading,
     handleBackToBoard,
     handleApplyFormula,
     handleProcessBoard,
-    testCalculation: calculation.testCalculation
+    testCalculation
   };
 };

@@ -4,13 +4,10 @@ export interface Task {
   title: string;
   sourceBoard: string;
   destinationBoard: string;
-  taskType: "calculation" | "logicTest";
-  boardConfigured?: boolean;  // Track if board setup is complete
-  selectedColumns?: string[];  // Store selected columns for persistence
   savedOperations?: {
     formula: Array<{
       id: string;
-      type: "column" | "operator" | "number" | "condition" | "logical";
+      type: "column" | "operator" | "number";
       value: string;
       display: string;
     }>;

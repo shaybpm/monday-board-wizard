@@ -1,17 +1,16 @@
 
 import { CalculationToken } from '@/types/calculation';
 import { useSectionTokenAdder } from './useSectionTokenAdder';
-import { useTokenHandling, TokenHandlingProps } from './useTokenHandling';
-import { useDirectInput } from './useDirectInput';
+import { useNumberInput } from './useNumberInput';
 
-export interface FormulaTokensProps extends TokenHandlingProps {
+export interface FormulaTokensProps {
   formula: CalculationToken[];
-  onAddLogical: (logical: string) => void;
+  isLogicTestMode: boolean;
+  activeSection: "condition" | "then" | "else";
+  onAddToken: (token: CalculationToken) => void;
+  onAddLogical: (logicalType: string) => void;
 }
 
-/**
- * Hook for managing formula token operations
- */
 export const useFormulaTokens = ({
   formula,
   isLogicTestMode,
@@ -19,9 +18,6 @@ export const useFormulaTokens = ({
   onAddToken,
   onAddLogical
 }: FormulaTokensProps) => {
-  // Log the active section and mode for debugging
-  console.log(`[useFormulaTokens] Active section: ${activeSection}, Logic test mode: ${isLogicTestMode}`);
-  
   // Use our section token adder hook
   const { addTokenToFormula } = useSectionTokenAdder({
     formula,
@@ -30,25 +26,46 @@ export const useFormulaTokens = ({
     onAddToken
   });
 
-  // Use our token handling hook
-  const { handleAddColumnWrapped } = useTokenHandling({
+  // Use our number input hook
+  const { handleAddNumberWrapped } = useNumberInput({
     isLogicTestMode,
     activeSection,
-    onAddToken: (token) => {
-      // Check if we're in logic test mode and use section-aware token handler
-      if (isLogicTestMode) {
-        addTokenToFormula(() => token);
-      } else {
-        onAddToken(token);
-      }
-    }
+    formula,
+    onAddToken
   });
 
-  // Use our direct input hook
-  const { handleAddDirectInput } = useDirectInput();
+  // Create other token handler functions
+  const handleAddColumnWrapped = (column: any) => {
+    addTokenToFormula(() => ({
+      id: column.id,
+      type: "column" as const,
+      value: column.id,
+      display: column.title
+    }));
+  };
+
+  const handleAddOperatorWrapped = (operator: string) => {
+    addTokenToFormula(() => ({
+      id: `op-${Date.now()}`,
+      type: "operator" as const,
+      value: operator,
+      display: operator
+    }));
+  };
+
+  const handleAddConditionWrapped = (condition: string) => {
+    addTokenToFormula(() => ({
+      id: `cond-${Date.now()}`,
+      type: "condition" as const,
+      value: condition,
+      display: condition
+    }));
+  };
 
   return {
     handleAddColumnWrapped,
-    handleAddDirectInput
+    handleAddOperatorWrapped,
+    handleAddNumberWrapped,
+    handleAddConditionWrapped
   };
 };

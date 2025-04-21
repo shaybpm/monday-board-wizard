@@ -1,4 +1,3 @@
-
 import { useBoardData } from "@/hooks/useBoardData";
 import BoardStructure from "@/components/BoardStructure";
 import LoadingState from "@/components/board-page/LoadingState";
@@ -9,52 +8,18 @@ import BackToConnectButton from "@/components/board-page/BackToConnectButton";
 import OperationButton from "@/components/board-page/OperationButton";
 import { useEffect, useState } from "react";
 import { Task } from "@/types/task";
-import { useNavigate } from "react-router-dom";
 
 const BoardPage = () => {
   const { boardData, setBoardData, isLoading, loadBoardData } = useBoardData();
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    // Load task data
     const taskData = sessionStorage.getItem("mondayCurrentTask");
     if (taskData) {
-      try {
-        const parsedTask = JSON.parse(taskData);
-        setCurrentTask(parsedTask);
-        
-        // If task has previously selected columns, load them
-        if (parsedTask.selectedColumns && Array.isArray(parsedTask.selectedColumns)) {
-          setSelectedColumns(parsedTask.selectedColumns);
-          // Also set in session storage for consistency
-          sessionStorage.setItem("selectedColumns", JSON.stringify(parsedTask.selectedColumns));
-        } else {
-          // Check if there are selected columns in session storage
-          const columnsData = sessionStorage.getItem("selectedColumns");
-          if (columnsData) {
-            try {
-              const columnIds = JSON.parse(columnsData);
-              if (Array.isArray(columnIds)) {
-                setSelectedColumns(columnIds);
-              }
-            } catch (e) {
-              console.error("Error parsing selected columns:", e);
-              setSelectedColumns([]);
-            }
-          }
-        }
-      } catch (e) {
-        console.error("Error parsing task data:", e);
-        // If there's an error, redirect to the home page
-        navigate("/");
-      }
-    } else {
-      // No active task, redirect to home page
-      navigate("/");
+      setCurrentTask(JSON.parse(taskData));
     }
-  }, [navigate]);
+  }, []);
 
   const handleColumnSelection = (columnIds: string[]) => {
     setSelectedColumns(columnIds);
@@ -97,7 +62,6 @@ const BoardPage = () => {
       <BoardStructure 
         boardData={boardData} 
         onColumnSelection={handleColumnSelection}
-        initialSelectedColumns={selectedColumns}
       />
       
       <OperationButton 

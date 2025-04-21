@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { CalculationToken } from "@/types/calculation";
-import { FormulaTokensDisplay } from "./formula-display";
+import FormulaTokensDisplay from "./FormulaTokensDisplay";
 
 interface FormulaSectionsProps {
   isLogicTestMode: boolean;
@@ -9,7 +10,6 @@ interface FormulaSectionsProps {
   formula: CalculationToken[];
   onSectionClick: (section: "condition" | "then" | "else") => void;
   onRemoveToken: (index: number) => void;
-  onAddDirectInput: (text: string, section: "condition" | "then" | "else") => void;
 }
 
 const FormulaSections: React.FC<FormulaSectionsProps> = ({
@@ -17,20 +17,12 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
   activeSection,
   formula,
   onSectionClick,
-  onRemoveToken,
-  onAddDirectInput
+  onRemoveToken
 }) => {
   // Find positions of IF, THEN, and ELSE for dividing the formula
   const ifIndex = formula.findIndex(token => token.type === "logical" && token.value === "if");
   const thenIndex = formula.findIndex(token => token.type === "logical" && token.value === "then");
   const elseIndex = formula.findIndex(token => token.type === "logical" && token.value === "else");
-  
-  // Log each render with active section and token indices
-  useEffect(() => {
-    console.log(`[FormulaSections] Rendered with activeSection: ${activeSection}`);
-    console.log(`[FormulaSections] Token positions - IF: ${ifIndex}, THEN: ${thenIndex}, ELSE: ${elseIndex}`);
-    console.log(`[FormulaSections] Formula:`, formula);
-  }, [activeSection, formula, ifIndex, thenIndex, elseIndex]);
   
   // Divide formula into condition, then, and else parts
   const conditionPart = isLogicTestMode 
@@ -43,64 +35,23 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
     
   const elsePart = elseIndex > -1 ? formula.slice(elseIndex + 1) : [];
 
-  // Log the split formula sections
-  useEffect(() => {
-    console.log(`[FormulaSections] SPLIT FORMULA - Condition tokens: ${conditionPart.length}, Then tokens: ${thenPart.length}, Else tokens: ${elsePart.length}`);
-    console.log('[FormulaSections] Condition tokens:', conditionPart);
-    console.log('[FormulaSections] Then tokens:', thenPart);
-    console.log('[FormulaSections] Else tokens:', elsePart);
-  }, [conditionPart, thenPart, elsePart]);
-
   // Get appropriate style for active section
   const getActiveSectionStyle = (section: "condition" | "then" | "else") => {
     if (!isLogicTestMode) return "";
-    
     if (activeSection === section) {
-      switch (section) {
-        case "condition": return "ring-2 ring-blue-500 ring-offset-2";
-        case "then": return "ring-2 ring-green-500 ring-offset-2";
-        case "else": return "ring-2 ring-red-500 ring-offset-2";
-        default: return "";
-      }
+      return "ring-2 ring-offset-2 ";
     }
     return "";
-  };
-
-  // Enhanced click handlers with logging
-  const handleSectionClick = (section: "condition" | "then" | "else") => {
-    console.log(`[FormulaSections] Section clicked: ${section}`);
-    onSectionClick(section);
-  };
-
-  // Wrapper functions to ensure each section's direct input is handled correctly
-  const handleConditionDirectInput = (text: string) => {
-    console.log(`[FormulaSections] Condition direct input: "${text}"`);
-    onAddDirectInput(text, "condition");
-  };
-  
-  const handleThenDirectInput = (text: string) => {
-    console.log(`[FormulaSections] THEN direct input: "${text}"`);
-    onAddDirectInput(text, "then");
-  };
-  
-  const handleElseDirectInput = (text: string) => {
-    console.log(`[FormulaSections] ELSE direct input: "${text}"`);
-    onAddDirectInput(text, "else");
-  };
-
-  // Log token removal with section context
-  const logTokenRemoval = (section: string, index: number, adjustedIndex: number) => {
-    console.log(`[FormulaSections] Removing token from ${section} section - index: ${index}, adjusted index: ${adjustedIndex}`);
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Left side - Condition part */}
       <FormulaTokensDisplay
-        tokens={conditionPart.map((token, idx) => ({ ...token, uniqueId: `condition-${token.id}-${idx}` }))}
+        tokens={conditionPart}
         label={isLogicTestMode ? "IF condition" : "Formula"}
-        emptyMessage={isLogicTestMode ? "Click here to type your condition" : "Build your formula here"}
-        className={`${isLogicTestMode ? "bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer" : "bg-gray-50"} ${getActiveSectionStyle("condition")}`}
+        emptyMessage={isLogicTestMode ? "Build your condition here" : "Build your formula here"}
+        className={`${isLogicTestMode ? "bg-blue-50" : "bg-gray-50"} ${getActiveSectionStyle("condition")}`}
         badgePrefix={isLogicTestMode && ifIndex > -1 ? (
           <Badge 
             key="if-label"
@@ -114,17 +65,13 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
           // For condition part, adjust the index based on mode
           if (isLogicTestMode && ifIndex > -1) {
             const adjustedIndex = index + ifIndex + 1;
-            logTokenRemoval("condition", index, adjustedIndex);
             onRemoveToken(adjustedIndex);
           } else {
             // In calculation mode, use the direct index
-            logTokenRemoval("condition", index, index);
             onRemoveToken(index);
           }
         }}
-        onAddDirectInput={handleConditionDirectInput}
-        onClick={() => handleSectionClick("condition")}
-        sectionType="condition"
+        onClick={() => onSectionClick("condition")}
       />
       
       {/* Right side - Only show THEN and ELSE in logic test mode */}
@@ -132,10 +79,10 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
         <div className="flex flex-col gap-3">
           {/* THEN part */}
           <FormulaTokensDisplay
-            tokens={thenPart.map((token, idx) => ({ ...token, uniqueId: `then-${token.id}-${idx}` }))}
+            tokens={thenPart}
             label="THEN (if condition is TRUE)"
-            emptyMessage="Click here to type what happens when condition is true"
-            className={`bg-green-50 hover:bg-green-100 transition-colors cursor-pointer ${getActiveSectionStyle("then")}`}
+            emptyMessage="Add what should happen when condition is true"
+            className={`bg-green-50 ${getActiveSectionStyle("then")}`}
             badgePrefix={thenIndex > -1 ? (
               <Badge 
                 key="then-label"
@@ -148,20 +95,18 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
             onRemoveToken={(index) => {
               // For then part, adjust the index
               const adjustedIndex = index + thenIndex + 1;
-              logTokenRemoval("then", index, adjustedIndex);
               onRemoveToken(adjustedIndex);
             }}
-            onAddDirectInput={handleThenDirectInput}
-            onClick={() => handleSectionClick("then")}
-            sectionType="then"
+            disabled={thenIndex === -1}
+            onClick={() => onSectionClick("then")}
           />
           
           {/* ELSE part */}
           <FormulaTokensDisplay
-            tokens={elsePart.map((token, idx) => ({ ...token, uniqueId: `else-${token.id}-${idx}` }))}
+            tokens={elsePart}
             label="ELSE (if condition is FALSE)"
-            emptyMessage="Click here to type what happens when condition is false"
-            className={`bg-red-50 hover:bg-red-100 transition-colors cursor-pointer ${getActiveSectionStyle("else")}`}
+            emptyMessage="Add what should happen when condition is false"
+            className={`bg-red-50 ${getActiveSectionStyle("else")}`}
             badgePrefix={elseIndex > -1 ? (
               <Badge 
                 key="else-label"
@@ -174,12 +119,10 @@ const FormulaSections: React.FC<FormulaSectionsProps> = ({
             onRemoveToken={(index) => {
               // For else part, adjust the index
               const adjustedIndex = index + elseIndex + 1;
-              logTokenRemoval("else", index, adjustedIndex);
               onRemoveToken(adjustedIndex);
             }}
-            onAddDirectInput={handleElseDirectInput}
-            onClick={() => handleSectionClick("else")}
-            sectionType="else"
+            disabled={elseIndex === -1}
+            onClick={() => onSectionClick("else")}
           />
         </div>
       )}

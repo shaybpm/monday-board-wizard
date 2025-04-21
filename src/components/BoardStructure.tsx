@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { ParsedBoardData, BoardColumn } from "@/lib/types";
 import SearchBar from "./board/search-bar";
 import ColumnsTable from "./board/columns-table";
@@ -9,10 +9,9 @@ import { useColumnSelect } from "./board/hooks/useColumnSelect";
 interface BoardStructureProps {
   boardData: ParsedBoardData;
   onColumnSelection?: (columnIds: string[]) => void;
-  initialSelectedColumns?: string[];
 }
 
-const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSelection, initialSelectedColumns = [] }) => {
+const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSelection }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSubitems, setShowSubitems] = useState(false);
   
@@ -45,9 +44,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
         }
       }
       
-      // Mark columns as selected if they are in the initialSelectedColumns array
-      const isSelected = initialSelectedColumns.includes(column.id);
-      
       return {
         id: column.id,
         title: column.title,
@@ -55,22 +51,10 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
         firstLineValue: example,
         itemId: itemId,
         itemName: itemName,
-        selected: isSelected
+        selected: false
       };
     });
   });
-  
-  // Apply initial selection when component mounts or initialSelectedColumns changes
-  useEffect(() => {
-    if (initialSelectedColumns && initialSelectedColumns.length > 0) {
-      setColumnRows(prev => 
-        prev.map(col => ({
-          ...col,
-          selected: initialSelectedColumns.includes(col.id)
-        }))
-      );
-    }
-  }, [initialSelectedColumns]);
   
   const { toggleRowSelection, toggleAllSelection } = useColumnSelect(columnRows, setColumnRows);
   
