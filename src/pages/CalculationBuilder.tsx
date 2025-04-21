@@ -28,6 +28,7 @@ const CalculationBuilder = () => {
     console.log("Formula in state:", calculation.formula);
     console.log("Is loading task:", loadingTask);
     console.log("Board data available:", !!boardData);
+    console.log("Selected columns:", selectedColumns);
     
     if (!currentTask && !loadingTask) {
       console.error("Missing task data in CalculationBuilder, redirecting to home");
@@ -58,7 +59,7 @@ const CalculationBuilder = () => {
       
       return;
     }
-  }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate, loadingTask]);
+  }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate, loadingTask, selectedColumns]);
 
   if (loadingTask || !currentTask) {
     return (
@@ -108,6 +109,16 @@ const CalculationBuilder = () => {
     );
   }
 
+  // Check if we have properly resolved the selected columns
+  const columnsToDisplay = selectedColumns && selectedColumns.length > 0 
+    ? selectedColumns.map((colId: string) => {
+      const foundColumn = boardData.columns.find(col => col.id === colId);
+      return foundColumn || null;
+    }).filter(Boolean)
+    : [];
+
+  console.log("Columns to display in calculation form:", columnsToDisplay);
+
   return (
     <div className="container mx-auto p-4 min-h-screen">
       <h1 className="text-2xl font-bold mb-1">
@@ -119,7 +130,7 @@ const CalculationBuilder = () => {
       <TaskSummary task={currentTask} boardName={boardData.boardName} />
       
       <CalculationForm
-        columns={selectedColumns}
+        columns={columnsToDisplay}
         formula={calculation.formula}
         targetColumn={calculation.targetColumn}
         previewResult={calculation.previewResult}
