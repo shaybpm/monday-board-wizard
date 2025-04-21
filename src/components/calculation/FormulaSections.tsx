@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CalculationToken } from "@/types/calculation";
