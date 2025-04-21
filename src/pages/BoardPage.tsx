@@ -12,12 +12,14 @@ import { Task } from "@/types/task";
 import { useNavigate } from "react-router-dom";
 
 const BoardPage = () => {
-  const { boardData, setBoardData, isLoading, loadBoardData } = useBoardData();
+  const { boardData, setBoardData, isLoading, loadingError, loadBoardData } = useBoardData();
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("BoardPage - Current loading state:", { isLoading, hasError: !!loadingError, hasData: !!boardData });
+    
     // Load task data
     const taskData = sessionStorage.getItem("mondayCurrentTask");
     if (taskData) {
@@ -52,16 +54,30 @@ const BoardPage = () => {
       }
     } else {
       // No active task, redirect to home page
+      console.error("No task data found in session storage");
       navigate("/");
     }
-  }, [navigate]);
+  }, [navigate, loadingError]);
 
   const handleColumnSelection = (columnIds: string[]) => {
     setSelectedColumns(columnIds);
+    // Save to session storage immediately
+    sessionStorage.setItem("selectedColumns", JSON.stringify(columnIds));
+    
+    // If we have a current task, update its selectedColumns property
+    if (currentTask) {
+      const updatedTask = { ...currentTask, selectedColumns: columnIds };
+      setCurrentTask(updatedTask);
+      sessionStorage.setItem("mondayCurrentTask", JSON.stringify(updatedTask));
+    }
   };
 
   if (isLoading) {
     return <LoadingState />;
+  }
+  
+  if (loadingError) {
+    return <LoadingState error={loadingError} onRetry={loadBoardData} />;
   }
 
   if (!boardData) {
