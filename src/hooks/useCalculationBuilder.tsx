@@ -5,7 +5,7 @@ import { useBoardData } from "@/hooks/useBoardData";
 import { useCalculation } from "@/hooks/useCalculation";
 import { useTaskLoader } from "./calculation/useTaskLoader";
 import { useAutoSave } from "./calculation/useAutoSave";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export const useCalculationBuilder = () => {
   const { boardData, loadBoardData, isLoading: isBoardLoading } = useBoardData();
@@ -13,11 +13,14 @@ export const useCalculationBuilder = () => {
   const { currentTask, setCurrentTask, loadingTask } = useTaskLoader();
   const [isLoadingBoard, setIsLoadingBoard] = useState(false);
   const calculation = useCalculation(currentTask);
+  const loadAttemptMade = useRef(false);
   
   // Ensure board data is loaded - with improved error handling
   useEffect(() => {
-    if (!boardData && !isLoadingBoard && currentTask) {
+    if (!boardData && !isLoadingBoard && currentTask && !loadAttemptMade.current) {
       setIsLoadingBoard(true);
+      loadAttemptMade.current = true;
+      
       console.log("Board data missing, attempting to load it...");
       loadBoardData()
         .then(loadedData => {
@@ -38,7 +41,7 @@ export const useCalculationBuilder = () => {
           setIsLoadingBoard(false);
         });
     }
-  }, [boardData, currentTask, loadBoardData, navigate]);
+  }, [boardData, currentTask, loadBoardData, navigate, isLoadingBoard]);
   
   // Get auto-save functionality
   const { handleAutoSave } = useAutoSave({
