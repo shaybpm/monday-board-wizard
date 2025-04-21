@@ -35,6 +35,11 @@ export const useCalculationBuilder = () => {
     }
   };
 
+  // Process board data wrapper function that accepts board data
+  const handleProcessBoard = (boardData: any) => {
+    calculation.processBoardData(boardData);
+  };
+
   // Get selected columns from currentTask or sessionStorage
   const selectedColumns = currentTask?.selectedColumns || 
     (sessionStorage.getItem("selectedColumns") ? 
@@ -52,7 +57,7 @@ export const useCalculationBuilder = () => {
     loadingTask,
     handleBackToBoard,
     handleApplyFormula,
-    handleProcessBoard: calculation.processBoardData,
+    handleProcessBoard,
     testCalculation: calculation.testCalculation
   };
 };

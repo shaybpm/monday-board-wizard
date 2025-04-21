@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useCalculationBuilder } from "@/hooks/useCalculationBuilder";
 import TaskSummary from "@/components/calculation/TaskSummary";
@@ -21,19 +20,16 @@ const CalculationBuilder = () => {
   } = useCalculationBuilder();
   const navigate = useNavigate();
 
-  // Debugging and validation
   useEffect(() => {
     console.log("Current task in CalculationBuilder:", currentTask);
     console.log("Is logic test mode:", isLogicTestMode);
     console.log("Formula in state:", calculation.formula);
     console.log("Is loading task:", loadingTask);
     
-    // Validate task and board data, redirect to home if missing
     if (!currentTask && !loadingTask) {
       console.error("Missing task data in CalculationBuilder, redirecting to home");
       toast.error("No active task found. Please select a task first.");
       
-      // Try to recover task from localStorage if possible
       const selectedTaskId = localStorage.getItem("mondaySelectedTaskId");
       const tasksData = localStorage.getItem("mondayTasks");
       
@@ -45,7 +41,6 @@ const CalculationBuilder = () => {
           if (task) {
             console.log("Recovered task from localStorage:", task);
             sessionStorage.setItem("mondayCurrentTask", JSON.stringify(task));
-            // Now reload the page to use the recovered task
             window.location.reload();
             return;
           }
@@ -54,7 +49,6 @@ const CalculationBuilder = () => {
         }
       }
       
-      // Small delay to allow the toast to be displayed
       setTimeout(() => {
         navigate("/");
       }, 1000);
@@ -66,7 +60,6 @@ const CalculationBuilder = () => {
       console.error("Missing board data in CalculationBuilder, redirecting to home");
       toast.error("Missing board data. Please reconnect to Monday.com.");
       
-      // Small delay to allow the toast to be displayed
       setTimeout(() => {
         navigate("/");
       }, 1000);
@@ -74,7 +67,6 @@ const CalculationBuilder = () => {
       return;
     }
     
-    // Log full task details for debugging
     if (currentTask) {
       console.log("Full task details:", {
         id: currentTask.id,
@@ -87,9 +79,6 @@ const CalculationBuilder = () => {
     }
   }, [currentTask, isLogicTestMode, calculation.formula, boardData, navigate, loadingTask]);
 
-  // Remove the auto-save effect since it's now handled in the useAutoSave hook
-  
-  // Return a loading state while checking validation
   if (loadingTask || !boardData || !currentTask) {
     return (
       <div className="container mx-auto p-4">
@@ -134,7 +123,7 @@ const CalculationBuilder = () => {
         onBack={handleBackToBoard}
         onApply={handleApplyFormula}
         onTest={testCalculation}
-        onProcessBoard={handleProcessBoard}
+        onProcessBoard={() => handleProcessBoard(boardData)}
         onCancelProcessing={calculation.cancelProcessing}
       />
     </div>
