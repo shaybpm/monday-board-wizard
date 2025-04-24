@@ -19,6 +19,16 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
   const [columnRows, setColumnRows] = useState<ColumnRow[]>([]);
   const [key, setKey] = useState(0); // Key state to force re-render
   
+  // Explicitly log what's available for debugging
+  useEffect(() => {
+    console.log("BoardStructure - Data available:", {
+      columnsCount: boardData.columns.length,
+      subitemColumnsCount: boardData.subitemColumns?.length || 0,
+      subitemsCount: boardData.subitems?.length || 0,
+      showSubitems: showSubitems
+    });
+  }, [boardData, showSubitems]);
+  
   // Handle show subitems state change with explicit structure rebuilding
   const handleShowSubitemsChange = (show: boolean) => {
     console.log(`BoardStructure - handling setShowSubitems with value: ${show}, current state: ${showSubitems}`);
@@ -42,12 +52,35 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     console.log(`Rebuilding column rows with showSubitems=${showSubitemsValue}`);
     console.log(`Available subitem columns: ${data.subitemColumns?.length || 0}`);
     console.log(`Available main columns: ${data.columns.length}`);
+    console.log(`Available subitems: ${data.subitems?.length || 0}`);
     
     let columnsToDisplay;
     
+    // Only use subitem columns if they exist AND showSubitems is true
     if (showSubitemsValue && data.subitemColumns && data.subitemColumns.length > 0) {
       console.log("Using subitem columns:", data.subitemColumns.length);
       columnsToDisplay = data.subitemColumns;
+    } else if (showSubitemsValue && data.subitems && data.subitems.length > 0) {
+      // If no specific subitem columns but we have subitems, extract from first subitem
+      console.log("Extracting columns from first subitem");
+      const firstSubitem = data.subitems[0];
+      
+      if (firstSubitem && firstSubitem.columns) {
+        const extractedColumns = Object.values(firstSubitem.columns).map(col => ({
+          id: col.id,
+          title: col.title || col.id,
+          type: col.type || 'text',
+          exampleValue: col.text || JSON.stringify(col.value) || "N/A",
+          itemId: firstSubitem.id,
+          itemName: firstSubitem.name
+        }));
+        
+        console.log(`Extracted ${extractedColumns.length} columns from first subitem`);
+        columnsToDisplay = extractedColumns;
+      } else {
+        console.log("No columns in subitems, defaulting to main columns");
+        columnsToDisplay = data.columns;
+      }
     } else {
       console.log("Using main board columns:", data.columns.length);
       columnsToDisplay = data.columns;
@@ -99,7 +132,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
   useEffect(() => {
     console.log(`Rebuilding column rows from effect with showSubitems=${showSubitems}, key=${key}`);
     rebuildColumnRows(showSubitems, boardData);
-  }, [showSubitems, boardData, key]); 
+  }, [showSubitems, boardData, key, initialSelectedColumns]); 
   
   // Handle initial selected columns
   useEffect(() => {
@@ -128,7 +161,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
   }, [columnRows, onColumnSelection]);
 
   return (
-    <div className="space-y-4" key={`board-structure-${key}`}>
+    <div className="space-y-4" key={`board-structure-${key}-${showSubitems ? 'subitems' : 'items'}`}>
       <SearchBar 
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}

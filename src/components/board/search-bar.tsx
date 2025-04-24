@@ -26,9 +26,15 @@ export default function SearchBar({
   useEffect(() => {
     const newActiveView = showSubitems ? 'subitems' : 'items';
     if (activeView !== newActiveView) {
+      console.log(`SearchBar - syncing local activeView state with parent state: ${newActiveView}`);
       setActiveView(newActiveView);
     }
   }, [showSubitems, activeView]);
+  
+  // Effect to log state changes for debugging
+  useEffect(() => {
+    console.log(`SearchBar - current view state: activeView=${activeView}, showSubitems=${showSubitems}`);
+  }, [activeView, showSubitems]);
   
   const handleItemsClick = () => {
     console.log("ITEMS button clicked");

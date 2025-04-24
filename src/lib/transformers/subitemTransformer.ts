@@ -13,6 +13,8 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
   console.log(`Transforming ${subitems.length} subitems`);
   
   return subitems.map((subitem: any) => {
+    console.log(`Processing subitem: ${subitem.id}, with ${subitem.column_values?.length || 0} columns`);
+    
     const transformedSubitem: BoardItem = {
       id: subitem.id,
       name: subitem.name,
@@ -33,7 +35,7 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
         // Ensure we have a title for the column (use API provided title or fallback to ID)
         const columnTitle = cv.title || cv.id;
         
-        console.log(`Subitem ${subitem.id} column ${cv.id} title: ${columnTitle}`);
+        console.log(`Subitem ${subitem.id} column ${cv.id} title: ${columnTitle}, type: ${cv.type || 'unknown'}`);
           
         transformedSubitem.columns[cv.id] = {
           id: cv.id,
