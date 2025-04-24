@@ -13,7 +13,7 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
   console.log(`Transforming ${subitems.length} subitems`);
   
   return subitems.map((subitem: any) => {
-    console.log(`Processing subitem: ${subitem.id}, with ${subitem.column_values?.length || 0} columns`);
+    console.log(`Processing subitem: ${subitem.id}`);
     
     const transformedSubitem: BoardItem = {
       id: subitem.id,
@@ -39,15 +39,16 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
           ? cv.display_value 
           : (cv.text || '');
           
-        // Make sure we ALWAYS have a title for the column
+        // Make sure we ALWAYS have a title for the column - this was a critical issue
         // First try the API provided title, then fallback to the ID
         const columnTitle = cv.title || cv.id;
         
-        console.log(`Subitem ${subitem.id} column ${cv.id} title: ${columnTitle}, type: ${cv.type || 'unknown'}`);
+        // Log key information about this column
+        console.log(`Subitem ${subitem.id} column ${cv.id} title: ${columnTitle}, value: ${displayText}`);
         
         transformedSubitem.columns[cv.id] = {
           id: cv.id,
-          title: columnTitle,
+          title: columnTitle, // Store the title properly
           type: cv.type || 'text',
           value: cv.value || '',
           text: displayText

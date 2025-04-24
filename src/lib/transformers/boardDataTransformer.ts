@@ -31,11 +31,11 @@ export const transformBoardData = (
       subitemColumns = Object.values(sampleSubitem.columns).map(col => {
         // Ensure we have a title
         const colTitle = col.title || col.id;
-        console.log(`Extracting column info: ${col.id}, title: ${colTitle}`);
+        console.log(`Extracting subitem column: ${col.id}, title: ${colTitle}, type: ${col.type}`);
         
         return {
           id: col.id,
-          title: colTitle,
+          title: colTitle, // Use extracted title
           type: col.type || 'text',
           exampleValue: col.text || JSON.stringify(col.value) || "",
           itemId: sampleSubitem.id,

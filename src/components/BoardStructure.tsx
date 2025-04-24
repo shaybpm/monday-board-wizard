@@ -25,24 +25,33 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     console.log("Has subitems:", boardData.subitems?.length || 0);
   }, [showSubitems, boardData]);
   
-  // Clear function to build column rows based on view type
+  // Function to build column rows based on view type
   const buildColumnRows = (showSubitemsValue: boolean) => {
-    console.log(`Building column rows with showSubitems=${showSubitemsValue}`);
-    
-    // Determine which columns to display
+    // Determine which columns to display based on view
     let columnsToDisplay;
     
     if (showSubitemsValue) {
-      // We're in subitems view - prioritize dedicated subitem columns
+      // SUBITEMS VIEW
+      console.log("Building SUBITEMS column view");
+      
+      // Check if we have dedicated subitem columns
       if (boardData.subitemColumns && boardData.subitemColumns.length > 0) {
-        console.log(`Using dedicated subitem columns: ${boardData.subitemColumns.length}`);
+        console.log(`Using ${boardData.subitemColumns.length} dedicated subitem columns`);
+        
+        // Log what columns we're using
+        boardData.subitemColumns.forEach(col => {
+          console.log(`Subitem column: ${col.id}, title: ${col.title}, type: ${col.type}`);
+        });
+        
         columnsToDisplay = boardData.subitemColumns;
       } else if (boardData.subitems && boardData.subitems.length > 0) {
         // Fallback: extract columns from first subitem
-        console.log("Using columns extracted from first subitem");
+        console.log("No dedicated subitem columns, extracting from subitem");
         const firstSubitem = boardData.subitems[0];
         
         if (firstSubitem && firstSubitem.columns) {
+          console.log("Columns from first subitem:", Object.keys(firstSubitem.columns));
+          
           const extractedColumns = Object.values(firstSubitem.columns).map(col => ({
             id: col.id,
             title: col.title || col.id,
@@ -55,18 +64,18 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
           console.log(`Extracted ${extractedColumns.length} columns from subitem`);
           columnsToDisplay = extractedColumns;
         } else {
-          // Fallback to main columns if no columns in subitems
+          // No columns in subitems, fallback to main
           console.log("No columns in subitems, falling back to main columns");
           columnsToDisplay = boardData.columns;
         }
       } else {
         // No subitems data available
-        console.log("No subitems data available, using main columns");
+        console.log("No subitems data available, falling back to main columns");
         columnsToDisplay = boardData.columns;
       }
     } else {
-      // Not showing subitems, use regular board columns
-      console.log(`Using main board columns: ${boardData.columns.length}`);
+      // ITEMS VIEW - use regular board columns
+      console.log("Building ITEMS column view");
       columnsToDisplay = boardData.columns;
     }
     
@@ -98,11 +107,14 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     console.log(`Toggle request: ${showSubitems} -> ${show}`);
     
     if (showSubitems !== show) {
-      setShowSubitems(show);
+      console.log(`Switching to ${show ? 'SUBITEMS' : 'ITEMS'} view`);
       
-      // Update column rows IMMEDIATELY when the view changes
+      // Update column rows IMMEDIATELY
       const newRows = buildColumnRows(show);
       setColumnRows(newRows);
+      
+      // Then update the state for future reference
+      setShowSubitems(show);
       
       toast.info(`Switched to ${show ? 'Subitems' : 'Items'} view`);
     }
