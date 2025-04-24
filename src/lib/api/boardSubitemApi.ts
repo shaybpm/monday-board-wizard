@@ -18,6 +18,10 @@ export const fetchSubitemData = async (
           subitems {
             id
             name
+            parent_item {
+              id
+              name
+            }
             column_values {
               id
               text
@@ -39,6 +43,7 @@ export const fetchSubitemData = async (
     if (subitemResponse?.data?.items?.[0]?.subitems?.length > 0) {
       const firstSubitem = subitemResponse.data.items[0].subitems[0];
       console.log("First subitem data:", firstSubitem);
+      console.log("First subitem column values:", firstSubitem.column_values);
       
       // Store the subitem columns separately
       const subitemColumns = firstSubitem.column_values.map((cv: any) => {
@@ -46,6 +51,9 @@ export const fetchSubitemData = async (
         const exampleValue = cv.type === 'formula' && cv.display_value ? 
           cv.display_value : 
           (cv.text || JSON.stringify(cv.value) || "N/A");
+        
+        // Log column title information for debugging
+        console.log(`Subitem column ${cv.id} title: ${cv.title || 'undefined'}`);
         
         return {
           id: cv.id,

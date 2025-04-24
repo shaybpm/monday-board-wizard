@@ -23,9 +23,14 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
         const displayText = cv.type === 'formula' && cv.display_value ? 
           cv.display_value : cv.text || '';
           
+        // Ensure we have a title for the column (use API provided title or fallback to ID)
+        const columnTitle = cv.title || cv.id;
+        
+        console.log(`Subitem ${subitem.id} column ${cv.id} title: ${columnTitle}`);
+          
         transformedSubitem.columns[cv.id] = {
           id: cv.id,
-          title: cv.title || cv.id, // Ensure title property is set properly
+          title: columnTitle, // Use the actual title from the API
           type: cv.type || '',
           value: cv.value || '',
           text: displayText

@@ -1,10 +1,8 @@
 
-import React from "react";
-import { Search, ListTree, Table2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Table2, ListTree } from "lucide-react";
+import React, { useCallback } from 'react';
 
 interface SearchBarProps {
   searchTerm: string;
@@ -14,51 +12,67 @@ interface SearchBarProps {
   selectedCount: number;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({
+export default function SearchBar({
   searchTerm,
   setSearchTerm,
   showSubitems,
   setShowSubitems,
   selectedCount
-}) => {
-  return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search columns..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              {showSubitems ? <ListTree className="h-4 w-4" /> : <Table2 className="h-4 w-4" />}
-              <span className="text-sm font-medium">
-                {showSubitems ? "Subitems" : "Items"}
-              </span>
-              <Switch
-                checked={showSubitems}
-                onCheckedChange={setShowSubitems}
-              />
-            </div>
-            
-            <Button
-              variant="outline"
-              disabled={selectedCount === 0}
-              className="whitespace-nowrap"
-            >
-              Selected ({selectedCount})
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+}: SearchBarProps) {
+  const handleToggleSubitems = useCallback((event: React.MouseEvent) => {
+    // Prevent default to avoid any form submission
+    event.preventDefault();
+    
+    // Log the toggle action
+    console.log("Toggle button clicked, current state:", showSubitems);
+    console.log("Setting showSubitems to:", !showSubitems);
+    
+    // Call the setter with the new value
+    setShowSubitems(!showSubitems);
+  }, [showSubitems, setShowSubitems]);
 
-export default SearchBar;
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+      <div className="flex items-center gap-1.5">
+        <Button
+          size="sm"
+          variant={!showSubitems ? "default" : "outline"}
+          className="flex items-center gap-1"
+          onClick={handleToggleSubitems}
+          data-testid="items-toggle-button"
+        >
+          <Table2 className="h-3.5 w-3.5" />
+          <span>Items</span>
+        </Button>
+        <Button
+          size="sm"
+          variant={showSubitems ? "default" : "outline"}
+          className="flex items-center gap-1"
+          onClick={handleToggleSubitems}
+          data-testid="subitems-toggle-button"
+        >
+          <ListTree className="h-3.5 w-3.5" />
+          <span>Subitems</span>
+        </Button>
+        <div className="text-sm ml-2">
+          {showSubitems ? "Subitems" : "Board"} Structure{" "}
+          {selectedCount > 0 && (
+            <span>
+              - Selected <strong>{selectedCount}</strong>
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="relative flex-grow max-w-xs">
+        <Input
+          type="search"
+          placeholder="Search columns..."
+          className="w-full"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}

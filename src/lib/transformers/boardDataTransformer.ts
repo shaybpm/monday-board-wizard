@@ -26,14 +26,17 @@ export const transformBoardData = (
     
     if (sampleSubitem && sampleSubitem.columns) {
       // Extract column info from the subitem
-      const subitemColumns = Object.values(sampleSubitem.columns).map(col => ({
-        id: col.id,
-        title: col.title || col.id, // Use title from column or fall back to ID
-        type: col.type,
-        exampleValue: col.text || JSON.stringify(col.value) || "",
-        itemId: sampleSubitem.id,
-        itemName: sampleSubitem.name
-      }));
+      const subitemColumns = Object.values(sampleSubitem.columns).map(col => {
+        console.log(`Extracting column info: ${col.id}, title: ${col.title}`);
+        return {
+          id: col.id,
+          title: col.title || col.id, // Use title from column or fall back to ID
+          type: col.type,
+          exampleValue: col.text || JSON.stringify(col.value) || "",
+          itemId: sampleSubitem.id,
+          itemName: sampleSubitem.name
+        };
+      });
       
       fetchedBoardData.subitemColumns = subitemColumns;
       console.log(`Extracted ${subitemColumns.length} subitem columns`);

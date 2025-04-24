@@ -67,6 +67,9 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
       ? boardData.subitemColumns 
       : boardData.columns;
     
+    console.log("Toggle changed: showing", showSubitems ? "subitems" : "items");
+    console.log("Columns to display:", columnsToDisplay);
+    
     // Map columns to ColumnRow format
     const newColumnRows = columnsToDisplay.map(column => {
       let example = column.exampleValue || "N/A";
@@ -107,8 +110,9 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
       };
     });
     
+    console.log("Setting new column rows:", newColumnRows.length);
     setColumnRows(newColumnRows);
-  }, [showSubitems, boardData.columns, boardData.subitemColumns, boardData.subitems]);
+  }, [showSubitems, boardData.columns, boardData.subitemColumns, boardData.subitems, initialSelectedColumns]);
   
   // Apply initial selection when component mounts or initialSelectedColumns changes
   useEffect(() => {
@@ -137,13 +141,18 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     }
   }, [columnRows, onColumnSelection]);
 
+  const handleToggleSubitems = useCallback((value: boolean) => {
+    console.log("Toggle subitems called with value:", value);
+    setShowSubitems(value);
+  }, []);
+
   return (
     <div className="space-y-4">
       <SearchBar 
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         showSubitems={showSubitems}
-        setShowSubitems={setShowSubitems}
+        setShowSubitems={handleToggleSubitems}
         selectedCount={selectedCount}
       />
       
