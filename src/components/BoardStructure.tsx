@@ -34,15 +34,14 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
       toast.info(`Switched to ${show ? 'Subitems' : 'Items'} view`);
       
       console.log(`State updated: showSubitems = ${show}`);
-      
-      // Immediately rebuild column rows with the new value
-      rebuildColumnRows(show, boardData);
     }
   };
   
   // Extract column row building logic to a separate function
   const rebuildColumnRows = (showSubitemsValue: boolean, data: ParsedBoardData) => {
-    console.log(`Explicitly rebuilding column rows with showSubitems=${showSubitemsValue}`);
+    console.log(`Rebuilding column rows with showSubitems=${showSubitemsValue}`);
+    console.log(`Available subitem columns: ${data.subitemColumns?.length || 0}`);
+    console.log(`Available main columns: ${data.columns.length}`);
     
     let columnsToDisplay;
     
@@ -100,7 +99,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
   useEffect(() => {
     console.log(`Rebuilding column rows from effect with showSubitems=${showSubitems}, key=${key}`);
     rebuildColumnRows(showSubitems, boardData);
-  }, [showSubitems, boardData, key, initialSelectedColumns]); // Added initialSelectedColumns to dependencies
+  }, [showSubitems, boardData, key]); 
   
   // Handle initial selected columns
   useEffect(() => {
@@ -127,11 +126,6 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
       onColumnSelection(selectedColumnIds);
     }
   }, [columnRows, onColumnSelection]);
-
-  // Debug the current state
-  useEffect(() => {
-    console.log(`Current state: showSubitems=${showSubitems}, columns=${columnRows.length}, key=${key}`);
-  }, [showSubitems, columnRows, key]);
 
   return (
     <div className="space-y-4" key={`board-structure-${key}`}>

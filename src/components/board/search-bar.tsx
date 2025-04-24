@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table2, ListTree } from "lucide-react";
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface SearchBarProps {
   searchTerm: string;
@@ -19,41 +19,35 @@ export default function SearchBar({
   setShowSubitems,
   selectedCount
 }: SearchBarProps) {
-  // Add local state to ensure we have the correct value
-  const [localShowSubitems, setLocalShowSubitems] = useState(showSubitems);
+  // Add local state to track button states more reliably
+  const [activeView, setActiveView] = useState(showSubitems ? 'subitems' : 'items');
   
-  // Sync local state with props
+  // Sync parent state with local state
   useEffect(() => {
-    if (localShowSubitems !== showSubitems) {
-      setLocalShowSubitems(showSubitems);
+    const newActiveView = showSubitems ? 'subitems' : 'items';
+    if (activeView !== newActiveView) {
+      setActiveView(newActiveView);
     }
-  }, [showSubitems]);
-  
-  console.log(`SearchBar rendered with showSubitems=${showSubitems}, localShowSubitems=${localShowSubitems}`);
+  }, [showSubitems, activeView]);
   
   const handleItemsClick = () => {
-    console.log("ITEMS button clicked - Setting showSubitems to FALSE");
-    setLocalShowSubitems(false);
+    console.log("ITEMS button clicked");
+    setActiveView('items');
     setShowSubitems(false);
   };
   
   const handleSubitemsClick = () => {
-    console.log("SUBITEMS button clicked - Setting showSubitems to TRUE");
-    setLocalShowSubitems(true);
+    console.log("SUBITEMS button clicked");
+    setActiveView('subitems');
     setShowSubitems(true);
   };
-
-  // Force a re-render whenever the showSubitems prop changes
-  useEffect(() => {
-    console.log(`SearchBar received prop update: showSubitems=${showSubitems}`);
-  }, [showSubitems]);
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
       <div className="flex items-center gap-1.5">
         <Button
           size="sm"
-          variant={!localShowSubitems ? "default" : "outline"}
+          variant={activeView === 'items' ? "default" : "outline"}
           className="flex items-center gap-1"
           onClick={handleItemsClick}
           data-testid="items-toggle-button"
@@ -63,7 +57,7 @@ export default function SearchBar({
         </Button>
         <Button
           size="sm"
-          variant={localShowSubitems ? "default" : "outline"}
+          variant={activeView === 'subitems' ? "default" : "outline"}
           className="flex items-center gap-1"
           onClick={handleSubitemsClick}
           data-testid="subitems-toggle-button"
@@ -72,7 +66,7 @@ export default function SearchBar({
           <span>Subitems</span>
         </Button>
         <div className="text-sm ml-2">
-          {localShowSubitems ? "Subitems" : "Board"} Structure{" "}
+          {activeView === 'subitems' ? "Subitems" : "Board"} Structure{" "}
           {selectedCount > 0 && (
             <span>
               - Selected <strong>{selectedCount}</strong>

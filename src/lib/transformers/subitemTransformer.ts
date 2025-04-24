@@ -5,6 +5,13 @@ import { BoardItem } from "@/lib/types";
  * Transforms API response subitems into the standardized format used by the app
  */
 export const transformSubitems = (subitems: any[]): BoardItem[] => {
+  if (!subitems || subitems.length === 0) {
+    console.log('No subitems to transform');
+    return [];
+  }
+
+  console.log(`Transforming ${subitems.length} subitems`);
+  
   return subitems.map((subitem: any) => {
     const transformedSubitem: BoardItem = {
       id: subitem.id,
@@ -30,12 +37,14 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
           
         transformedSubitem.columns[cv.id] = {
           id: cv.id,
-          title: columnTitle, // Use the actual title from the API
+          title: columnTitle,
           type: cv.type || '',
           value: cv.value || '',
           text: displayText
         };
       });
+    } else {
+      console.warn(`Subitem ${subitem.id} has no column_values array`);
     }
     
     return transformedSubitem;
