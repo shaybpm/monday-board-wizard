@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from "react";
 import { ParsedBoardData } from "@/lib/types";
 import SearchBar from "./board/search-bar";
@@ -15,6 +14,8 @@ interface BoardStructureProps {
 const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSelection, initialSelectedColumns = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSubitems, setShowSubitems] = useState(false);
+  
+  console.log(`BoardStructure - Initial showSubitems state: ${showSubitems}`);
   
   // Transform boardData columns to ColumnRow format based on showSubitems toggle
   const [columnRows, setColumnRows] = useState<ColumnRow[]>(() => {
@@ -141,11 +142,12 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     }
   }, [columnRows, onColumnSelection]);
 
-  // Define handlers for toggling between items and subitems
+  // Direct handler for toggling subitems with additional logging
   const handleToggleSubitems = useCallback((value: boolean) => {
-    console.log(`Setting showSubitems to ${value} from handleToggleSubitems`);
+    console.log(`BoardStructure - handleToggleSubitems called with value: ${value}`);
+    console.log(`BoardStructure - previous showSubitems value was: ${showSubitems}`);
     setShowSubitems(value);
-  }, []);
+  }, [showSubitems]);
 
   return (
     <div className="space-y-4">
@@ -154,15 +156,15 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
         setSearchTerm={setSearchTerm}
         showSubitems={showSubitems}
         setShowSubitems={handleToggleSubitems}
-        selectedCount={selectedCount}
+        selectedCount={columnRows.filter(col => col.selected).length}
       />
       
       <ColumnsTable 
         columns={columnRows}
         searchTerm={searchTerm}
         showSubitems={showSubitems}
-        onToggleRowSelection={toggleRowSelection}
-        onToggleAllSelection={toggleAllSelection}
+        onToggleRowSelection={useColumnSelect(columnRows, setColumnRows).toggleRowSelection}
+        onToggleAllSelection={useColumnSelect(columnRows, setColumnRows).toggleAllSelection}
       />
     </div>
   );

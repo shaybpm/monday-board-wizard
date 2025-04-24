@@ -30,6 +30,9 @@ export default function SearchBar({
     setShowSubitems(true);
   }, [setShowSubitems]);
 
+  // Debug function to log the current state
+  console.log(`SearchBar render - showSubitems is currently: ${showSubitems}`);
+
   return (
     <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
       <div className="flex items-center gap-1.5">
@@ -37,7 +40,10 @@ export default function SearchBar({
           size="sm"
           variant={!showSubitems ? "default" : "outline"}
           className="flex items-center gap-1"
-          onClick={handleItemsClick}
+          onClick={() => {
+            console.log("DIRECT ITEMS CLICK");
+            handleItemsClick();
+          }}
           data-testid="items-toggle-button"
         >
           <Table2 className="h-3.5 w-3.5" />
@@ -47,7 +53,10 @@ export default function SearchBar({
           size="sm"
           variant={showSubitems ? "default" : "outline"}
           className="flex items-center gap-1"
-          onClick={handleSubitemsClick}
+          onClick={() => {
+            console.log("DIRECT SUBITEMS CLICK");
+            handleSubitemsClick();
+          }}
           data-testid="subitems-toggle-button"
         >
           <ListTree className="h-3.5 w-3.5" />
