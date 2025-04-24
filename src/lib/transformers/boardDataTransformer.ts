@@ -29,7 +29,8 @@ export const transformBoardData = (
     if (sampleSubitem && sampleSubitem.columns) {
       // Extract column info from the subitem
       subitemColumns = Object.values(sampleSubitem.columns).map(col => {
-        const colTitle = col.title || col.id; // Ensure we have a title
+        // Ensure we have a title
+        const colTitle = col.title || col.id;
         console.log(`Extracting column info: ${col.id}, title: ${colTitle}`);
         
         return {

@@ -28,7 +28,7 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
     // Transform column values into the expected format
     if (subitem.column_values && Array.isArray(subitem.column_values)) {
       subitem.column_values.forEach((cv: any) => {
-        // Skip columns with no title or ID
+        // Skip columns with no ID
         if (!cv.id) {
           console.warn(`Subitem column missing ID, skipping`);
           return;
@@ -39,7 +39,8 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
           ? cv.display_value 
           : (cv.text || '');
           
-        // Ensure we have a title for the column (use API provided title or fallback to ID)
+        // Make sure we ALWAYS have a title for the column
+        // First try the API provided title, then fallback to the ID
         const columnTitle = cv.title || cv.id;
         
         console.log(`Subitem ${subitem.id} column ${cv.id} title: ${columnTitle}, type: ${cv.type || 'unknown'}`);
