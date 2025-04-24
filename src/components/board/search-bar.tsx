@@ -19,19 +19,21 @@ export default function SearchBar({
   setShowSubitems,
   selectedCount
 }: SearchBarProps) {
-  // Define two separate handler functions for clarity
-  const handleItemsClick = useCallback(() => {
-    console.log(`Items button clicked at ${new Date().toISOString()}, setting showSubitems to false`);
-    setShowSubitems(false);
-  }, [setShowSubitems]);
+  // Log when the component renders with current state
+  console.log(`SearchBar render - showSubitems is currently: ${showSubitems} at ${new Date().toISOString()}`);
   
-  const handleSubitemsClick = useCallback(() => {
-    console.log(`Subitems button clicked at ${new Date().toISOString()}, setting showSubitems to true`);
+  // Simplify the handlers and make them more direct
+  const handleItemsClick = () => {
+    console.log(`DIRECT ITEMS CLICK - About to set showSubitems to FALSE at ${new Date().toISOString()}`);
+    // Directly set to false, bypassing any callback complexity
+    setShowSubitems(false);
+  };
+  
+  const handleSubitemsClick = () => {
+    console.log(`DIRECT SUBITEMS CLICK - About to set showSubitems to TRUE at ${new Date().toISOString()}`);
+    // Directly set to true, bypassing any callback complexity
     setShowSubitems(true);
-  }, [setShowSubitems]);
-
-  // Debug function to log the current state
-  console.log(`SearchBar render - showSubitems is currently: ${showSubitems}`);
+  };
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
@@ -40,10 +42,7 @@ export default function SearchBar({
           size="sm"
           variant={!showSubitems ? "default" : "outline"}
           className="flex items-center gap-1"
-          onClick={() => {
-            console.log("DIRECT ITEMS CLICK");
-            handleItemsClick();
-          }}
+          onClick={handleItemsClick}
           data-testid="items-toggle-button"
         >
           <Table2 className="h-3.5 w-3.5" />
@@ -53,10 +52,7 @@ export default function SearchBar({
           size="sm"
           variant={showSubitems ? "default" : "outline"}
           className="flex items-center gap-1"
-          onClick={() => {
-            console.log("DIRECT SUBITEMS CLICK");
-            handleSubitemsClick();
-          }}
+          onClick={handleSubitemsClick}
           data-testid="subitems-toggle-button"
         >
           <ListTree className="h-3.5 w-3.5" />
