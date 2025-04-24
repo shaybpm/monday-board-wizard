@@ -19,17 +19,19 @@ export default function SearchBar({
   setShowSubitems,
   selectedCount
 }: SearchBarProps) {
-  // Remove existing console logging as it may be cluttering the console
   
+  console.log(`SearchBar rendered with showSubitems=${showSubitems}`);
+  
+  // Force direct state updates without any conditions
   const handleItemsClick = () => {
+    console.log("ITEMS button clicked - Setting showSubitems to FALSE");
     // Force directly set the value to false
-    console.log("Items button clicked - Setting showSubitems to FALSE");
     setShowSubitems(false);
   };
   
   const handleSubitemsClick = () => {
+    console.log("SUBITEMS button clicked - Setting showSubitems to TRUE");
     // Force directly set the value to true
-    console.log("Subitems button clicked - Setting showSubitems to TRUE");
     setShowSubitems(true);
   };
 

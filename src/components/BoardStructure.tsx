@@ -5,6 +5,7 @@ import SearchBar from "./board/search-bar";
 import ColumnsTable from "./board/columns-table";
 import { ColumnRow } from "./board/types";
 import { useColumnSelect } from "./board/hooks/useColumnSelect";
+import { toast } from "sonner";
 
 interface BoardStructureProps {
   boardData: ParsedBoardData;
@@ -17,25 +18,36 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
   const [showSubitems, setShowSubitems] = useState(false);
   const [columnRows, setColumnRows] = useState<ColumnRow[]>([]);
   
-  // Simplify the structure toggle handler - this was a primary source of the issue
-  const handleShowSubitemsChange = (showSubitemsValue: boolean) => {
-    console.log(`BoardStructure - Setting showSubitems to ${showSubitemsValue}`);
-    setShowSubitems(showSubitemsValue);
+  // Completely rewrite the handler to be more direct
+  const handleShowSubitemsChange = (show: boolean) => {
+    console.log(`BoardStructure - setShowSubitems called with value: ${show}`);
+    setShowSubitems(show);
+    
+    // Notify user of the change
+    toast.info(`View changed to ${show ? 'Subitems' : 'Items'}`);
   };
   
-  // Initial setup and when toggling between items/subitems
+  // Rebuild column rows whenever showSubitems changes or board data updates
   useEffect(() => {
     console.log(`Rebuilding column rows with showSubitems=${showSubitems}`);
     
-    const columnsToDisplay = showSubitems && boardData.subitemColumns
-      ? boardData.subitemColumns 
-      : boardData.columns;
+    let columnsToDisplay;
+    
+    if (showSubitems && boardData.subitemColumns && boardData.subitemColumns.length > 0) {
+      console.log("Using subitem columns:", boardData.subitemColumns.length);
+      columnsToDisplay = boardData.subitemColumns;
+    } else {
+      console.log("Using main board columns:", boardData.columns.length);
+      columnsToDisplay = boardData.columns;
+    }
     
     const newColumnRows = columnsToDisplay.map(column => {
       let example = column.exampleValue || "N/A";
       let itemId = column.itemId || "N/A";
       let itemName = column.itemName || "N/A";
       
+      // When showing subitems but no subitem columns are available,
+      // try to find examples from subitems data
       if (showSubitems && boardData.subitems && boardData.subitems.length > 0 && !boardData.subitemColumns) {
         const subitemWithValue = boardData.subitems.find(subitem => {
           return subitem.columns && subitem.columns[column.id] && 
@@ -70,11 +82,12 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     console.log(`Setting ${newColumnRows.length} column rows, showSubitems=${showSubitems}`);
     setColumnRows(newColumnRows);
     
-  }, [showSubitems, boardData.columns, boardData.subitemColumns, boardData.subitems, initialSelectedColumns]);
+  }, [showSubitems, boardData]);
   
   // Handle initial selected columns
   useEffect(() => {
     if (initialSelectedColumns && initialSelectedColumns.length > 0) {
+      console.log("Setting initial column selection:", initialSelectedColumns.length);
       setColumnRows(prev => 
         prev.map(col => ({
           ...col,
@@ -99,21 +112,25 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
 
   return (
     <div className="space-y-4">
-      <SearchBar 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        showSubitems={showSubitems}
-        setShowSubitems={handleShowSubitemsChange}
-        selectedCount={selectedCount}
-      />
+      <div key={`search-bar-${showSubitems}`}>
+        <SearchBar 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          showSubitems={showSubitems}
+          setShowSubitems={handleShowSubitemsChange}
+          selectedCount={selectedCount}
+        />
+      </div>
       
-      <ColumnsTable 
-        columns={columnRows}
-        searchTerm={searchTerm}
-        showSubitems={showSubitems}
-        onToggleRowSelection={toggleRowSelection}
-        onToggleAllSelection={toggleAllSelection}
-      />
+      <div key={`columns-table-${showSubitems}`}>
+        <ColumnsTable 
+          columns={columnRows}
+          searchTerm={searchTerm}
+          showSubitems={showSubitems}
+          onToggleRowSelection={toggleRowSelection}
+          onToggleAllSelection={toggleAllSelection}
+        />
+      </div>
     </div>
   );
 };
