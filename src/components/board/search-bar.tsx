@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table2, ListTree } from "lucide-react";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface SearchBarProps {
   searchTerm: string;
@@ -19,16 +19,27 @@ export default function SearchBar({
   setShowSubitems,
   selectedCount
 }: SearchBarProps) {
+  // Add local state to ensure we have the correct value
+  const [localShowSubitems, setLocalShowSubitems] = useState(showSubitems);
   
-  console.log(`SearchBar rendered with showSubitems=${showSubitems}`);
+  // Sync local state with props
+  useEffect(() => {
+    if (localShowSubitems !== showSubitems) {
+      setLocalShowSubitems(showSubitems);
+    }
+  }, [showSubitems]);
+  
+  console.log(`SearchBar rendered with showSubitems=${showSubitems}, localShowSubitems=${localShowSubitems}`);
   
   const handleItemsClick = () => {
     console.log("ITEMS button clicked - Setting showSubitems to FALSE");
+    setLocalShowSubitems(false);
     setShowSubitems(false);
   };
   
   const handleSubitemsClick = () => {
     console.log("SUBITEMS button clicked - Setting showSubitems to TRUE");
+    setLocalShowSubitems(true);
     setShowSubitems(true);
   };
 
@@ -42,7 +53,7 @@ export default function SearchBar({
       <div className="flex items-center gap-1.5">
         <Button
           size="sm"
-          variant={!showSubitems ? "default" : "outline"}
+          variant={!localShowSubitems ? "default" : "outline"}
           className="flex items-center gap-1"
           onClick={handleItemsClick}
           data-testid="items-toggle-button"
@@ -52,7 +63,7 @@ export default function SearchBar({
         </Button>
         <Button
           size="sm"
-          variant={showSubitems ? "default" : "outline"}
+          variant={localShowSubitems ? "default" : "outline"}
           className="flex items-center gap-1"
           onClick={handleSubitemsClick}
           data-testid="subitems-toggle-button"
@@ -61,7 +72,7 @@ export default function SearchBar({
           <span>Subitems</span>
         </Button>
         <div className="text-sm ml-2">
-          {showSubitems ? "Subitems" : "Board"} Structure{" "}
+          {localShowSubitems ? "Subitems" : "Board"} Structure{" "}
           {selectedCount > 0 && (
             <span>
               - Selected <strong>{selectedCount}</strong>
