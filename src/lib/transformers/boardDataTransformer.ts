@@ -17,10 +17,8 @@ export const transformBoardData = (
   
   console.log(`Transformed ${transformedItems.length} items and ${transformedSubitems.length} subitems`);
   
-  let subitemColumns = fetchedBoardData.subitemColumns || [];
-  
   // If we have subitems but no subitem columns, extract column definitions from subitems
-  if (transformedSubitems.length > 0 && subitemColumns.length === 0) {
+  if (transformedSubitems.length > 0 && (!fetchedBoardData.subitemColumns || fetchedBoardData.subitemColumns.length === 0)) {
     console.log("Extracting subitem columns from subitems");
     
     // Get a sample subitem to extract column types
@@ -28,30 +26,24 @@ export const transformBoardData = (
     
     if (sampleSubitem && sampleSubitem.columns) {
       // Extract column info from the subitem
-      subitemColumns = Object.values(sampleSubitem.columns).map(col => {
-        // Ensure we have a title
-        const colTitle = col.title || col.id;
-        console.log(`Extracting subitem column: ${col.id}, title: ${colTitle}, type: ${col.type}`);
-        
-        return {
-          id: col.id,
-          title: colTitle, // Use extracted title
-          type: col.type || 'text',
-          exampleValue: col.text || JSON.stringify(col.value) || "",
-          itemId: sampleSubitem.id,
-          itemName: sampleSubitem.name
-        };
-      });
+      const subitemColumns = Object.values(sampleSubitem.columns).map(col => ({
+        id: col.id,
+        title: col.title || col.id,
+        type: col.type,
+        exampleValue: col.text || JSON.stringify(col.value) || "",
+        itemId: sampleSubitem.id,
+        itemName: sampleSubitem.name
+      }));
       
+      fetchedBoardData.subitemColumns = subitemColumns;
       console.log(`Extracted ${subitemColumns.length} subitem columns`);
     }
   }
   
-  // Update board data with transformed items, subitems, and extracted subitem columns
+  // Update board data with transformed items and subitems
   return {
     ...fetchedBoardData,
     items: transformedItems,
-    subitems: transformedSubitems,
-    subitemColumns: subitemColumns
+    subitems: transformedSubitems
   };
 };

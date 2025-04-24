@@ -18,16 +18,11 @@ export const fetchSubitemData = async (
           subitems {
             id
             name
-            parent_item {
-              id
-              name
-            }
             column_values {
               id
               text
               value
               type
-              title
               ... on FormulaValue {
                 display_value
               }
@@ -43,7 +38,6 @@ export const fetchSubitemData = async (
     if (subitemResponse?.data?.items?.[0]?.subitems?.length > 0) {
       const firstSubitem = subitemResponse.data.items[0].subitems[0];
       console.log("First subitem data:", firstSubitem);
-      console.log("First subitem column values:", firstSubitem.column_values);
       
       // Store the subitem columns separately
       const subitemColumns = firstSubitem.column_values.map((cv: any) => {
@@ -52,12 +46,9 @@ export const fetchSubitemData = async (
           cv.display_value : 
           (cv.text || JSON.stringify(cv.value) || "N/A");
         
-        // Log column title information for debugging
-        console.log(`Subitem column ${cv.id} title: ${cv.title || 'undefined'}`);
-        
         return {
           id: cv.id,
-          title: cv.title || cv.id, // Use the title from the API if available
+          title: cv.title || cv.id, // Use id as fallback if title is not available
           type: cv.type || 'text',
           exampleValue: exampleValue,
           itemId: firstSubitem.id,
@@ -83,7 +74,6 @@ export const fetchSubitemData = async (
       firstSubitem.column_values.forEach((cv: any) => {
         transformedSubitem.columns[cv.id] = {
           id: cv.id,
-          title: cv.title || cv.id, // Ensure title property is set with the actual title
           type: cv.type || '',
           value: cv.value || '',
           text: cv.type === 'formula' && cv.display_value ? cv.display_value : cv.text || ''
