@@ -21,16 +21,17 @@ const TableContent: React.FC<TableContentProps> = ({ currentItems, itemsLength }
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-1/5">ID</TableHead>
+            <TableHead className="w-1/6">ID</TableHead>
             <TableHead className="w-1/3">Name</TableHead>
-            <TableHead className="w-1/5">Group / Parent</TableHead>
-            <TableHead className="w-1/5">Type</TableHead>
+            <TableHead className="w-1/4">Group / Parent</TableHead>
+            <TableHead className="w-1/6">Type</TableHead>
+            <TableHead className="w-1/6">Columns</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {currentItems.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+              <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                 No matching items found
               </TableCell>
             </TableRow>
@@ -41,18 +42,33 @@ const TableContent: React.FC<TableContentProps> = ({ currentItems, itemsLength }
                 <TableCell>{item.name}</TableCell>
                 <TableCell>
                   {item.type === "item" ? (
-                    item.groupTitle || "No group"
+                    <span>
+                      {item.groupTitle || "No group"}
+                      {item.groupId && (
+                        <span className="text-xs ml-1 text-muted-foreground">
+                          (ID: {item.groupId})
+                        </span>
+                      )}
+                    </span>
                   ) : (
-                    <span className="text-xs">Parent ID: {item.parentId}</span>
+                    <div>
+                      <span className="text-xs block">Parent ID: {item.parentId}</span>
+                      {/* Could add parent name lookup here if available */}
+                    </div>
                   )}
                 </TableCell>
                 <TableCell>
-                  <span className={`px-1 py-0.5 rounded-sm text-xs ${
+                  <span className={`px-2 py-0.5 rounded-sm text-xs ${
                     item.type === "item" 
                       ? "bg-blue-100 text-blue-700" 
                       : "bg-purple-100 text-purple-700"
                   }`}>
                     {item.type}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-xs text-muted-foreground">
+                    {Object.keys(item.columns).length} columns
                   </span>
                 </TableCell>
               </TableRow>

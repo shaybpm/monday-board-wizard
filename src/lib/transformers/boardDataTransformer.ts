@@ -15,6 +15,31 @@ export const transformBoardData = (
   const transformedItems = transformItems(items);
   const transformedSubitems = transformSubitems(subitems);
   
+  console.log(`Transformed ${transformedItems.length} items and ${transformedSubitems.length} subitems`);
+  
+  // If we have subitems but no subitem columns, extract column definitions from subitems
+  if (transformedSubitems.length > 0 && (!fetchedBoardData.subitemColumns || fetchedBoardData.subitemColumns.length === 0)) {
+    console.log("Extracting subitem columns from subitems");
+    
+    // Get a sample subitem to extract column types
+    const sampleSubitem = transformedSubitems[0];
+    
+    if (sampleSubitem && sampleSubitem.columns) {
+      // Extract column info from the subitem
+      const subitemColumns = Object.values(sampleSubitem.columns).map(col => ({
+        id: col.id,
+        title: col.title || col.id,
+        type: col.type,
+        exampleValue: col.text || JSON.stringify(col.value) || "",
+        itemId: sampleSubitem.id,
+        itemName: sampleSubitem.name
+      }));
+      
+      fetchedBoardData.subitemColumns = subitemColumns;
+      console.log(`Extracted ${subitemColumns.length} subitem columns`);
+    }
+  }
+  
   // Update board data with transformed items and subitems
   return {
     ...fetchedBoardData,

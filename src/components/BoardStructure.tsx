@@ -60,6 +60,56 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     });
   });
   
+  // Update columns when showSubitems changes
+  useEffect(() => {
+    // Get the columns to display based on the toggle
+    const columnsToDisplay = (showSubitems && boardData.subitemColumns) 
+      ? boardData.subitemColumns 
+      : boardData.columns;
+    
+    // Map columns to ColumnRow format
+    const newColumnRows = columnsToDisplay.map(column => {
+      let example = column.exampleValue || "N/A";
+      let itemId = column.itemId || "N/A";
+      let itemName = column.itemName || "N/A";
+      
+      // If we're showing subitems and don't have specific subitem columns, try to get examples from subitems
+      if (showSubitems && boardData.subitems && boardData.subitems.length > 0 && !boardData.subitemColumns) {
+        // Find the first subitem that has a value for this column
+        const subitemWithValue = boardData.subitems.find(subitem => {
+          return subitem.columns && subitem.columns[column.id] && 
+            (subitem.columns[column.id].text || subitem.columns[column.id].value);
+        });
+        
+        if (subitemWithValue) {
+          example = subitemWithValue.columns[column.id].text || 
+                    JSON.stringify(subitemWithValue.columns[column.id].value) || 
+                    "N/A";
+          itemId = subitemWithValue.id || "N/A";
+          itemName = subitemWithValue.name || "N/A";
+        }
+      }
+      
+      // Preserve selection state for columns that exist in both views
+      const existingColumn = columnRows.find(c => c.id === column.id);
+      const isSelected = existingColumn 
+        ? existingColumn.selected 
+        : initialSelectedColumns.includes(column.id);
+      
+      return {
+        id: column.id,
+        title: column.title,
+        type: column.type,
+        firstLineValue: example,
+        itemId: itemId,
+        itemName: itemName,
+        selected: isSelected
+      };
+    });
+    
+    setColumnRows(newColumnRows);
+  }, [showSubitems, boardData.columns, boardData.subitemColumns, boardData.subitems]);
+  
   // Apply initial selection when component mounts or initialSelectedColumns changes
   useEffect(() => {
     if (initialSelectedColumns && initialSelectedColumns.length > 0) {
@@ -78,7 +128,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
   const selectedCount = columnRows.filter(col => col.selected).length;
   
   // Update parent component when selections change
-  React.useEffect(() => {
+  useEffect(() => {
     if (onColumnSelection) {
       const selectedColumnIds = columnRows
         .filter(col => col.selected)
