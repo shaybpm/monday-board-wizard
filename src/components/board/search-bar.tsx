@@ -19,17 +19,16 @@ export default function SearchBar({
   setShowSubitems,
   selectedCount
 }: SearchBarProps) {
-  const handleToggleSubitems = useCallback((event: React.MouseEvent) => {
-    // Prevent default to avoid any form submission
-    event.preventDefault();
-    
-    // Log the toggle action
-    console.log("Toggle button clicked, current state:", showSubitems);
-    console.log("Setting showSubitems to:", !showSubitems);
-    
-    // Call the setter with the new value
-    setShowSubitems(!showSubitems);
-  }, [showSubitems, setShowSubitems]);
+  // Direct value toggle function instead of event-based
+  const handleItemsClick = useCallback(() => {
+    console.log("Items button clicked, setting showSubitems to false");
+    setShowSubitems(false);
+  }, [setShowSubitems]);
+  
+  const handleSubitemsClick = useCallback(() => {
+    console.log("Subitems button clicked, setting showSubitems to true");
+    setShowSubitems(true);
+  }, [setShowSubitems]);
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
@@ -38,7 +37,7 @@ export default function SearchBar({
           size="sm"
           variant={!showSubitems ? "default" : "outline"}
           className="flex items-center gap-1"
-          onClick={handleToggleSubitems}
+          onClick={handleItemsClick}
           data-testid="items-toggle-button"
         >
           <Table2 className="h-3.5 w-3.5" />
@@ -48,7 +47,7 @@ export default function SearchBar({
           size="sm"
           variant={showSubitems ? "default" : "outline"}
           className="flex items-center gap-1"
-          onClick={handleToggleSubitems}
+          onClick={handleSubitemsClick}
           data-testid="subitems-toggle-button"
         >
           <ListTree className="h-3.5 w-3.5" />

@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from "react";
-import { ParsedBoardData, BoardColumn } from "@/lib/types";
+import { ParsedBoardData } from "@/lib/types";
 import SearchBar from "./board/search-bar";
 import ColumnsTable from "./board/columns-table";
 import { ColumnRow } from "./board/types";
@@ -112,7 +112,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     
     console.log("Setting new column rows:", newColumnRows.length);
     setColumnRows(newColumnRows);
-  }, [showSubitems, boardData.columns, boardData.subitemColumns, boardData.subitems, initialSelectedColumns]);
+  }, [showSubitems, boardData.columns, boardData.subitemColumns, boardData.subitems, initialSelectedColumns, columnRows]);
   
   // Apply initial selection when component mounts or initialSelectedColumns changes
   useEffect(() => {
@@ -141,10 +141,8 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     }
   }, [columnRows, onColumnSelection]);
 
-  const handleToggleSubitems = useCallback((value: boolean) => {
-    console.log("Toggle subitems called with value:", value);
-    setShowSubitems(value);
-  }, []);
+  // Use direct setShowSubitems instead of a wrapper function
+  console.log("Current showSubitems state:", showSubitems);
 
   return (
     <div className="space-y-4">
@@ -152,7 +150,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         showSubitems={showSubitems}
-        setShowSubitems={handleToggleSubitems}
+        setShowSubitems={setShowSubitems}
         selectedCount={selectedCount}
       />
       
