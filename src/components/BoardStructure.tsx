@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
+
+import React, { useState, useEffect } from "react";
 import { ParsedBoardData } from "@/lib/types";
 import SearchBar from "./board/search-bar";
 import ColumnsTable from "./board/columns-table";
@@ -14,66 +15,21 @@ interface BoardStructureProps {
 const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSelection, initialSelectedColumns = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSubitems, setShowSubitems] = useState(false);
+  const [columnRows, setColumnRows] = useState<ColumnRow[]>([]);
   
-  console.log(`BoardStructure - Initial showSubitems state: ${showSubitems}`);
-  
-  const handleShowSubitemsChange = (show: boolean) => {
-    console.log(`BoardStructure - handleShowSubitemsChange called with value: ${show} at ${new Date().toISOString()}`);
-    console.log(`BoardStructure - BEFORE update: showSubitems = ${showSubitems}`);
-    setShowSubitems(show);
-    console.log(`BoardStructure - AFTER update: called setShowSubitems(${show})`);
-    
-    setTimeout(() => {
-      console.log(`BoardStructure - setTimeout callback: current showSubitems = ${showSubitems}`);
-    }, 100);
+  // Simplify the structure toggle handler - this was a primary source of the issue
+  const handleShowSubitemsChange = (showSubitemsValue: boolean) => {
+    console.log(`BoardStructure - Setting showSubitems to ${showSubitemsValue}`);
+    setShowSubitems(showSubitemsValue);
   };
   
-  const [columnRows, setColumnRows] = useState<ColumnRow[]>(() => {
-    const columnsToDisplay = (showSubitems && boardData.subitemColumns) 
-      ? boardData.subitemColumns 
-      : boardData.columns;
-    
-    return columnsToDisplay.map(column => {
-      let example = column.exampleValue || "N/A";
-      let itemId = column.itemId || "N/A";
-      let itemName = column.itemName || "N/A";
-      
-      if (showSubitems && boardData.subitems && boardData.subitems.length > 0 && !boardData.subitemColumns) {
-        const subitemWithValue = boardData.subitems.find(subitem => {
-          return subitem.columns && subitem.columns[column.id] && 
-            (subitem.columns[column.id].text || subitem.columns[column.id].value);
-        });
-        
-        if (subitemWithValue) {
-          example = subitemWithValue.columns[column.id].text || 
-                    JSON.stringify(subitemWithValue.columns[column.id].value) || 
-                    "N/A";
-          itemId = subitemWithValue.id || "N/A";
-          itemName = subitemWithValue.name || "N/A";
-        }
-      }
-      
-      const isSelected = initialSelectedColumns.includes(column.id);
-      
-      return {
-        id: column.id,
-        title: column.title,
-        type: column.type,
-        firstLineValue: example,
-        itemId: itemId,
-        itemName: itemName,
-        selected: isSelected
-      };
-    });
-  });
-  
+  // Initial setup and when toggling between items/subitems
   useEffect(() => {
-    const columnsToDisplay = (showSubitems && boardData.subitemColumns) 
+    console.log(`Rebuilding column rows with showSubitems=${showSubitems}`);
+    
+    const columnsToDisplay = showSubitems && boardData.subitemColumns
       ? boardData.subitemColumns 
       : boardData.columns;
-    
-    console.log("Toggle changed: showing", showSubitems ? "subitems" : "items", "at", new Date().toISOString());
-    console.log("Columns to display:", columnsToDisplay);
     
     const newColumnRows = columnsToDisplay.map(column => {
       let example = column.exampleValue || "N/A";
@@ -111,10 +67,12 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
       };
     });
     
-    console.log("Setting new column rows:", columnsToDisplay.length);
+    console.log(`Setting ${newColumnRows.length} column rows, showSubitems=${showSubitems}`);
     setColumnRows(newColumnRows);
+    
   }, [showSubitems, boardData.columns, boardData.subitemColumns, boardData.subitems, initialSelectedColumns]);
   
+  // Handle initial selected columns
   useEffect(() => {
     if (initialSelectedColumns && initialSelectedColumns.length > 0) {
       setColumnRows(prev => 

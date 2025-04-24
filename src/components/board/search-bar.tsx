@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table2, ListTree } from "lucide-react";
-import React, { useCallback } from 'react';
+import React from 'react';
 
 interface SearchBarProps {
   searchTerm: string;
@@ -19,19 +19,17 @@ export default function SearchBar({
   setShowSubitems,
   selectedCount
 }: SearchBarProps) {
-  // Log when the component renders with current state
-  console.log(`SearchBar render - showSubitems is currently: ${showSubitems} at ${new Date().toISOString()}`);
+  // Remove existing console logging as it may be cluttering the console
   
-  // Simplify the handlers and make them more direct
   const handleItemsClick = () => {
-    console.log(`DIRECT ITEMS CLICK - About to set showSubitems to FALSE at ${new Date().toISOString()}`);
-    // Directly set to false, bypassing any callback complexity
+    // Force directly set the value to false
+    console.log("Items button clicked - Setting showSubitems to FALSE");
     setShowSubitems(false);
   };
   
   const handleSubitemsClick = () => {
-    console.log(`DIRECT SUBITEMS CLICK - About to set showSubitems to TRUE at ${new Date().toISOString()}`);
-    // Directly set to true, bypassing any callback complexity
+    // Force directly set the value to true
+    console.log("Subitems button clicked - Setting showSubitems to TRUE");
     setShowSubitems(true);
   };
 
