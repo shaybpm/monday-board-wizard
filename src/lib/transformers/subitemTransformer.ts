@@ -17,7 +17,7 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
     
     const transformedSubitem: BoardItem = {
       id: subitem.id,
-      name: subitem.name,
+      name: subitem.name || 'Unnamed Subitem',
       type: "subitem",
       parentId: subitem.parent_item?.id || '',
       groupId: '',
@@ -28,19 +28,26 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
     // Transform column values into the expected format
     if (subitem.column_values && Array.isArray(subitem.column_values)) {
       subitem.column_values.forEach((cv: any) => {
+        // Skip columns with no title or ID
+        if (!cv.id) {
+          console.warn(`Subitem column missing ID, skipping`);
+          return;
+        }
+        
         // For formula columns, use display_value if available
-        const displayText = cv.type === 'formula' && cv.display_value ? 
-          cv.display_value : cv.text || '';
+        const displayText = cv.type === 'formula' && cv.display_value
+          ? cv.display_value 
+          : (cv.text || '');
           
         // Ensure we have a title for the column (use API provided title or fallback to ID)
         const columnTitle = cv.title || cv.id;
         
         console.log(`Subitem ${subitem.id} column ${cv.id} title: ${columnTitle}, type: ${cv.type || 'unknown'}`);
-          
+        
         transformedSubitem.columns[cv.id] = {
           id: cv.id,
           title: columnTitle,
-          type: cv.type || '',
+          type: cv.type || 'text',
           value: cv.value || '',
           text: displayText
         };

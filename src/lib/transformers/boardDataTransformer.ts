@@ -17,8 +17,10 @@ export const transformBoardData = (
   
   console.log(`Transformed ${transformedItems.length} items and ${transformedSubitems.length} subitems`);
   
+  let subitemColumns = fetchedBoardData.subitemColumns || [];
+  
   // If we have subitems but no subitem columns, extract column definitions from subitems
-  if (transformedSubitems.length > 0 && (!fetchedBoardData.subitemColumns || fetchedBoardData.subitemColumns.length === 0)) {
+  if (transformedSubitems.length > 0 && subitemColumns.length === 0) {
     console.log("Extracting subitem columns from subitems");
     
     // Get a sample subitem to extract column types
@@ -26,11 +28,13 @@ export const transformBoardData = (
     
     if (sampleSubitem && sampleSubitem.columns) {
       // Extract column info from the subitem
-      const subitemColumns = Object.values(sampleSubitem.columns).map(col => {
-        console.log(`Extracting column info: ${col.id}, title: ${col.title || col.id}`);
+      subitemColumns = Object.values(sampleSubitem.columns).map(col => {
+        const colTitle = col.title || col.id; // Ensure we have a title
+        console.log(`Extracting column info: ${col.id}, title: ${colTitle}`);
+        
         return {
           id: col.id,
-          title: col.title || col.id, // Use title from column or fall back to ID
+          title: colTitle,
           type: col.type || 'text',
           exampleValue: col.text || JSON.stringify(col.value) || "",
           itemId: sampleSubitem.id,
@@ -38,15 +42,15 @@ export const transformBoardData = (
         };
       });
       
-      fetchedBoardData.subitemColumns = subitemColumns;
       console.log(`Extracted ${subitemColumns.length} subitem columns`);
     }
   }
   
-  // Update board data with transformed items and subitems
+  // Update board data with transformed items, subitems, and extracted subitem columns
   return {
     ...fetchedBoardData,
     items: transformedItems,
-    subitems: transformedSubitems
+    subitems: transformedSubitems,
+    subitemColumns: subitemColumns
   };
 };
