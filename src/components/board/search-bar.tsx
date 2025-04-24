@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table2, ListTree } from "lucide-react";
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface SearchBarProps {
   searchTerm: string;
@@ -22,18 +22,20 @@ export default function SearchBar({
   
   console.log(`SearchBar rendered with showSubitems=${showSubitems}`);
   
-  // Force direct state updates without any conditions
   const handleItemsClick = () => {
     console.log("ITEMS button clicked - Setting showSubitems to FALSE");
-    // Force directly set the value to false
     setShowSubitems(false);
   };
   
   const handleSubitemsClick = () => {
     console.log("SUBITEMS button clicked - Setting showSubitems to TRUE");
-    // Force directly set the value to true
     setShowSubitems(true);
   };
+
+  // Force a re-render whenever the showSubitems prop changes
+  useEffect(() => {
+    console.log(`SearchBar received prop update: showSubitems=${showSubitems}`);
+  }, [showSubitems]);
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">

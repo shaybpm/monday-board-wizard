@@ -17,19 +17,28 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
   const [searchTerm, setSearchTerm] = useState("");
   const [showSubitems, setShowSubitems] = useState(false);
   const [columnRows, setColumnRows] = useState<ColumnRow[]>([]);
+  const [key, setKey] = useState(0); // Add a key state to force re-render
   
-  // Completely rewrite the handler to be more direct
+  // Handle show subitems state change
   const handleShowSubitemsChange = (show: boolean) => {
-    console.log(`BoardStructure - setShowSubitems called with value: ${show}`);
-    setShowSubitems(show);
+    console.log(`BoardStructure - handling setShowSubitems with value: ${show}, current state: ${showSubitems}`);
     
-    // Notify user of the change
-    toast.info(`View changed to ${show ? 'Subitems' : 'Items'}`);
+    if (showSubitems !== show) {
+      setShowSubitems(show);
+      
+      // Force a complete re-render by changing the key
+      setKey(prevKey => prevKey + 1);
+      
+      // Show a toast notification
+      toast.info(`Switched to ${show ? 'Subitems' : 'Items'} view`);
+      
+      console.log(`State updated: showSubitems = ${show}`);
+    }
   };
   
   // Rebuild column rows whenever showSubitems changes or board data updates
   useEffect(() => {
-    console.log(`Rebuilding column rows with showSubitems=${showSubitems}`);
+    console.log(`Rebuilding column rows with showSubitems=${showSubitems}, key=${key}`);
     
     let columnsToDisplay;
     
@@ -82,7 +91,7 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     console.log(`Setting ${newColumnRows.length} column rows, showSubitems=${showSubitems}`);
     setColumnRows(newColumnRows);
     
-  }, [showSubitems, boardData]);
+  }, [showSubitems, boardData, key]); // Add key to dependencies
   
   // Handle initial selected columns
   useEffect(() => {
@@ -110,27 +119,29 @@ const BoardStructure: React.FC<BoardStructureProps> = ({ boardData, onColumnSele
     }
   }, [columnRows, onColumnSelection]);
 
+  // Debug the current state
+  useEffect(() => {
+    console.log(`Current state: showSubitems=${showSubitems}, columns=${columnRows.length}, key=${key}`);
+  }, [showSubitems, columnRows, key]);
+
   return (
-    <div className="space-y-4">
-      <div key={`search-bar-${showSubitems}`}>
-        <SearchBar 
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          showSubitems={showSubitems}
-          setShowSubitems={handleShowSubitemsChange}
-          selectedCount={selectedCount}
-        />
-      </div>
+    <div className="space-y-4" key={`board-structure-${key}`}>
+      <SearchBar 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        showSubitems={showSubitems}
+        setShowSubitems={handleShowSubitemsChange}
+        selectedCount={selectedCount}
+      />
       
-      <div key={`columns-table-${showSubitems}`}>
-        <ColumnsTable 
-          columns={columnRows}
-          searchTerm={searchTerm}
-          showSubitems={showSubitems}
-          onToggleRowSelection={toggleRowSelection}
-          onToggleAllSelection={toggleAllSelection}
-        />
-      </div>
+      <ColumnsTable 
+        columns={columnRows}
+        searchTerm={searchTerm}
+        showSubitems={showSubitems}
+        onToggleRowSelection={toggleRowSelection}
+        onToggleAllSelection={toggleAllSelection}
+        key={`columns-table-${key}-${showSubitems}`}
+      />
     </div>
   );
 };
