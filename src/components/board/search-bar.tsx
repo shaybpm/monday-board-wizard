@@ -19,14 +19,14 @@ export default function SearchBar({
   setShowSubitems,
   selectedCount
 }: SearchBarProps) {
-  // Direct value toggle function instead of event-based
+  // Define two separate handler functions for clarity
   const handleItemsClick = useCallback(() => {
-    console.log("Items button clicked, setting showSubitems to false");
+    console.log(`Items button clicked at ${new Date().toISOString()}, setting showSubitems to false`);
     setShowSubitems(false);
   }, [setShowSubitems]);
   
   const handleSubitemsClick = useCallback(() => {
-    console.log("Subitems button clicked, setting showSubitems to true");
+    console.log(`Subitems button clicked at ${new Date().toISOString()}, setting showSubitems to true`);
     setShowSubitems(true);
   }, [setShowSubitems]);
 
