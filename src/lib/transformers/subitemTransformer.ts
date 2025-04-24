@@ -25,7 +25,7 @@ export const transformSubitems = (subitems: any[]): BoardItem[] => {
           
         transformedSubitem.columns[cv.id] = {
           id: cv.id,
-          title: cv.title || cv.id, // Ensure title property is set (use id as fallback)
+          title: cv.title || cv.id, // Ensure title property is set properly
           type: cv.type || '',
           value: cv.value || '',
           text: displayText

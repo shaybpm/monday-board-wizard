@@ -28,7 +28,7 @@ export const transformBoardData = (
       // Extract column info from the subitem
       const subitemColumns = Object.values(sampleSubitem.columns).map(col => ({
         id: col.id,
-        title: col.title || col.id,
+        title: col.title || col.id, // Use title from column or fall back to ID
         type: col.type,
         exampleValue: col.text || JSON.stringify(col.value) || "",
         itemId: sampleSubitem.id,
